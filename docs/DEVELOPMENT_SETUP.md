@@ -74,10 +74,18 @@ cargo run --bin uniffi-bindgen generate \
 
 ### Cross-Compile for Android
 ```bash
-# Requires Android NDK — set ANDROID_NDK_HOME
+# Option 1: Use the build script (auto-detects NDK, installs targets, copies to jniLibs)
+./scripts/build-android.sh              # All targets, release
+./scripts/build-android.sh --debug      # All targets, debug
+./scripts/build-android.sh arm64        # Only arm64-v8a
+
+# Option 2: Manual (requires ANDROID_NDK_HOME set)
 cargo build --target aarch64-linux-android --release
 cargo build --target armv7-linux-androideabi --release
 cargo build --target x86_64-linux-android --release
+
+# Option 3: CI/CD — push to main, GitHub Actions builds automatically
+# Artifacts: libflare_core.so per ABI + debug APK
 ```
 
 ### Android App

@@ -34,6 +34,9 @@
     <!-- Wake lock for maintaining BLE connections -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
+    <!-- Camera for QR code scanning -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
     <!-- BLE feature declaration (not required, allows install on non-BLE devices) -->
     <uses-feature
         android:name="android.hardware.bluetooth_le"

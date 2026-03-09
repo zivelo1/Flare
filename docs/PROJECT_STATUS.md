@@ -57,16 +57,25 @@
 - [x] .gitignore (secrets, venv, .claude, IDE files excluded)
 - [x] Documentation (feasibility, architecture decisions, dev setup)
 
+### CI/CD Pipeline
+- [x] GitHub Actions workflow: Rust tests, cross-compilation (aarch64, armv7, x86_64), Kotlin binding generation, APK build
+- [x] Build script (`scripts/build-android.sh`) for local cross-compilation with NDK auto-detection
+
+### QR Code Contact Exchange
+- [x] QR display screen — shows device identity as QR code with safety number
+- [x] QR scanner screen — CameraX + ML Kit barcode scanning with format validation
+- [x] Navigation wired — scanner and display accessible from Contacts tab
+- [x] Camera permission handling with runtime request
+- [x] QR format validation (device ID + 32-byte signing key + 32-byte agreement key)
+
 ## What's Next (Phase 1 Remaining)
-- [ ] Cross-compile Rust to Android targets (aarch64, armv7, x86_64)
-- [ ] Load `.so` library in Android app at runtime
+- [ ] Install Android NDK locally or rely on CI/CD for cross-compilation
 - [ ] Integration test: Two physical Android devices, encrypted chat over BLE
-- [ ] QR code scanner/display for contact exchange
 
 ## Phase Overview
 | Phase | Scope | Status |
 |---|---|---|
-| 1 — Foundation | Rust core + Android BLE + UI + UniFFI bridge | **In Progress** (adaptive TTL + neighborhood detection complete) |
+| 1 — Foundation | Rust core + Android BLE + UI + UniFFI bridge | **In Progress** (CI/CD + QR exchange complete, awaiting device test) |
 | 2 — Multi-Hop & iOS | Relay routing + iOS app + cross-platform | Not started |
 | 3 — Full Messaging | Groups, voice msgs, images, receipts | Not started |
 | 4 — Security & Distribution | Duress PIN, camouflage, offline install | Not started |

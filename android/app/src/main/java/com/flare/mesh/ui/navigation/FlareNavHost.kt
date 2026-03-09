@@ -21,10 +21,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.flare.mesh.R
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flare.mesh.ui.chat.ConversationListScreen
 import com.flare.mesh.ui.chat.ChatScreen
 import com.flare.mesh.ui.contacts.ContactsScreen
+import com.flare.mesh.ui.contacts.QrDisplayScreen
+import com.flare.mesh.ui.contacts.QrScannerScreen
 import com.flare.mesh.ui.settings.NetworkScreen
+import com.flare.mesh.viewmodel.ContactsViewModel
 
 /**
  * Navigation routes for the Flare app.
@@ -117,6 +121,32 @@ fun FlareNavHost(
                     onContactClick = { deviceId ->
                         navController.navigate("chat/$deviceId")
                     },
+                    onNavigateToScanner = {
+                        navController.navigate("qr-scanner")
+                    },
+                    onNavigateToMyQr = {
+                        navController.navigate("qr-display")
+                    },
+                )
+            }
+
+            composable("qr-scanner") {
+                val contactsViewModel: ContactsViewModel = viewModel()
+                QrScannerScreen(
+                    onQrScanned = { qrData ->
+                        contactsViewModel.addContactFromQr(qrData)
+                        navController.popBackStack()
+                    },
+                    onNavigateBack = { navController.popBackStack() },
+                )
+            }
+
+            composable("qr-display") {
+                val contactsViewModel: ContactsViewModel = viewModel()
+                QrDisplayScreen(
+                    qrData = contactsViewModel.generateQrData(),
+                    safetyNumber = contactsViewModel.getSafetyNumber(),
+                    onNavigateBack = { navController.popBackStack() },
                 )
             }
 

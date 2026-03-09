@@ -29,6 +29,8 @@ import java.time.Instant
 @Composable
 fun ContactsScreen(
     onContactClick: (String) -> Unit,
+    onNavigateToScanner: () -> Unit,
+    onNavigateToMyQr: () -> Unit,
     contactsViewModel: ContactsViewModel = viewModel(),
 ) {
     val meshStatus by contactsViewModel.meshStatus.collectAsState()
@@ -48,13 +50,13 @@ fun ContactsScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: QR scanner */ }) {
+                    IconButton(onClick = onNavigateToScanner) {
                         Icon(
                             Icons.Default.QrCodeScanner,
                             contentDescription = stringResource(R.string.action_scan_qr),
                         )
                     }
-                    IconButton(onClick = { /* TODO: Show QR */ }) {
+                    IconButton(onClick = onNavigateToMyQr) {
                         Icon(
                             Icons.Default.QrCode,
                             contentDescription = stringResource(R.string.action_show_qr),

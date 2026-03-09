@@ -67,6 +67,17 @@ object Constants {
     /** Notification channel ID for incoming messages. */
     const val MESSAGE_CHANNEL_ID: String = "flare_messages"
 
+    // ── QR Code ──────────────────────────────────────────────────────
+
+    /** Separator character used in Flare QR code data strings. */
+    const val QR_DATA_SEPARATOR: String = "|"
+
+    /** Minimum number of fields in a valid Flare QR code. */
+    const val QR_MIN_FIELDS: Int = 3
+
+    /** Expected length of hex-encoded public keys (32 bytes = 64 hex chars). */
+    const val HEX_PUBLIC_KEY_LENGTH: Int = 64
+
     // ── Crypto ────────────────────────────────────────────────────────
 
     /** Length of the device ID in bytes. */

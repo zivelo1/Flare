@@ -6,6 +6,7 @@ import com.flare.mesh.data.model.Contact
 import com.flare.mesh.data.model.DeviceIdentity
 import com.flare.mesh.data.repository.FlareRepository
 import com.flare.mesh.service.MeshService
+import com.flare.mesh.util.Constants
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -38,9 +39,9 @@ class ContactsViewModel : ViewModel() {
     fun addContactFromQr(qrData: String) {
         viewModelScope.launch {
             try {
-                val parts = qrData.split("|")
-                if (parts.size < 3) {
-                    Timber.w("Invalid QR data format")
+                val parts = qrData.split(Constants.QR_DATA_SEPARATOR)
+                if (parts.size < Constants.QR_MIN_FIELDS) {
+                    Timber.w("Invalid QR data format: expected at least %d fields", Constants.QR_MIN_FIELDS)
                     return@launch
                 }
 
@@ -72,7 +73,7 @@ class ContactsViewModel : ViewModel() {
             identity.deviceId,
             bytesToHex(identity.signingPublicKey),
             bytesToHex(identity.agreementPublicKey),
-        ).joinToString("|")
+        ).joinToString(Constants.QR_DATA_SEPARATOR)
     }
 
     fun refreshContacts() {

@@ -63,10 +63,16 @@ Each phone acts as both a messenger and a relay. Messages hop from phone to phon
 **Android App** (Kotlin + Jetpack Compose):
 - BLE GATT server (advertise + accept) and client (scan + connect)
 - Material 3 UI with chat bubbles, contacts, network dashboard
+- QR code scanner (CameraX + ML Kit) and display (ZXing) for contact exchange
 - Foreground service with message routing via Rust core
 - Neighborhood bitmap exchange on peer connect for bridge detection
 - ViewModels wired to FlareRepository for real encrypted messaging
 - Full BLE permission handling (Android 12+ and legacy)
+
+**CI/CD** (GitHub Actions):
+- Rust tests, clippy, formatting checks
+- Cross-compilation for Android (arm64-v8a, armeabi-v7a, x86_64)
+- Kotlin binding generation and debug APK build
 
 See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for detailed progress.
 

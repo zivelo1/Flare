@@ -82,6 +82,13 @@ dependencies {
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 
+    // CameraX (for QR scanner preview)
+    val cameraxVersion = "1.4.1"
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
+    implementation("androidx.camera:camera-mlkit-vision:$cameraxVersion")
+
     // JSON serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 

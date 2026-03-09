@@ -24,4 +24,15 @@
     <string name="network_status_active">Mesh Active</string>
     <string name="network_status_inactive">Mesh Inactive</string>
     <string name="peer_count_format">%d peers nearby</string>
+    <string name="qr_my_code_title">My Flare QR Code</string>
+    <string name="qr_my_code_subtitle">Let your contact scan this code</string>
+    <string name="qr_scanner_title">Scan QR Code</string>
+    <string name="qr_scanner_instruction">Point the camera at a Flare QR code</string>
+    <string name="qr_contact_added">Contact added successfully</string>
+    <string name="qr_invalid_code">Not a valid Flare QR code</string>
+    <string name="qr_camera_permission_needed">Camera permission is required to scan QR codes</string>
+    <string name="qr_safety_number_label">Safety number</string>
+    <string name="qr_share_code">Share QR Code</string>
+    <string name="action_close">Close</string>
+    <string name="action_done">Done</string>
 </resources>
