@@ -70,6 +70,9 @@ pub struct FfiMeshMessage {
     pub recipient_id: String,
     pub hop_count: u8,
     pub max_hops: u8,
+    /// The encrypted payload bytes from the mesh message envelope.
+    /// Pass this to decrypt_incoming_message() — NOT the full serialized frame.
+    pub payload: Vec<u8>,
 }
 
 #[derive(uniffi::Enum)]
@@ -265,6 +268,7 @@ impl FlareNode {
         .payload(encrypted_payload)
         .build(|data| self.identity.sign(data));
 
+        let payload = msg.payload.clone();
         let serialized = msg.to_bytes()
             .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
 
@@ -279,6 +283,7 @@ impl FlareNode {
             recipient_id: msg.recipient_id.to_hex(),
             hop_count: msg.hop_count,
             max_hops: msg.max_hops,
+            payload,
         })
     }
 
@@ -297,6 +302,7 @@ impl FlareNode {
                     recipient_id: msg.recipient_id.to_hex(),
                     hop_count: msg.hop_count,
                     max_hops: msg.max_hops,
+                    payload: msg.payload,
                 }))
             }
             Err(_) => Ok(None),
@@ -411,10 +417,28 @@ impl FlareNode {
         ).map_err(|e| FlareError::StorageError { msg: e.to_string() })
     }
 
-    /// Gets all messages for a conversation.
-    pub fn get_messages_for_conversation(&self, _conversation_id: String) -> Result<Vec<FfiChatMessage>, FlareError> {
-        // TODO: Implement conversation query in database
-        Ok(Vec::new())
+    /// Gets all messages for a conversation, ordered by creation time.
+    pub fn get_messages_for_conversation(&self, conversation_id: String) -> Result<Vec<FfiChatMessage>, FlareError> {
+        let db = self.db.lock().expect("db lock");
+        let messages = db.get_messages_for_conversation(&conversation_id)
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })?;
+
+        Ok(messages.into_iter().map(|(msg_id, conv_id, sender_id, _content_type, plaintext, created_at, is_outgoing, delivery_status)| {
+            let content = String::from_utf8(plaintext).unwrap_or_default();
+            let timestamp_ms = chrono::DateTime::parse_from_rfc3339(&created_at)
+                .map(|dt| dt.timestamp_millis())
+                .unwrap_or(0);
+
+            FfiChatMessage {
+                message_id: msg_id,
+                conversation_id: conv_id,
+                sender_device_id: sender_id,
+                content,
+                timestamp_ms,
+                is_outgoing,
+                delivery_status,
+            }
+        }).collect())
     }
 
     /// Queues an outbound message for delivery.

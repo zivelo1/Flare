@@ -51,8 +51,8 @@ Each phone acts as both a messenger and a relay. Messages hop from phone to phon
 - Neighborhood Bloom Filter for privacy-preserving bridge detection (no GPS)
 - Priority message store with 50MB budget and 3-tier eviction
 - Delivery ACK processing for relay cleanup
-- SQLCipher encrypted database, BLE chunking
-- UniFFI FFI layer with `FlareNode` object for mobile binding
+- SQLCipher encrypted database with conversation query, BLE chunking
+- UniFFI FFI layer with `FlareNode` object, payload extraction, message persistence
 
 **UniFFI Bridge** (Rust → Kotlin):
 - Auto-generated Kotlin bindings from compiled Rust library
@@ -65,8 +65,10 @@ Each phone acts as both a messenger and a relay. Messages hop from phone to phon
 - Material 3 UI with chat bubbles, contacts, network dashboard
 - QR code scanner (CameraX + ML Kit) and display (ZXing) for contact exchange
 - Foreground service with message routing via Rust core
+- Full incoming message pipeline: decrypt → persist → notify UI
 - Neighborhood bitmap exchange on peer connect for bridge detection
 - ViewModels wired to FlareRepository for real encrypted messaging
+- ProGuard rules for JNA/UniFFI release build safety
 - Full BLE permission handling (Android 12+ and legacy)
 
 **CI/CD** (GitHub Actions):

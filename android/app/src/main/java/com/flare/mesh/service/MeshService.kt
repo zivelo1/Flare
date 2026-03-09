@@ -57,6 +57,9 @@ class MeshService : LifecycleService() {
 
         private val _outboundQueue = MutableSharedFlow<OutboundMessage>(extraBufferCapacity = 64)
 
+        private val _incomingDelivered = MutableSharedFlow<DeliveredMessage>(extraBufferCapacity = 64)
+        val incomingDelivered: SharedFlow<DeliveredMessage> = _incomingDelivered.asSharedFlow()
+
         fun start(context: Context) {
             val intent = Intent(context, MeshService::class.java)
             context.startForegroundService(intent)
@@ -76,6 +79,7 @@ class MeshService : LifecycleService() {
     }
 
     data class OutboundMessage(val recipientDeviceId: String, val data: ByteArray)
+    data class DeliveredMessage(val senderId: String, val plaintext: String)
 
     override fun onCreate() {
         super.onCreate()
@@ -243,7 +247,11 @@ class MeshService : LifecycleService() {
             when (result.decision) {
                 RouteDecisionType.DELIVER_LOCALLY -> {
                     Timber.i("Message delivered locally from %s", result.senderId)
-                    // TODO: Notify ChatViewModel of new incoming message
+                    if (result.senderId != null && result.plaintext != null) {
+                        _incomingDelivered.tryEmit(
+                            DeliveredMessage(result.senderId, result.plaintext)
+                        )
+                    }
                 }
 
                 RouteDecisionType.FORWARD -> {

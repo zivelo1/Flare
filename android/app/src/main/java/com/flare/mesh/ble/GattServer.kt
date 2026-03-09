@@ -181,8 +181,12 @@ class GattServer(private val context: Context) {
         val characteristic = service.getCharacteristic(Constants.CHAR_MESSAGE_NOTIFY_UUID) ?: return false
 
         return try {
-            server.notifyCharacteristicChanged(device, characteristic, false, data)
-            BluetoothStatusCodes.SUCCESS == BluetoothStatusCodes.SUCCESS
+            val statusCode = server.notifyCharacteristicChanged(device, characteristic, false, data)
+            val success = statusCode == BluetoothStatusCodes.SUCCESS
+            if (!success) {
+                Timber.w("Notify peer %s returned status %d", address, statusCode)
+            }
+            success
         } catch (e: SecurityException) {
             Timber.e(e, "Failed to notify peer %s", address)
             false

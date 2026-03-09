@@ -81,8 +81,12 @@ class GattClient(private val context: Context) {
 
         return try {
             val writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-            gatt.writeCharacteristic(characteristic, data, writeType)
-            BluetoothStatusCodes.SUCCESS == BluetoothStatusCodes.SUCCESS
+            val statusCode = gatt.writeCharacteristic(characteristic, data, writeType)
+            val success = statusCode == BluetoothStatusCodes.SUCCESS
+            if (!success) {
+                Timber.w("Write to %s returned status %d", address, statusCode)
+            }
+            success
         } catch (e: SecurityException) {
             Timber.e(e, "Write permission denied for %s", address)
             false

@@ -109,7 +109,8 @@ BLE ← MeshService ← outbound queue ← encrypt + build mesh message
   ↓
 Peer GATT → incoming data → MeshService → FlareNode.routeIncoming()
                                               ↓
-                              DeliverLocally / Forward / Store / Drop
+                              DeliverLocally → decrypt payload → store in DB → notify ChatViewModel
+                              Forward / Store / Drop
 
 Peer Connect → exchange neighborhood bitmaps → detect bridge encounter
                                                     ↓

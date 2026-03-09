@@ -137,9 +137,24 @@ class FlareRepository private constructor(private val node: FlareNode) {
                             node.decryptIncomingMessage(
                                 parsed.senderId,
                                 it.identity.agreementPublicKey,
-                                rawData, // Note: need actual encrypted payload extraction
+                                parsed.payload,
                             )
                         }
+
+                        // Store the decrypted message in the database
+                        if (plaintext != null) {
+                            val messageId = parsed.messageId
+                            node.storeChatMessage(FfiChatMessage(
+                                messageId = messageId,
+                                conversationId = parsed.senderId,
+                                senderDeviceId = parsed.senderId,
+                                content = plaintext,
+                                timestampMs = Instant.now().toEpochMilli(),
+                                isOutgoing = false,
+                                deliveryStatus = DeliveryStatus.DELIVERED.ordinal.toUByte(),
+                            ))
+                        }
+
                         IncomingMessageResult(
                             decision = RouteDecisionType.DELIVER_LOCALLY,
                             senderId = parsed.senderId,
@@ -175,6 +190,26 @@ class FlareRepository private constructor(private val node: FlareNode) {
     fun notifyPeerConnected(deviceId: String) {
         node.notifyPeerConnected(deviceId)
     }
+
+    /**
+     * Loads persisted chat messages for a conversation from the encrypted database.
+     */
+    suspend fun getMessagesForConversation(conversationId: String): List<ChatMessage> =
+        withContext(Dispatchers.IO) {
+            node.getMessagesForConversation(conversationId).map { ffi ->
+                ChatMessage(
+                    messageId = ffi.messageId,
+                    conversationId = ffi.conversationId,
+                    senderDeviceId = ffi.senderDeviceId,
+                    content = ffi.content,
+                    timestamp = Instant.ofEpochMilli(ffi.timestampMs),
+                    isOutgoing = ffi.isOutgoing,
+                    deliveryStatus = DeliveryStatus.entries.getOrElse(ffi.deliveryStatus.toInt()) {
+                        DeliveryStatus.PENDING
+                    },
+                )
+            }
+        }
 
     // ── Contacts ──────────────────────────────────────────────────────
 

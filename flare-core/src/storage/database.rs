@@ -284,6 +284,35 @@ impl FlareDatabase {
         Ok(())
     }
 
+    /// Gets all messages for a conversation, ordered by creation time.
+    pub fn get_messages_for_conversation(
+        &self,
+        conversation_id: &str,
+    ) -> Result<Vec<(String, String, String, u8, Vec<u8>, String, bool, u8)>, DatabaseError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT message_id, conversation_id, sender_device_id, content_type,
+                    plaintext, created_at, is_outgoing, delivery_status
+             FROM messages
+             WHERE conversation_id = ?1
+             ORDER BY created_at ASC"
+        )?;
+
+        let messages = stmt.query_map(params![conversation_id], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+                row.get::<_, u8>(3)?,
+                row.get::<_, Vec<u8>>(4)?,
+                row.get::<_, String>(5)?,
+                row.get::<_, bool>(6)?,
+                row.get::<_, u8>(7)?,
+            ))
+        })?.collect::<Result<Vec<_>, _>>()?;
+
+        Ok(messages)
+    }
+
     /// Queues a message for outbound delivery.
     pub fn queue_outbound(
         &self,

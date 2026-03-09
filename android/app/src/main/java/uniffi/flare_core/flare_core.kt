@@ -1055,7 +1055,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_get_mesh_status() != 6066.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_flare_core_checksum_method_flarenode_get_messages_for_conversation() != 63028.toShort()) {
+    if (lib.uniffi_flare_core_checksum_method_flarenode_get_messages_for_conversation() != 39829.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_get_messages_for_peer() != 47951.toShort()) {
@@ -1553,7 +1553,7 @@ public interface FlareNodeInterface {
     fun `getMeshStatus`(): FfiMeshStatus
     
     /**
-     * Gets all messages for a conversation.
+     * Gets all messages for a conversation, ordered by creation time.
      */
     fun `getMessagesForConversation`(`conversationId`: kotlin.String): List<FfiChatMessage>
     
@@ -1852,7 +1852,7 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
-     * Gets all messages for a conversation.
+     * Gets all messages for a conversation, ordered by creation time.
      */
     @Throws(FlareException::class)override fun `getMessagesForConversation`(`conversationId`: kotlin.String): List<FfiChatMessage> {
             return FfiConverterSequenceTypeFfiChatMessage.lift(
@@ -2252,7 +2252,12 @@ data class FfiMeshMessage (
     var `senderId`: kotlin.String, 
     var `recipientId`: kotlin.String, 
     var `hopCount`: kotlin.UByte, 
-    var `maxHops`: kotlin.UByte
+    var `maxHops`: kotlin.UByte, 
+    /**
+     * The encrypted payload bytes from the mesh message envelope.
+     * Pass this to decrypt_incoming_message() — NOT the full serialized frame.
+     */
+    var `payload`: kotlin.ByteArray
 ) {
     
     companion object
@@ -2270,6 +2275,7 @@ public object FfiConverterTypeFfiMeshMessage: FfiConverterRustBuffer<FfiMeshMess
             FfiConverterString.read(buf),
             FfiConverterUByte.read(buf),
             FfiConverterUByte.read(buf),
+            FfiConverterByteArray.read(buf),
         )
     }
 
@@ -2279,7 +2285,8 @@ public object FfiConverterTypeFfiMeshMessage: FfiConverterRustBuffer<FfiMeshMess
             FfiConverterString.allocationSize(value.`senderId`) +
             FfiConverterString.allocationSize(value.`recipientId`) +
             FfiConverterUByte.allocationSize(value.`hopCount`) +
-            FfiConverterUByte.allocationSize(value.`maxHops`)
+            FfiConverterUByte.allocationSize(value.`maxHops`) +
+            FfiConverterByteArray.allocationSize(value.`payload`)
     )
 
     override fun write(value: FfiMeshMessage, buf: ByteBuffer) {
@@ -2289,6 +2296,7 @@ public object FfiConverterTypeFfiMeshMessage: FfiConverterRustBuffer<FfiMeshMess
             FfiConverterString.write(value.`recipientId`, buf)
             FfiConverterUByte.write(value.`hopCount`, buf)
             FfiConverterUByte.write(value.`maxHops`, buf)
+            FfiConverterByteArray.write(value.`payload`, buf)
     }
 }
 

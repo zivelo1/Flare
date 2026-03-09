@@ -17,7 +17,7 @@
 - [x] BLE message chunking/reassembly for MTU constraints
 - [x] SQLCipher encrypted database (identity, contacts, messages, outbox)
 - [x] Transport event model and abstraction layer
-- [x] UniFFI FFI layer (`FlareNode` object with proc macros)
+- [x] UniFFI FFI layer (`FlareNode` object with proc macros, payload extraction, conversation query)
 - [x] Neighborhood Bloom Filter — privacy-preserving cluster detection (deterministic SHA-256)
 - [x] Priority Message Store — 50MB budget, 3-tier eviction, adaptive TTL (48h → 72h → 7d)
 - [x] Delivery ACK processing — relay cleanup on ACK receipt
@@ -38,12 +38,12 @@
 - [x] Data models (DeviceIdentity, Contact, Conversation, ChatMessage, MeshPeer, MeshStatus)
 - [x] Constants centralized (UUIDs, scan params, message defaults — no hardcoding)
 - [x] BLE Scanner — discovers Flare devices, RSSI distance estimation, stale peer pruning
-- [x] GATT Server — advertises service, accepts connections, receives messages, sends notifications
-- [x] GATT Client — connects to peers, MTU negotiation, message write, notification subscription
-- [x] MeshService — foreground service, message routing via Rust core, outbound queue, neighborhood bitmap exchange
-- [x] FlareRepository — bridge layer between UniFFI bindings and Android app (incl. neighborhood + store stats)
+- [x] GATT Server — advertises service, accepts connections, receives messages, sends notifications (status code checked)
+- [x] GATT Client — connects to peers, MTU negotiation, message write (status code checked), notification subscription
+- [x] MeshService — foreground service, message routing via Rust core, outbound queue, neighborhood bitmap exchange, incoming message delivery to UI
+- [x] FlareRepository — bridge layer between UniFFI bindings and Android app (incl. neighborhood + store stats + message persistence)
 - [x] FlareApplication — initializes FlareNode with device-bound passphrase (Android Keystore)
-- [x] ChatViewModel — conversation list, message sending via Rust encryption, delivery status
+- [x] ChatViewModel — conversation list, message sending via Rust encryption, incoming message delivery, persisted chat history
 - [x] ContactsViewModel — contact management, QR code data generation/parsing
 - [x] NetworkViewModel — mesh status, nearby peers from BLE scanner
 - [x] Navigation — bottom tabs (Chats, Contacts, Network) with Compose Navigation
@@ -56,6 +56,7 @@
 - [x] GitHub repo (github.com/zivelo1/Flare)
 - [x] .gitignore (secrets, venv, .claude, IDE files excluded)
 - [x] Documentation (feasibility, architecture decisions, dev setup)
+- [x] ProGuard rules for JNA, UniFFI, BLE callbacks (release build safety)
 
 ### CI/CD Pipeline
 - [x] GitHub Actions workflow: Rust tests, cross-compilation (aarch64, armv7, x86_64), Kotlin binding generation, APK build

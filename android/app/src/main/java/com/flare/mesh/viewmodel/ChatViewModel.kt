@@ -36,15 +36,29 @@ class ChatViewModel : ViewModel() {
                 updateConversationList(contacts)
             }
         }
+
+        // Collect incoming messages delivered by MeshService
+        viewModelScope.launch {
+            MeshService.incomingDelivered.collect { delivered ->
+                onIncomingMessage(delivered.senderId, delivered.plaintext)
+            }
+        }
     }
 
     fun loadConversation(conversationId: String) {
         val contact = repository.contacts.value.find { it.identity.deviceId == conversationId }
         _currentContact.value = contact
 
-        // Messages will be loaded from the local store
-        // For now we maintain an in-memory list that gets populated as messages arrive
-        _currentMessages.value = emptyList()
+        // Load persisted messages from the encrypted database
+        viewModelScope.launch {
+            try {
+                val stored = repository.getMessagesForConversation(conversationId)
+                _currentMessages.value = stored
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to load messages for %s", conversationId.take(12))
+                _currentMessages.value = emptyList()
+            }
+        }
     }
 
     fun sendMessage(conversationId: String, text: String) {
