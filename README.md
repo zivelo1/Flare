@@ -10,7 +10,7 @@ No servers. No accounts. No phone number required. Just install and start messag
 
 ## Who Is This For?
 
-- **People in areas with no connectivity** — remote villages, mountains, deserts, ships at sea
+- **People in areas with no connectivity** — remote villages, mountains, deserts
 - **People during natural disasters** — earthquakes, hurricanes, floods that destroy cell towers
 - **Journalists and aid workers** — operating in conflict zones without reliable infrastructure
 - **Protesters and activists** — communicating when governments shut down the internet
