@@ -62,7 +62,7 @@ impl ApkOfferPayload {
         let apk_hash: [u8; 32] = hasher.finalize().into();
 
         let apk_size = apk_bytes.len() as u64;
-        let chunk_count = ((apk_size + DEFAULT_CHUNK_SIZE as u64 - 1) / DEFAULT_CHUNK_SIZE as u64) as u32;
+        let chunk_count = apk_size.div_ceil(DEFAULT_CHUNK_SIZE as u64) as u32;
 
         ApkOfferPayload {
             version_code,
@@ -115,8 +115,7 @@ impl ApkChunk {
 
 /// Splits APK bytes into chunks for transmission.
 pub fn split_apk_into_chunks(apk_bytes: &[u8], apk_hash: [u8; 32]) -> Vec<ApkChunk> {
-    let total_chunks = ((apk_bytes.len() as u64 + DEFAULT_CHUNK_SIZE as u64 - 1)
-        / DEFAULT_CHUNK_SIZE as u64) as u32;
+    let total_chunks = (apk_bytes.len() as u64).div_ceil(DEFAULT_CHUNK_SIZE as u64) as u32;
 
     apk_bytes
         .chunks(DEFAULT_CHUNK_SIZE as usize)
@@ -144,7 +143,12 @@ mod tests {
 
     #[test]
     fn test_apk_offer_roundtrip() {
-        let fake_apk: Vec<u8> = [0xDE, 0xAD, 0xBE, 0xEF].iter().copied().cycle().take(4096).collect();
+        let fake_apk: Vec<u8> = [0xDE, 0xAD, 0xBE, 0xEF]
+            .iter()
+            .copied()
+            .cycle()
+            .take(4096)
+            .collect();
         let offer = ApkOfferPayload::from_apk_bytes(&fake_apk, 1, "1.0.0");
 
         assert_eq!(offer.version_code, 1);

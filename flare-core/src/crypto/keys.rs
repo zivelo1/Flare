@@ -45,18 +45,12 @@ impl SharedSecret {
 ///
 /// The salt should be unique per message (e.g., message_id bytes) to ensure
 /// each message gets a unique key even with the same shared secret.
-pub fn derive_message_key(
-    shared_secret: &SharedSecret,
-    salt: &[u8],
-) -> DerivedKeyMaterial {
+pub fn derive_message_key(shared_secret: &SharedSecret, salt: &[u8]) -> DerivedKeyMaterial {
     derive_key_material(shared_secret, salt, MESSAGE_KEY_INFO)
 }
 
 /// Derives a transport encryption key for link-level encryption between peers.
-pub fn derive_transport_key(
-    shared_secret: &SharedSecret,
-    salt: &[u8],
-) -> DerivedKeyMaterial {
+pub fn derive_transport_key(shared_secret: &SharedSecret, salt: &[u8]) -> DerivedKeyMaterial {
     derive_key_material(shared_secret, salt, TRANSPORT_KEY_INFO)
 }
 
@@ -151,7 +145,7 @@ mod tests {
         let secret = SharedSecret::new([42u8; 32]);
         let derived = derive_message_key(&secret, b"test");
 
-        assert_eq!(derived.key.len(), 32);  // AES-256
+        assert_eq!(derived.key.len(), 32); // AES-256
         assert_eq!(derived.nonce.len(), 12); // AES-GCM nonce
     }
 }

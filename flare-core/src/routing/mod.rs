@@ -10,7 +10,7 @@ pub mod priority_store;
 pub mod router;
 
 pub use dedup::DeduplicationFilter;
-pub use neighborhood::{NeighborhoodFilter, EncounterType};
-pub use peer_table::{PeerTable, PeerInfo};
+pub use neighborhood::{EncounterType, NeighborhoodFilter};
+pub use peer_table::{PeerInfo, PeerTable};
 pub use priority_store::PriorityStore;
-pub use router::{Router, RouteDecision};
+pub use router::{RouteDecision, Router};

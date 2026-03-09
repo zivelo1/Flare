@@ -174,8 +174,8 @@ fn normalize_phrase(phrase: &str) -> String {
 /// Normalizes a phone number: strip all non-digit characters except leading +.
 fn normalize_phone(phone: &str) -> String {
     let trimmed = phone.trim();
-    if trimmed.starts_with('+') {
-        let digits: String = trimmed[1..].chars().filter(|c| c.is_ascii_digit()).collect();
+    if let Some(rest) = trimmed.strip_prefix('+') {
+        let digits: String = rest.chars().filter(|c| c.is_ascii_digit()).collect();
         format!("+{}", digits)
     } else {
         trimmed.chars().filter(|c| c.is_ascii_digit()).collect()
@@ -234,6 +234,12 @@ pub struct RendezvousManager {
 struct ActiveSearch {
     ephemeral_secret_bytes: [u8; 32],
     mode: RendezvousMode,
+}
+
+impl Default for RendezvousManager {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl RendezvousManager {
@@ -309,11 +315,8 @@ impl RendezvousManager {
         }
 
         // Encrypt our identity for the querier using their ephemeral public key
-        let encrypted = encrypt_identity_for_reply(
-            my_identity,
-            &payload.ephemeral_public_key,
-            &payload.token,
-        )?;
+        let encrypted =
+            encrypt_identity_for_reply(my_identity, &payload.ephemeral_public_key, &payload.token)?;
 
         Some(RendezvousReply {
             token: payload.token,
@@ -360,10 +363,10 @@ fn encrypt_identity_for_reply(
 ) -> Option<Vec<u8>> {
     // Serialize the identity
     let mut plaintext = Vec::new();
-    plaintext.extend_from_slice(&identity.device_id.0);           // 16 bytes
-    plaintext.extend_from_slice(&identity.signing_public_key);     // 32 bytes
-    plaintext.extend_from_slice(&identity.agreement_public_key);   // 32 bytes
-    // total: 80 bytes
+    plaintext.extend_from_slice(&identity.device_id.0); // 16 bytes
+    plaintext.extend_from_slice(&identity.signing_public_key); // 32 bytes
+    plaintext.extend_from_slice(&identity.agreement_public_key); // 32 bytes
+                                                                 // total: 80 bytes
 
     // Use the token itself as a symmetric key source via HKDF
     // We also mix in the ephemeral public key for binding
@@ -540,8 +543,14 @@ mod tests {
             .expect("Alice should decrypt Bob's identity");
 
         assert_eq!(discovered.device_id, bob_identity.device_id().clone());
-        assert_eq!(discovered.signing_public_key, bob_identity.public_identity().signing_public_key);
-        assert_eq!(discovered.agreement_public_key, bob_identity.public_identity().agreement_public_key);
+        assert_eq!(
+            discovered.signing_public_key,
+            bob_identity.public_identity().signing_public_key
+        );
+        assert_eq!(
+            discovered.agreement_public_key,
+            bob_identity.public_identity().agreement_public_key
+        );
         assert_eq!(mode, RendezvousMode::SharedPhrase);
     }
 
@@ -562,7 +571,10 @@ mod tests {
         );
 
         let reply = bob_mgr.process_incoming_request(&payload, &bob_identity.public_identity());
-        assert!(reply.is_none(), "Mismatched tokens should not produce a reply");
+        assert!(
+            reply.is_none(),
+            "Mismatched tokens should not produce a reply"
+        );
     }
 
     #[test]

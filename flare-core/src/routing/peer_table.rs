@@ -138,7 +138,8 @@ impl PeerTable {
         }
 
         let device_id = peer.identity.device_id.clone();
-        peers.entry(device_id)
+        peers
+            .entry(device_id)
             .and_modify(|existing| {
                 existing.update_seen(peer.rssi);
                 existing.transport = peer.transport;
@@ -162,7 +163,8 @@ impl PeerTable {
     /// Returns all connected peers.
     pub fn connected_peers(&self) -> Vec<PeerInfo> {
         let peers = self.peers.lock().expect("Peer table lock poisoned");
-        peers.values()
+        peers
+            .values()
             .filter(|p| p.is_connected && !p.is_stale())
             .cloned()
             .collect()
@@ -208,7 +210,8 @@ impl PeerTable {
     }
 
     fn find_stalest_peer(&self, peers: &HashMap<DeviceId, PeerInfo>) -> Option<DeviceId> {
-        peers.iter()
+        peers
+            .iter()
             .min_by_key(|(_, p)| p.last_seen)
             .map(|(id, _)| id.clone())
     }

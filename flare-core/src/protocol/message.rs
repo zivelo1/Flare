@@ -203,10 +203,7 @@ impl MessageBuilder {
         let created_at_ms = Utc::now().timestamp_millis();
 
         // Generate deterministic message ID
-        let message_id = Self::generate_message_id(
-            &self.sender_id,
-            created_at_ms,
-        );
+        let message_id = Self::generate_message_id(&self.sender_id, created_at_ms);
 
         let mut msg = MeshMessage {
             version: PROTOCOL_VERSION,
@@ -231,11 +228,11 @@ impl MessageBuilder {
     /// Uses SHA-256 to ensure uniform distribution (good for Bloom filter dedup).
     fn generate_message_id(sender_id: &DeviceId, timestamp_ms: i64) -> [u8; 32] {
         let mut hasher = Sha256::new();
-        hasher.update(&sender_id.0);
-        hasher.update(&timestamp_ms.to_le_bytes());
+        hasher.update(sender_id.0);
+        hasher.update(timestamp_ms.to_le_bytes());
         // Add randomness to prevent collisions for messages created at the same millisecond
         let random_bytes: [u8; 8] = rand::random();
-        hasher.update(&random_bytes);
+        hasher.update(random_bytes);
         hasher.finalize().into()
     }
 }
@@ -250,13 +247,10 @@ mod tests {
         let sender = Identity::generate();
         let recipient = Identity::generate();
 
-        let msg = MessageBuilder::new(
-            sender.device_id().clone(),
-            recipient.device_id().clone(),
-        )
-        .content_type(ContentType::Text)
-        .payload(b"Hello mesh!".to_vec())
-        .build(|data| sender.sign(data));
+        let msg = MessageBuilder::new(sender.device_id().clone(), recipient.device_id().clone())
+            .content_type(ContentType::Text)
+            .payload(b"Hello mesh!".to_vec())
+            .build(|data| sender.sign(data));
 
         // Verify signature
         let signable = msg.signable_bytes();
@@ -288,13 +282,11 @@ mod tests {
         let sender = Identity::generate();
         let recipient = Identity::generate();
 
-        let mut msg = MessageBuilder::new(
-            sender.device_id().clone(),
-            recipient.device_id().clone(),
-        )
-        .max_hops(3)
-        .payload(b"test".to_vec())
-        .build(|data| sender.sign(data));
+        let mut msg =
+            MessageBuilder::new(sender.device_id().clone(), recipient.device_id().clone())
+                .max_hops(3)
+                .payload(b"test".to_vec())
+                .build(|data| sender.sign(data));
 
         assert!(!msg.is_hop_limited());
         msg.increment_hop(); // 1
@@ -308,12 +300,9 @@ mod tests {
         let sender = Identity::generate();
         let recipient = Identity::generate();
 
-        let msg = MessageBuilder::new(
-            sender.device_id().clone(),
-            recipient.device_id().clone(),
-        )
-        .payload(b"Serialize me".to_vec())
-        .build(|data| sender.sign(data));
+        let msg = MessageBuilder::new(sender.device_id().clone(), recipient.device_id().clone())
+            .payload(b"Serialize me".to_vec())
+            .build(|data| sender.sign(data));
 
         let bytes = msg.to_bytes().unwrap();
         let restored = MeshMessage::from_bytes(&bytes).unwrap();
@@ -328,13 +317,10 @@ mod tests {
     fn test_expired_message() {
         let sender = Identity::generate();
 
-        let mut msg = MessageBuilder::new(
-            sender.device_id().clone(),
-            DeviceId([0; 16]),
-        )
-        .ttl_seconds(0) // Expire immediately
-        .payload(b"expired".to_vec())
-        .build(|data| sender.sign(data));
+        let mut msg = MessageBuilder::new(sender.device_id().clone(), DeviceId([0; 16]))
+            .ttl_seconds(0) // Expire immediately
+            .payload(b"expired".to_vec())
+            .build(|data| sender.sign(data));
 
         // Set creation time to the past
         msg.created_at_ms -= 1000;
@@ -345,19 +331,13 @@ mod tests {
     fn test_unique_message_ids() {
         let sender = Identity::generate();
 
-        let msg1 = MessageBuilder::new(
-            sender.device_id().clone(),
-            DeviceId([0; 16]),
-        )
-        .payload(b"msg1".to_vec())
-        .build(|data| sender.sign(data));
+        let msg1 = MessageBuilder::new(sender.device_id().clone(), DeviceId([0; 16]))
+            .payload(b"msg1".to_vec())
+            .build(|data| sender.sign(data));
 
-        let msg2 = MessageBuilder::new(
-            sender.device_id().clone(),
-            DeviceId([0; 16]),
-        )
-        .payload(b"msg2".to_vec())
-        .build(|data| sender.sign(data));
+        let msg2 = MessageBuilder::new(sender.device_id().clone(), DeviceId([0; 16]))
+            .payload(b"msg2".to_vec())
+            .build(|data| sender.sign(data));
 
         assert_ne!(msg1.message_id, msg2.message_id);
     }
@@ -365,14 +345,15 @@ mod tests {
     #[test]
     fn test_wire_size_reasonable() {
         let sender = Identity::generate();
-        let msg = MessageBuilder::new(
-            sender.device_id().clone(),
-            DeviceId([0; 16]),
-        )
-        .payload(b"Short text message for testing".to_vec())
-        .build(|data| sender.sign(data));
+        let msg = MessageBuilder::new(sender.device_id().clone(), DeviceId([0; 16]))
+            .payload(b"Short text message for testing".to_vec())
+            .build(|data| sender.sign(data));
 
         // A text message should fit in a single BLE GATT write (< 512 bytes)
-        assert!(msg.wire_size() < 512, "Wire size {} exceeds BLE MTU", msg.wire_size());
+        assert!(
+            msg.wire_size() < 512,
+            "Wire size {} exceeds BLE MTU",
+            msg.wire_size()
+        );
     }
 }

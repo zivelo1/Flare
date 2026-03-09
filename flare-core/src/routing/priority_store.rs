@@ -42,9 +42,9 @@ impl Default for PriorityStoreConfig {
             max_storage_bytes: 50 * 1024 * 1024, // 50 MB
             max_message_count: 5000,
 
-            initial_ttl_seconds: 48 * 3600,       // 48 hours
-            bridge_1_ttl_seconds: 72 * 3600,       // 72 hours
-            bridge_2_ttl_seconds: 7 * 24 * 3600,   // 7 days
+            initial_ttl_seconds: 48 * 3600,          // 48 hours
+            bridge_1_ttl_seconds: 72 * 3600,         // 72 hours
+            bridge_2_ttl_seconds: 7 * 24 * 3600,     // 7 days
             absolute_max_ttl_seconds: 7 * 24 * 3600, // 7 days hard cap
 
             initial_spray_copies: 8,
@@ -401,7 +401,10 @@ mod tests {
         }
     }
 
-    fn make_message(sender: &Identity, recipient_id: crate::crypto::identity::DeviceId) -> MeshMessage {
+    fn make_message(
+        sender: &Identity,
+        recipient_id: crate::crypto::identity::DeviceId,
+    ) -> MeshMessage {
         MessageBuilder::new(sender.device_id().clone(), recipient_id)
             .content_type(ContentType::Text)
             .payload(b"test message for store".to_vec())
@@ -569,13 +572,11 @@ mod tests {
         let recipient = Identity::generate();
 
         // Create an already-expired message
-        let mut msg = MessageBuilder::new(
-            sender.device_id().clone(),
-            recipient.device_id().clone(),
-        )
-        .ttl_seconds(0)
-        .payload(b"expired".to_vec())
-        .build(|data| sender.sign(data));
+        let mut msg =
+            MessageBuilder::new(sender.device_id().clone(), recipient.device_id().clone())
+                .ttl_seconds(0)
+                .payload(b"expired".to_vec())
+                .build(|data| sender.sign(data));
         msg.created_at_ms -= 2000; // Ensure expired
 
         store.store_relay(msg, 4);

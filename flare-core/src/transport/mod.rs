@@ -44,9 +44,7 @@ pub enum TransportEvent {
     },
 
     /// A peer disconnected.
-    PeerDisconnected {
-        device_id: DeviceId,
-    },
+    PeerDisconnected { device_id: DeviceId },
 
     /// Data received from a peer.
     DataReceived {
@@ -117,7 +115,7 @@ pub fn chunk_payload(
         });
     }
 
-    let total_chunks = (payload.len() + chunk_data_size - 1) / chunk_data_size;
+    let total_chunks = payload.len().div_ceil(chunk_data_size);
     if total_chunks > 255 {
         return Err(TransportError::PayloadTooLarge {
             size: payload.len(),

@@ -6,20 +6,20 @@
 use std::sync::Mutex;
 
 use crate::crypto::identity::{DeviceId, Identity, PublicIdentity};
-use crate::crypto::{decrypt_message, encrypt_message};
 use crate::crypto::keys::derive_message_key;
+use crate::crypto::{decrypt_message, encrypt_message};
 use crate::protocol::message::{ContentType, MeshMessage, MessageBuilder};
-use sha2::Digest;
 use crate::protocol::rendezvous::{
     self, RendezvousManager, RendezvousMode, RendezvousPayload, RendezvousReply,
 };
 use crate::routing::router::{RouteDecision, Router};
 use crate::storage::database::FlareDatabase;
-use base64::Engine as _;
 use crate::{PROTOCOL_VERSION, SERVICE_IDENTIFIER};
+use base64::Engine as _;
+use sha2::Digest;
 
 fn hex_to_bytes(hex: &str) -> Result<Vec<u8>, FlareError> {
-    if hex.len() % 2 != 0 {
+    if !hex.len().is_multiple_of(2) {
         return Err(FlareError::InvalidInput {
             msg: "Hex string must have even length".to_string(),
         });
@@ -154,12 +154,17 @@ pub fn get_service_identifier() -> String {
 /// Call this BEFORE constructing FlareNode to decide which database to open.
 /// Returns false if the database doesn't exist or has no duress config.
 #[uniffi::export]
-pub fn check_duress_passphrase(db_path: String, passphrase: String, check_passphrase: String) -> bool {
+pub fn check_duress_passphrase(
+    db_path: String,
+    passphrase: String,
+    check_passphrase: String,
+) -> bool {
     let db = match FlareDatabase::open(&db_path, &passphrase) {
         Ok(db) => db,
         Err(_) => return false,
     };
-    db.check_duress_passphrase(&check_passphrase).unwrap_or(false)
+    db.check_duress_passphrase(&check_passphrase)
+        .unwrap_or(false)
 }
 
 // ── FlareNode (main entry point for mobile) ──────────────────────────
@@ -184,12 +189,12 @@ impl FlareNode {
         let db = FlareDatabase::open(&db_path, &passphrase)
             .map_err(|e| FlareError::StorageError { msg: e.to_string() })?;
 
-        let identity = match db.load_identity()
-            .map_err(|e| FlareError::StorageError { msg: e.to_string() })? {
-            Some((signing, agreement)) => {
-                Identity::from_key_bytes(&signing, &agreement)
-                    .map_err(|e| FlareError::CryptoError { msg: e.to_string() })?
-            }
+        let identity = match db
+            .load_identity()
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })?
+        {
+            Some((signing, agreement)) => Identity::from_key_bytes(&signing, &agreement)
+                .map_err(|e| FlareError::CryptoError { msg: e.to_string() })?,
             None => {
                 let id = Identity::generate();
                 db.store_identity(id.signing_key_bytes(), &id.agreement_key_bytes())
@@ -239,7 +244,10 @@ impl FlareNode {
     ) -> Result<Vec<u8>, FlareError> {
         if recipient_agreement_key.len() != 32 {
             return Err(FlareError::InvalidInput {
-                msg: format!("Agreement key must be 32 bytes, got {}", recipient_agreement_key.len()),
+                msg: format!(
+                    "Agreement key must be 32 bytes, got {}",
+                    recipient_agreement_key.len()
+                ),
             });
         }
 
@@ -271,7 +279,10 @@ impl FlareNode {
     ) -> Result<Option<String>, FlareError> {
         if sender_agreement_key.len() != 32 {
             return Err(FlareError::InvalidInput {
-                msg: format!("Agreement key must be 32 bytes, got {}", sender_agreement_key.len()),
+                msg: format!(
+                    "Agreement key must be 32 bytes, got {}",
+                    sender_agreement_key.len()
+                ),
             });
         }
 
@@ -324,24 +335,26 @@ impl FlareNode {
             0x20 => ContentType::PeerAnnounce,
             0x40 => ContentType::ApkOffer,
             0x41 => ContentType::ApkRequest,
-            _ => return Err(FlareError::InvalidInput {
-                msg: format!("Unknown content type: {}", content_type),
-            }),
+            _ => {
+                return Err(FlareError::InvalidInput {
+                    msg: format!("Unknown content type: {}", content_type),
+                })
+            }
         };
 
-        let msg = MessageBuilder::new(
-            self.identity.device_id().clone(),
-            recipient_id,
-        )
-        .content_type(ct)
-        .payload(encrypted_payload)
-        .build(|data| self.identity.sign(data));
+        let msg = MessageBuilder::new(self.identity.device_id().clone(), recipient_id)
+            .content_type(ct)
+            .payload(encrypted_payload)
+            .build(|data| self.identity.sign(data));
 
         let payload = msg.payload.clone();
-        let serialized = msg.to_bytes()
+        let serialized = msg
+            .to_bytes()
             .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
 
-        let message_id_hex = msg.message_id.iter()
+        let message_id_hex = msg
+            .message_id
+            .iter()
             .map(|b| format!("{:02x}", b))
             .collect::<String>();
 
@@ -357,10 +370,15 @@ impl FlareNode {
     }
 
     /// Parses a raw mesh message received from BLE.
-    pub fn parse_mesh_message(&self, raw_data: Vec<u8>) -> Result<Option<FfiMeshMessage>, FlareError> {
+    pub fn parse_mesh_message(
+        &self,
+        raw_data: Vec<u8>,
+    ) -> Result<Option<FfiMeshMessage>, FlareError> {
         match MeshMessage::from_bytes(&raw_data) {
             Ok(msg) => {
-                let message_id_hex = msg.message_id.iter()
+                let message_id_hex = msg
+                    .message_id
+                    .iter()
                     .map(|b| format!("{:02x}", b))
                     .collect::<String>();
 
@@ -415,7 +433,8 @@ impl FlareNode {
     /// Gets stored messages that should be forwarded to a specific peer.
     pub fn get_messages_for_peer(&self, device_id: String) -> Vec<Vec<u8>> {
         if let Ok(did) = DeviceId::from_hex(&device_id) {
-            self.router.on_peer_connected(&did)
+            self.router
+                .on_peer_connected(&did)
                 .into_iter()
                 .filter_map(|msg| msg.to_bytes().ok())
                 .collect()
@@ -447,25 +466,31 @@ impl FlareNode {
         };
 
         let db = self.db.lock().expect("db lock");
-        db.upsert_contact(&public_identity, contact.display_name.as_deref(), contact.is_verified)
-            .map_err(|e| FlareError::StorageError { msg: e.to_string() })
+        db.upsert_contact(
+            &public_identity,
+            contact.display_name.as_deref(),
+            contact.is_verified,
+        )
+        .map_err(|e| FlareError::StorageError { msg: e.to_string() })
     }
 
     /// Lists all contacts.
     pub fn list_contacts(&self) -> Result<Vec<FfiContact>, FlareError> {
         let db = self.db.lock().expect("db lock");
-        let contacts = db.list_contacts()
+        let contacts = db
+            .list_contacts()
             .map_err(|e| FlareError::StorageError { msg: e.to_string() })?;
 
-        Ok(contacts.into_iter().map(|(identity, name, verified)| {
-            FfiContact {
+        Ok(contacts
+            .into_iter()
+            .map(|(identity, name, verified)| FfiContact {
                 device_id: identity.device_id.to_hex(),
                 signing_public_key: identity.signing_public_key.to_vec(),
                 agreement_public_key: identity.agreement_public_key.to_vec(),
                 display_name: name,
                 is_verified: verified,
-            }
-        }).collect())
+            })
+            .collect())
     }
 
     /// Stores a chat message locally.
@@ -483,31 +508,50 @@ impl FlareNode {
             message.content.as_bytes(),
             &created_at,
             message.is_outgoing,
-        ).map_err(|e| FlareError::StorageError { msg: e.to_string() })
+        )
+        .map_err(|e| FlareError::StorageError { msg: e.to_string() })
     }
 
     /// Gets all messages for a conversation, ordered by creation time.
-    pub fn get_messages_for_conversation(&self, conversation_id: String) -> Result<Vec<FfiChatMessage>, FlareError> {
+    pub fn get_messages_for_conversation(
+        &self,
+        conversation_id: String,
+    ) -> Result<Vec<FfiChatMessage>, FlareError> {
         let db = self.db.lock().expect("db lock");
-        let messages = db.get_messages_for_conversation(&conversation_id)
+        let messages = db
+            .get_messages_for_conversation(&conversation_id)
             .map_err(|e| FlareError::StorageError { msg: e.to_string() })?;
 
-        Ok(messages.into_iter().map(|(msg_id, conv_id, sender_id, _content_type, plaintext, created_at, is_outgoing, delivery_status)| {
-            let content = String::from_utf8(plaintext).unwrap_or_default();
-            let timestamp_ms = chrono::DateTime::parse_from_rfc3339(&created_at)
-                .map(|dt| dt.timestamp_millis())
-                .unwrap_or(0);
+        Ok(messages
+            .into_iter()
+            .map(
+                |(
+                    msg_id,
+                    conv_id,
+                    sender_id,
+                    _content_type,
+                    plaintext,
+                    created_at,
+                    is_outgoing,
+                    delivery_status,
+                )| {
+                    let content = String::from_utf8(plaintext).unwrap_or_default();
+                    let timestamp_ms = chrono::DateTime::parse_from_rfc3339(&created_at)
+                        .map(|dt| dt.timestamp_millis())
+                        .unwrap_or(0);
 
-            FfiChatMessage {
-                message_id: msg_id,
-                conversation_id: conv_id,
-                sender_device_id: sender_id,
-                content,
-                timestamp_ms,
-                is_outgoing,
-                delivery_status,
-            }
-        }).collect())
+                    FfiChatMessage {
+                        message_id: msg_id,
+                        conversation_id: conv_id,
+                        sender_device_id: sender_id,
+                        content,
+                        timestamp_ms,
+                        is_outgoing,
+                        delivery_status,
+                    }
+                },
+            )
+            .collect())
     }
 
     /// Queues an outbound message for delivery.
@@ -525,11 +569,13 @@ impl FlareNode {
     /// Gets all pending outbound messages.
     pub fn get_pending_outbound(&self) -> Result<Vec<FfiChatMessage>, FlareError> {
         let db = self.db.lock().expect("db lock");
-        let pending = db.get_pending_outbound()
+        let pending = db
+            .get_pending_outbound()
             .map_err(|e| FlareError::StorageError { msg: e.to_string() })?;
 
-        Ok(pending.into_iter().map(|(msg_id, recipient, payload)| {
-            FfiChatMessage {
+        Ok(pending
+            .into_iter()
+            .map(|(msg_id, recipient, payload)| FfiChatMessage {
                 message_id: msg_id,
                 conversation_id: recipient.clone(),
                 sender_device_id: self.identity.device_id().to_hex(),
@@ -537,8 +583,8 @@ impl FlareNode {
                 timestamp_ms: chrono::Utc::now().timestamp_millis(),
                 is_outgoing: true,
                 delivery_status: 0,
-            }
-        }).collect())
+            })
+            .collect())
     }
 
     /// Removes a delivered message from the outbox.
@@ -605,13 +651,10 @@ impl FlareNode {
 
         let msg_id_bytes = hex_to_bytes(&original_message_id)?;
 
-        let msg = MessageBuilder::new(
-            self.identity.device_id().clone(),
-            sender_id,
-        )
-        .content_type(ContentType::Acknowledgment)
-        .payload(msg_id_bytes)
-        .build(|data| self.identity.sign(data));
+        let msg = MessageBuilder::new(self.identity.device_id().clone(), sender_id)
+            .content_type(ContentType::Acknowledgment)
+            .payload(msg_id_bytes)
+            .build(|data| self.identity.sign(data));
 
         msg.to_bytes()
             .map_err(|e| FlareError::SerializationError { msg: e.to_string() })
@@ -629,24 +672,17 @@ impl FlareNode {
 
         let msg_id_bytes = hex_to_bytes(&original_message_id)?;
 
-        let msg = MessageBuilder::new(
-            self.identity.device_id().clone(),
-            sender_id,
-        )
-        .content_type(ContentType::ReadReceipt)
-        .payload(msg_id_bytes)
-        .build(|data| self.identity.sign(data));
+        let msg = MessageBuilder::new(self.identity.device_id().clone(), sender_id)
+            .content_type(ContentType::ReadReceipt)
+            .payload(msg_id_bytes)
+            .build(|data| self.identity.sign(data));
 
         msg.to_bytes()
             .map_err(|e| FlareError::SerializationError { msg: e.to_string() })
     }
 
     /// Updates the delivery status of a stored message.
-    pub fn update_delivery_status(
-        &self,
-        message_id: String,
-        status: u8,
-    ) -> Result<(), FlareError> {
+    pub fn update_delivery_status(&self, message_id: String, status: u8) -> Result<(), FlareError> {
         let db = self.db.lock().expect("db lock");
         db.update_delivery_status(&message_id, status)
             .map_err(|e| FlareError::StorageError { msg: e.to_string() })
@@ -686,11 +722,7 @@ impl FlareNode {
     // ── Group Messaging ─────────────────────────────────────────────
 
     /// Creates a new group.
-    pub fn create_group(
-        &self,
-        group_id: String,
-        group_name: String,
-    ) -> Result<(), FlareError> {
+    pub fn create_group(&self, group_id: String, group_name: String) -> Result<(), FlareError> {
         let creator_id = self.identity.device_id().to_hex();
         let db = self.db.lock().expect("db lock");
         db.create_group(&group_id, &group_name, &creator_id)
@@ -701,11 +733,7 @@ impl FlareNode {
     }
 
     /// Adds a member to a group.
-    pub fn add_group_member(
-        &self,
-        group_id: String,
-        device_id: String,
-    ) -> Result<(), FlareError> {
+    pub fn add_group_member(&self, group_id: String, device_id: String) -> Result<(), FlareError> {
         let db = self.db.lock().expect("db lock");
         db.add_group_member(&group_id, &device_id)
             .map_err(|e| FlareError::StorageError { msg: e.to_string() })
@@ -725,17 +753,19 @@ impl FlareNode {
     /// Lists all groups.
     pub fn list_groups(&self) -> Result<Vec<FfiGroup>, FlareError> {
         let db = self.db.lock().expect("db lock");
-        let groups = db.list_groups()
+        let groups = db
+            .list_groups()
             .map_err(|e| FlareError::StorageError { msg: e.to_string() })?;
 
-        Ok(groups.into_iter().map(|(id, name, created_at, creator)| {
-            FfiGroup {
+        Ok(groups
+            .into_iter()
+            .map(|(id, name, created_at, creator)| FfiGroup {
                 group_id: id,
                 group_name: name,
                 created_at,
                 creator_device_id: creator,
-            }
-        }).collect())
+            })
+            .collect())
     }
 
     /// Gets all member device IDs for a group.
@@ -762,7 +792,10 @@ impl FlareNode {
         let my_device_id = self.identity.device_id().to_hex();
         let mut results = Vec::new();
 
-        for (payload, recipient_id) in encrypted_payloads.into_iter().zip(member_device_ids.into_iter()) {
+        for (payload, recipient_id) in encrypted_payloads
+            .into_iter()
+            .zip(member_device_ids.into_iter())
+        {
             // Skip ourselves
             if recipient_id == my_device_id {
                 continue;
@@ -785,7 +818,8 @@ impl FlareNode {
         let mut mgr = self.rendezvous.lock().expect("rendezvous lock");
         let payload = mgr.start_search(token, RendezvousMode::SharedPhrase);
 
-        let payload_bytes = payload.to_bytes()
+        let payload_bytes = payload
+            .to_bytes()
             .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
 
         // Build a broadcast mesh message with the rendezvous payload
@@ -810,7 +844,8 @@ impl FlareNode {
         let mut mgr = self.rendezvous.lock().expect("rendezvous lock");
         let payload = mgr.start_search(token, RendezvousMode::PhoneNumber);
 
-        let payload_bytes = payload.to_bytes()
+        let payload_bytes = payload
+            .to_bytes()
             .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
 
         let msg = MessageBuilder::broadcast(self.identity.device_id().clone())
@@ -835,7 +870,11 @@ impl FlareNode {
     /// Imports phone contacts and pre-computes bilateral rendezvous tokens.
     /// The user's own phone number must be registered first via register_my_phone.
     /// Returns the number of tokens generated.
-    pub fn import_phone_contacts(&self, my_phone: String, contacts: Vec<String>) -> Result<u32, FlareError> {
+    pub fn import_phone_contacts(
+        &self,
+        my_phone: String,
+        contacts: Vec<String>,
+    ) -> Result<u32, FlareError> {
         let mut mgr = self.rendezvous.lock().expect("rendezvous lock");
         let mut count = 0u32;
 
@@ -879,7 +918,8 @@ impl FlareNode {
                 proof_of_work: rendezvous::generate_proof_of_work(&token),
             };
 
-            let payload_bytes = payload.to_bytes()
+            let payload_bytes = payload
+                .to_bytes()
                 .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
 
             let msg = MessageBuilder::broadcast(self.identity.device_id().clone())
@@ -887,7 +927,8 @@ impl FlareNode {
                 .payload(payload_bytes)
                 .build(|data| self.identity.sign(data));
 
-            let serialized = msg.to_bytes()
+            let serialized = msg
+                .to_bytes()
                 .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
             broadcasts.push(serialized);
         }
@@ -911,10 +952,9 @@ impl FlareNode {
                 let payload = RendezvousPayload::from_bytes(&raw_payload)
                     .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
 
-                if let Some(_reply) = mgr.process_incoming_request(
-                    &payload,
-                    &self.identity.public_identity(),
-                ) {
+                if let Some(_reply) =
+                    mgr.process_incoming_request(&payload, &self.identity.public_identity())
+                {
                     // We matched! But we return None here because WE didn't discover anyone —
                     // we need to send the reply back. The caller should send the reply.
                     // For now, we auto-send the reply as a mesh message.
@@ -959,8 +999,11 @@ impl FlareNode {
             .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
 
         let mgr = self.rendezvous.lock().expect("rendezvous lock");
-        if let Some(reply) = mgr.process_incoming_request(&payload, &self.identity.public_identity()) {
-            let reply_bytes = reply.to_bytes()
+        if let Some(reply) =
+            mgr.process_incoming_request(&payload, &self.identity.public_identity())
+        {
+            let reply_bytes = reply
+                .to_bytes()
                 .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
 
             let sender_id = DeviceId::from_hex(&sender_device_id)
@@ -971,7 +1014,8 @@ impl FlareNode {
                 .payload(reply_bytes)
                 .build(|data| self.identity.sign(data));
 
-            let serialized = msg.to_bytes()
+            let serialized = msg
+                .to_bytes()
                 .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
             Ok(Some(serialized))
         } else {

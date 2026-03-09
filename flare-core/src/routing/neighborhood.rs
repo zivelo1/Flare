@@ -37,11 +37,11 @@ pub struct NeighborhoodConfig {
 impl Default for NeighborhoodConfig {
     fn default() -> Self {
         NeighborhoodConfig {
-            bitmap_bits: 2048,     // 256 bytes — compact enough for BLE exchange
-            num_hashes: 4,         // 4 hash functions per peer ID
+            bitmap_bits: 2048,                   // 256 bytes — compact enough for BLE exchange
+            num_hashes: 4,                       // 4 hash functions per peer ID
             rollover_interval_seconds: 6 * 3600, // 6 hours
-            local_threshold: 0.50, // >50% shared peers = same neighborhood
-            bridge_threshold: 0.20, // <20% shared peers = different area
+            local_threshold: 0.50,               // >50% shared peers = same neighborhood
+            bridge_threshold: 0.20,              // <20% shared peers = different area
         }
     }
 }
@@ -74,7 +74,7 @@ pub struct NeighborhoodFilter {
 impl NeighborhoodFilter {
     /// Creates a new neighborhood filter with the given configuration.
     pub fn new(config: NeighborhoodConfig) -> Self {
-        let bitmap_bytes = (config.bitmap_bits + 7) / 8;
+        let bitmap_bytes = config.bitmap_bits.div_ceil(8);
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
@@ -98,11 +98,8 @@ impl NeighborhoodFilter {
     pub fn record_peer(&self, short_id: &[u8; 4]) {
         self.maybe_rollover();
 
-        let positions = deterministic_hash_positions(
-            short_id,
-            self.config.bitmap_bits,
-            self.config.num_hashes,
-        );
+        let positions =
+            deterministic_hash_positions(short_id, self.config.bitmap_bits, self.config.num_hashes);
 
         let mut bitmap = self.bitmap.lock().expect("Neighborhood bitmap lock");
         for pos in positions {
@@ -188,7 +185,7 @@ impl NeighborhoodFilter {
 
         let mut created_at = self.created_at.lock().expect("Created at lock");
         if now.saturating_sub(*created_at) >= self.config.rollover_interval_seconds {
-            let bitmap_bytes = (self.config.bitmap_bits + 7) / 8;
+            let bitmap_bytes = self.config.bitmap_bits.div_ceil(8);
             let mut bitmap = self.bitmap.lock().expect("Neighborhood bitmap lock");
             *bitmap = vec![0u8; bitmap_bytes];
             let mut count = self.item_count.lock().expect("Item count lock");
@@ -251,7 +248,12 @@ mod tests {
     use super::*;
 
     fn make_short_id(seed: u8) -> [u8; 4] {
-        [seed, seed.wrapping_add(1), seed.wrapping_add(2), seed.wrapping_add(3)]
+        [
+            seed,
+            seed.wrapping_add(1),
+            seed.wrapping_add(2),
+            seed.wrapping_add(3),
+        ]
     }
 
     #[test]

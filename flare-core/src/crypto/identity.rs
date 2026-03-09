@@ -7,11 +7,11 @@
 //!
 //! The identity is generated once on first launch and stored locally.
 
-use ed25519_dalek::{SigningKey, VerifyingKey, Signature, Signer, Verifier};
+use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
-use x25519_dalek::{StaticSecret, PublicKey as X25519PublicKey};
+use sha2::{Digest, Sha256};
+use x25519_dalek::{PublicKey as X25519PublicKey, StaticSecret};
 
 use crate::crypto::keys;
 
@@ -112,10 +112,14 @@ impl Identity {
         agreement_key_bytes: &[u8],
     ) -> Result<Self, IdentityError> {
         if signing_key_bytes.len() != 32 {
-            return Err(IdentityError::InvalidSigningKeyLength(signing_key_bytes.len()));
+            return Err(IdentityError::InvalidSigningKeyLength(
+                signing_key_bytes.len(),
+            ));
         }
         if agreement_key_bytes.len() != 32 {
-            return Err(IdentityError::InvalidAgreementKeyLength(agreement_key_bytes.len()));
+            return Err(IdentityError::InvalidAgreementKeyLength(
+                agreement_key_bytes.len(),
+            ));
         }
 
         let mut signing_bytes = [0u8; 32];
@@ -198,14 +202,12 @@ impl PublicIdentity {
 
     /// Serializes the public identity to bytes for transmission.
     pub fn to_bytes(&self) -> Result<Vec<u8>, IdentityError> {
-        bincode::serialize(self)
-            .map_err(|e| IdentityError::SerializationError(e.to_string()))
+        bincode::serialize(self).map_err(|e| IdentityError::SerializationError(e.to_string()))
     }
 
     /// Deserializes a public identity from bytes received from a peer.
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, IdentityError> {
-        bincode::deserialize(bytes)
-            .map_err(|e| IdentityError::SerializationError(e.to_string()))
+        bincode::deserialize(bytes).map_err(|e| IdentityError::SerializationError(e.to_string()))
     }
 
     /// Returns a human-readable "safety number" for contact verification.
@@ -213,8 +215,8 @@ impl PublicIdentity {
     /// the right person (similar to Signal's safety numbers).
     pub fn safety_number(&self) -> String {
         let mut hasher = Sha256::new();
-        hasher.update(&self.signing_public_key);
-        hasher.update(&self.agreement_public_key);
+        hasher.update(self.signing_public_key);
+        hasher.update(self.agreement_public_key);
         let hash = hasher.finalize();
 
         // Format as groups of 5 digits (12 groups = 60 digits)

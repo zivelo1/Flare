@@ -3,7 +3,7 @@
 //! Stores identities, contacts, messages, and routing state.
 //! All data encrypted at rest using a key derived from the user's passphrase.
 
-use argon2::{Argon2, PasswordHasher, password_hash::SaltString};
+use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
 use rand_core::OsRng;
 use rusqlite::{params, Connection};
 
@@ -167,7 +167,7 @@ impl FlareDatabase {
                 id INTEGER PRIMARY KEY CHECK (id = 1),
                 phone_number_hash BLOB NOT NULL
             );
-            "
+            ",
         )?;
         Ok(())
     }
@@ -187,16 +187,14 @@ impl FlareDatabase {
     }
 
     /// Loads the local device identity.
+    #[allow(clippy::type_complexity)]
     pub fn load_identity(&self) -> Result<Option<(Vec<u8>, Vec<u8>)>, DatabaseError> {
         let mut stmt = self.conn.prepare(
-            "SELECT signing_key_bytes, agreement_key_bytes FROM local_identity WHERE id = 1"
+            "SELECT signing_key_bytes, agreement_key_bytes FROM local_identity WHERE id = 1",
         )?;
 
         let result = stmt.query_row([], |row| {
-            Ok((
-                row.get::<_, Vec<u8>>(0)?,
-                row.get::<_, Vec<u8>>(1)?,
-            ))
+            Ok((row.get::<_, Vec<u8>>(0)?, row.get::<_, Vec<u8>>(1)?))
         });
 
         match result {
@@ -232,7 +230,10 @@ impl FlareDatabase {
     }
 
     /// Loads a contact by device ID.
-    pub fn load_contact(&self, device_id: &DeviceId) -> Result<Option<PublicIdentity>, DatabaseError> {
+    pub fn load_contact(
+        &self,
+        device_id: &DeviceId,
+    ) -> Result<Option<PublicIdentity>, DatabaseError> {
         let mut stmt = self.conn.prepare(
             "SELECT signing_public_key, agreement_public_key, device_id FROM contacts WHERE device_id = ?1"
         )?;
@@ -261,42 +262,46 @@ impl FlareDatabase {
     }
 
     /// Lists all contacts.
-    pub fn list_contacts(&self) -> Result<Vec<(PublicIdentity, Option<String>, bool)>, DatabaseError> {
+    pub fn list_contacts(
+        &self,
+    ) -> Result<Vec<(PublicIdentity, Option<String>, bool)>, DatabaseError> {
         let mut stmt = self.conn.prepare(
             "SELECT device_id, signing_public_key, agreement_public_key, display_name, is_verified
-             FROM contacts ORDER BY last_seen DESC"
+             FROM contacts ORDER BY last_seen DESC",
         )?;
 
-        let contacts = stmt.query_map([], |row| {
-            let device_id_hex: String = row.get(0)?;
-            let signing_bytes: Vec<u8> = row.get(1)?;
-            let agreement_bytes: Vec<u8> = row.get(2)?;
-            let display_name: Option<String> = row.get(3)?;
-            let is_verified: bool = row.get(4)?;
+        let contacts = stmt
+            .query_map([], |row| {
+                let device_id_hex: String = row.get(0)?;
+                let signing_bytes: Vec<u8> = row.get(1)?;
+                let agreement_bytes: Vec<u8> = row.get(2)?;
+                let display_name: Option<String> = row.get(3)?;
+                let is_verified: bool = row.get(4)?;
 
-            let mut signing_key = [0u8; 32];
-            let mut agreement_key = [0u8; 32];
-            signing_key.copy_from_slice(&signing_bytes);
-            agreement_key.copy_from_slice(&agreement_bytes);
+                let mut signing_key = [0u8; 32];
+                let mut agreement_key = [0u8; 32];
+                signing_key.copy_from_slice(&signing_bytes);
+                agreement_key.copy_from_slice(&agreement_bytes);
 
-            let device_id = DeviceId::from_hex(&device_id_hex)
-                .unwrap_or(DeviceId([0; 16]));
+                let device_id = DeviceId::from_hex(&device_id_hex).unwrap_or(DeviceId([0; 16]));
 
-            Ok((
-                PublicIdentity {
-                    signing_public_key: signing_key,
-                    agreement_public_key: agreement_key,
-                    device_id,
-                },
-                display_name,
-                is_verified,
-            ))
-        })?.collect::<Result<Vec<_>, _>>()?;
+                Ok((
+                    PublicIdentity {
+                        signing_public_key: signing_key,
+                        agreement_public_key: agreement_key,
+                        device_id,
+                    },
+                    display_name,
+                    is_verified,
+                ))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(contacts)
     }
 
     /// Stores a message in the local database.
+    #[allow(clippy::too_many_arguments)]
     pub fn store_message(
         &self,
         message_id: &str,
@@ -325,6 +330,7 @@ impl FlareDatabase {
     }
 
     /// Gets all messages for a conversation, ordered by creation time.
+    #[allow(clippy::type_complexity)]
     pub fn get_messages_for_conversation(
         &self,
         conversation_id: &str,
@@ -334,21 +340,23 @@ impl FlareDatabase {
                     plaintext, created_at, is_outgoing, delivery_status
              FROM messages
              WHERE conversation_id = ?1
-             ORDER BY created_at ASC"
+             ORDER BY created_at ASC",
         )?;
 
-        let messages = stmt.query_map(params![conversation_id], |row| {
-            Ok((
-                row.get::<_, String>(0)?,
-                row.get::<_, String>(1)?,
-                row.get::<_, String>(2)?,
-                row.get::<_, u8>(3)?,
-                row.get::<_, Vec<u8>>(4)?,
-                row.get::<_, String>(5)?,
-                row.get::<_, bool>(6)?,
-                row.get::<_, u8>(7)?,
-            ))
-        })?.collect::<Result<Vec<_>, _>>()?;
+        let messages = stmt
+            .query_map(params![conversation_id], |row| {
+                Ok((
+                    row.get::<_, String>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(2)?,
+                    row.get::<_, u8>(3)?,
+                    row.get::<_, Vec<u8>>(4)?,
+                    row.get::<_, String>(5)?,
+                    row.get::<_, bool>(6)?,
+                    row.get::<_, u8>(7)?,
+                ))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(messages)
     }
@@ -370,11 +378,7 @@ impl FlareDatabase {
     }
 
     /// Adds a member to a group.
-    pub fn add_group_member(
-        &self,
-        group_id: &str,
-        device_id: &str,
-    ) -> Result<(), DatabaseError> {
+    pub fn add_group_member(&self, group_id: &str, device_id: &str) -> Result<(), DatabaseError> {
         self.conn.execute(
             "INSERT OR IGNORE INTO group_members (group_id, device_id) VALUES (?1, ?2)",
             params![group_id, device_id],
@@ -401,14 +405,16 @@ impl FlareDatabase {
             "SELECT group_id, group_name, created_at, creator_device_id FROM groups ORDER BY created_at DESC"
         )?;
 
-        let groups = stmt.query_map([], |row| {
-            Ok((
-                row.get::<_, String>(0)?,
-                row.get::<_, String>(1)?,
-                row.get::<_, String>(2)?,
-                row.get::<_, String>(3)?,
-            ))
-        })?.collect::<Result<Vec<_>, _>>()?;
+        let groups = stmt
+            .query_map([], |row| {
+                Ok((
+                    row.get::<_, String>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(2)?,
+                    row.get::<_, String>(3)?,
+                ))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(groups)
     }
@@ -416,12 +422,12 @@ impl FlareDatabase {
     /// Gets all member device IDs for a group.
     pub fn get_group_members(&self, group_id: &str) -> Result<Vec<String>, DatabaseError> {
         let mut stmt = self.conn.prepare(
-            "SELECT device_id FROM group_members WHERE group_id = ?1 ORDER BY joined_at ASC"
+            "SELECT device_id FROM group_members WHERE group_id = ?1 ORDER BY joined_at ASC",
         )?;
 
-        let members = stmt.query_map(params![group_id], |row| {
-            row.get::<_, String>(0)
-        })?.collect::<Result<Vec<_>, _>>()?;
+        let members = stmt
+            .query_map(params![group_id], |row| row.get::<_, String>(0))?
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(members)
     }
@@ -453,7 +459,12 @@ impl FlareDatabase {
             "INSERT OR REPLACE INTO pending_outbox
              (message_id, recipient_device_id, encrypted_payload, ttl_seconds)
              VALUES (?1, ?2, ?3, ?4)",
-            params![message_id, recipient_device_id, encrypted_payload, ttl_seconds],
+            params![
+                message_id,
+                recipient_device_id,
+                encrypted_payload,
+                ttl_seconds
+            ],
         )?;
         Ok(())
     }
@@ -462,16 +473,18 @@ impl FlareDatabase {
     pub fn get_pending_outbound(&self) -> Result<Vec<(String, String, Vec<u8>)>, DatabaseError> {
         let mut stmt = self.conn.prepare(
             "SELECT message_id, recipient_device_id, encrypted_payload
-             FROM pending_outbox ORDER BY created_at ASC"
+             FROM pending_outbox ORDER BY created_at ASC",
         )?;
 
-        let messages = stmt.query_map([], |row| {
-            Ok((
-                row.get::<_, String>(0)?,
-                row.get::<_, String>(1)?,
-                row.get::<_, Vec<u8>>(2)?,
-            ))
-        })?.collect::<Result<Vec<_>, _>>()?;
+        let messages = stmt
+            .query_map([], |row| {
+                Ok((
+                    row.get::<_, String>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, Vec<u8>>(2)?,
+                ))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(messages)
     }
@@ -524,11 +537,9 @@ impl FlareDatabase {
 
     /// Returns true if a duress passphrase has been configured.
     pub fn has_duress_passphrase(&self) -> Result<bool, DatabaseError> {
-        let count: i64 = self.conn.query_row(
-            "SELECT COUNT(*) FROM duress_config",
-            [],
-            |row| row.get(0),
-        )?;
+        let count: i64 = self
+            .conn
+            .query_row("SELECT COUNT(*) FROM duress_config", [], |row| row.get(0))?;
         Ok(count > 0)
     }
 
@@ -566,15 +577,17 @@ impl FlareDatabase {
     /// Lists all rendezvous tokens.
     pub fn list_rendezvous_tokens(&self) -> Result<Vec<(Vec<u8>, String, String)>, DatabaseError> {
         let mut stmt = self.conn.prepare(
-            "SELECT token, source_type, expires_at FROM rendezvous_tokens ORDER BY created_at ASC"
+            "SELECT token, source_type, expires_at FROM rendezvous_tokens ORDER BY created_at ASC",
         )?;
-        let tokens = stmt.query_map([], |row| {
-            Ok((
-                row.get::<_, Vec<u8>>(0)?,
-                row.get::<_, String>(1)?,
-                row.get::<_, String>(2)?,
-            ))
-        })?.collect::<Result<Vec<_>, _>>()?;
+        let tokens = stmt
+            .query_map([], |row| {
+                Ok((
+                    row.get::<_, Vec<u8>>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(2)?,
+                ))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
         Ok(tokens)
     }
 
@@ -602,9 +615,12 @@ impl FlareDatabase {
     }
 
     /// Loads an active search by token.
-    pub fn load_active_search(&self, token: &[u8]) -> Result<Option<(Vec<u8>, String)>, DatabaseError> {
+    pub fn load_active_search(
+        &self,
+        token: &[u8],
+    ) -> Result<Option<(Vec<u8>, String)>, DatabaseError> {
         let mut stmt = self.conn.prepare(
-            "SELECT ephemeral_private_key, source_type FROM active_searches WHERE token = ?1"
+            "SELECT ephemeral_private_key, source_type FROM active_searches WHERE token = ?1",
         )?;
         let result = stmt.query_row(params![token], |row| {
             Ok((row.get::<_, Vec<u8>>(0)?, row.get::<_, String>(1)?))
@@ -685,7 +701,8 @@ mod tests {
         db.store_identity(
             identity.signing_key_bytes(),
             &identity.agreement_key_bytes(),
-        ).unwrap();
+        )
+        .unwrap();
 
         let loaded = db.load_identity().unwrap();
         assert!(loaded.is_some());
@@ -712,7 +729,10 @@ mod tests {
 
         let loaded = db.load_contact(&public.device_id).unwrap();
         assert!(loaded.is_some());
-        assert_eq!(loaded.unwrap().signing_public_key, public.signing_public_key);
+        assert_eq!(
+            loaded.unwrap().signing_public_key,
+            public.signing_public_key
+        );
     }
 
     #[test]
@@ -721,7 +741,8 @@ mod tests {
 
         for name in &["Alice", "Bob", "Carol"] {
             let peer = Identity::generate();
-            db.upsert_contact(&peer.public_identity(), Some(name), false).unwrap();
+            db.upsert_contact(&peer.public_identity(), Some(name), false)
+                .unwrap();
         }
 
         let contacts = db.list_contacts().unwrap();
@@ -732,18 +753,39 @@ mod tests {
     fn test_store_and_get_messages() {
         let db = test_db();
         let peer = Identity::generate();
-        db.upsert_contact(&peer.public_identity(), Some("Alice"), false).unwrap();
+        db.upsert_contact(&peer.public_identity(), Some("Alice"), false)
+            .unwrap();
 
         let conv_id = peer.device_id().to_hex();
 
         // Insert a conversation row (required by FK in some setups)
-        db.conn.execute(
-            "INSERT INTO conversations (id, peer_device_id) VALUES (?1, ?2)",
-            params![conv_id, conv_id],
-        ).unwrap();
+        db.conn
+            .execute(
+                "INSERT INTO conversations (id, peer_device_id) VALUES (?1, ?2)",
+                params![conv_id, conv_id],
+            )
+            .unwrap();
 
-        db.store_message("msg-001", &conv_id, &conv_id, 1, b"Hello", "2025-01-01T00:00:00Z", false).unwrap();
-        db.store_message("msg-002", &conv_id, "self", 1, b"Hi back", "2025-01-01T00:00:01Z", true).unwrap();
+        db.store_message(
+            "msg-001",
+            &conv_id,
+            &conv_id,
+            1,
+            b"Hello",
+            "2025-01-01T00:00:00Z",
+            false,
+        )
+        .unwrap();
+        db.store_message(
+            "msg-002",
+            &conv_id,
+            "self",
+            1,
+            b"Hi back",
+            "2025-01-01T00:00:01Z",
+            true,
+        )
+        .unwrap();
 
         let msgs = db.get_messages_for_conversation(&conv_id).unwrap();
         assert_eq!(msgs.len(), 2);
@@ -755,15 +797,27 @@ mod tests {
     fn test_delivery_status_update() {
         let db = test_db();
         let peer = Identity::generate();
-        db.upsert_contact(&peer.public_identity(), Some("Bob"), false).unwrap();
+        db.upsert_contact(&peer.public_identity(), Some("Bob"), false)
+            .unwrap();
 
         let conv_id = peer.device_id().to_hex();
-        db.conn.execute(
-            "INSERT INTO conversations (id, peer_device_id) VALUES (?1, ?2)",
-            params![conv_id, conv_id],
-        ).unwrap();
+        db.conn
+            .execute(
+                "INSERT INTO conversations (id, peer_device_id) VALUES (?1, ?2)",
+                params![conv_id, conv_id],
+            )
+            .unwrap();
 
-        db.store_message("msg-100", &conv_id, "self", 1, b"Test", "2025-01-01T00:00:00Z", true).unwrap();
+        db.store_message(
+            "msg-100",
+            &conv_id,
+            "self",
+            1,
+            b"Test",
+            "2025-01-01T00:00:00Z",
+            true,
+        )
+        .unwrap();
         db.update_delivery_status("msg-100", 2).unwrap();
 
         let msgs = db.get_messages_for_conversation(&conv_id).unwrap();
@@ -774,7 +828,8 @@ mod tests {
     fn test_group_operations() {
         let db = test_db();
 
-        db.create_group("grp-001", "Test Group", "device-aaa").unwrap();
+        db.create_group("grp-001", "Test Group", "device-aaa")
+            .unwrap();
         db.add_group_member("grp-001", "device-aaa").unwrap();
         db.add_group_member("grp-001", "device-bbb").unwrap();
         db.add_group_member("grp-001", "device-ccc").unwrap();
@@ -820,8 +875,10 @@ mod tests {
     fn test_outbox_operations() {
         let db = test_db();
 
-        db.queue_outbound("msg-001", "device-abc", b"encrypted-data", 86400).unwrap();
-        db.queue_outbound("msg-002", "device-def", b"more-data", 86400).unwrap();
+        db.queue_outbound("msg-001", "device-abc", b"encrypted-data", 86400)
+            .unwrap();
+        db.queue_outbound("msg-002", "device-def", b"more-data", 86400)
+            .unwrap();
 
         let pending = db.get_pending_outbound().unwrap();
         assert_eq!(pending.len(), 2);

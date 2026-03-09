@@ -164,10 +164,8 @@ impl Router {
         let connected = self.peer_table.connected_peers();
         if connected.is_empty() {
             // No connected peers — store for later
-            self.store.store_relay(
-                message.clone(),
-                self.store.config().initial_spray_copies,
-            );
+            self.store
+                .store_relay(message.clone(), self.store.config().initial_spray_copies);
             return RouteDecision::Store;
         }
 
@@ -179,10 +177,8 @@ impl Router {
             .collect();
 
         if target_peers.is_empty() {
-            self.store.store_relay(
-                message.clone(),
-                self.store.config().initial_spray_copies,
-            );
+            self.store
+                .store_relay(message.clone(), self.store.config().initial_spray_copies);
             return RouteDecision::Store;
         }
 
@@ -272,13 +268,11 @@ mod tests {
         let sender = Identity::generate();
         let recipient = Identity::generate();
 
-        let mut msg = MessageBuilder::new(
-            sender.device_id().clone(),
-            recipient.device_id().clone(),
-        )
-        .max_hops(2)
-        .payload(b"test".to_vec())
-        .build(|data| sender.sign(data));
+        let mut msg =
+            MessageBuilder::new(sender.device_id().clone(), recipient.device_id().clone())
+                .max_hops(2)
+                .payload(b"test".to_vec())
+                .build(|data| sender.sign(data));
 
         msg.hop_count = 2; // Already at max
         let decision = router.route_incoming(&msg);
@@ -309,10 +303,7 @@ mod tests {
         let recipient = Identity::generate();
         let relay_peer = Identity::generate();
 
-        let mut peer_info = PeerInfo::new(
-            relay_peer.public_identity(),
-            TransportType::BluetoothLE,
-        );
+        let mut peer_info = PeerInfo::new(relay_peer.public_identity(), TransportType::BluetoothLE);
         peer_info.is_connected = true;
         router.peer_table().upsert(peer_info);
 
@@ -372,7 +363,12 @@ mod tests {
         // Create a remote filter with completely different peers (different cluster)
         let remote_filter = NeighborhoodFilter::with_defaults();
         for i in 200..220u8 {
-            remote_filter.record_peer(&[i, i.wrapping_add(1), i.wrapping_add(2), i.wrapping_add(3)]);
+            remote_filter.record_peer(&[
+                i,
+                i.wrapping_add(1),
+                i.wrapping_add(2),
+                i.wrapping_add(3),
+            ]);
         }
         let remote_bitmap = remote_filter.export_bitmap();
 
@@ -393,13 +389,10 @@ mod tests {
         assert_eq!(router.store_size(), 1);
 
         // Create an ACK for that message
-        let ack = MessageBuilder::new(
-            recipient.device_id().clone(),
-            sender.device_id().clone(),
-        )
-        .content_type(ContentType::Acknowledgment)
-        .payload(original_msg_id.to_vec())
-        .build(|data| recipient.sign(data));
+        let ack = MessageBuilder::new(recipient.device_id().clone(), sender.device_id().clone())
+            .content_type(ContentType::Acknowledgment)
+            .payload(original_msg_id.to_vec())
+            .build(|data| recipient.sign(data));
 
         // Route the ACK through our node
         let _decision = router.route_incoming(&ack);

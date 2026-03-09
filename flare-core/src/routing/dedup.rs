@@ -73,10 +73,8 @@ impl DeduplicationFilter {
         // This means very old messages could be re-forwarded, which is acceptable
         // since they'll likely be expired by TTL anyway.
         if *count >= self.config.expected_items {
-            let new_filter = Bloom::new_for_fp_rate(
-                self.config.expected_items,
-                self.config.false_positive_rate,
-            );
+            let new_filter =
+                Bloom::new_for_fp_rate(self.config.expected_items, self.config.false_positive_rate);
             *filter = new_filter;
             *count = 0;
             log::info!(
@@ -102,10 +100,8 @@ impl DeduplicationFilter {
         *count += 1;
 
         if *count >= self.config.expected_items {
-            *filter = Bloom::new_for_fp_rate(
-                self.config.expected_items,
-                self.config.false_positive_rate,
-            );
+            *filter =
+                Bloom::new_for_fp_rate(self.config.expected_items, self.config.false_positive_rate);
             *count = 0;
         }
 
@@ -151,7 +147,7 @@ mod tests {
         let id = make_id(1);
 
         assert!(!filter.check_and_mark(&id)); // First time: new
-        assert!(filter.check_and_mark(&id));  // Second time: duplicate
+        assert!(filter.check_and_mark(&id)); // Second time: duplicate
     }
 
     #[test]
