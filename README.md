@@ -44,6 +44,25 @@ Since there are no servers, Flare uses a **Blind Rendezvous** protocol to help y
 
 Your phone number, passphrase, and contacts **never leave your device**. Only a mathematical fingerprint is shared — it cannot be reversed.
 
+## Installing Without Internet
+
+Flare is designed to spread without app stores or internet access:
+
+```
+Person with     ──BLE──→  Friend      ──BLE──→  Friend's     ──BLE──→  ...
+internet                  (no internet)          friend
+downloads Flare           installs Flare         installs Flare
+```
+
+1. **One person** downloads Flare while they still have internet access (from a website, via Starlink, etc.)
+2. **They open Flare** — the app automatically advertises itself to nearby phones via Bluetooth, including its version and a verification hash
+3. **A nearby person** without internet receives the offer and accepts it
+4. **Flare transfers itself** phone-to-phone — the entire app, in small verified chunks, no internet needed
+5. **The new user installs Flare** and immediately becomes part of the mesh — they can now message AND share the app further
+6. **Each new user repeats the process** — Flare spreads virally, person to person, across an entire city or region
+
+The transfer is verified with a SHA-256 hash to ensure the app hasn't been tampered with. On Android, this works via standard APK sideloading. iOS distribution options are being evaluated.
+
 ## Key Features
 
 - **Works offline** — no internet, no Wi-Fi, no cell service needed
@@ -95,7 +114,11 @@ Your phone number, passphrase, and contacts **never leave your device**. Only a 
 - Full message pipeline: encrypt → send → relay → deliver → ACK
 - Foreground service, neighborhood detection, ProGuard rules
 
-**iOS** — Swift bindings generated, app implementation pending
+**iOS App** (Swift + SwiftUI):
+- CoreBluetooth BLE central + peripheral with state restoration
+- SwiftUI screens: chats, contacts, network, find contact, QR, discovery
+- Full mesh service: message routing, rendezvous broadcast, delivery ACK
+- Awaiting Rust cross-compilation for iOS ARM and device testing
 
 See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for detailed progress.
 
