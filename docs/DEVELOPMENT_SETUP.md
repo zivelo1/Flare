@@ -29,7 +29,7 @@ Flare/
 ├── flare-core/              # Rust shared library
 │   ├── src/
 │   │   ├── crypto/          # Ed25519, X25519, AES-256-GCM, HKDF
-│   │   ├── routing/         # Spray-and-Wait router, Bloom filter dedup
+│   │   ├── routing/         # Spray-and-Wait router, Bloom filter dedup, neighborhood, priority store
 │   │   ├── storage/         # SQLCipher encrypted database
 │   │   ├── protocol/        # Message wire format and serialization
 │   │   ├── transport/       # BLE chunking/reassembly
@@ -60,7 +60,7 @@ Flare/
 ```bash
 cd flare-core
 cargo build
-cargo test      # 57 tests
+cargo test      # 85 tests
 ```
 
 ### Generate Kotlin Bindings
@@ -102,4 +102,9 @@ BLE ← MeshService ← outbound queue ← encrypt + build mesh message
 Peer GATT → incoming data → MeshService → FlareNode.routeIncoming()
                                               ↓
                               DeliverLocally / Forward / Store / Drop
+
+Peer Connect → exchange neighborhood bitmaps → detect bridge encounter
+                                                    ↓
+                              Bridge → extend TTL on stored messages (48h → 72h → 7d)
+                              Local  → no TTL change (same cluster)
 ```

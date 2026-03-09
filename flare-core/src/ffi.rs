@@ -90,6 +90,16 @@ pub struct FfiMeshStatus {
     pub messages_relayed: u64,
 }
 
+#[derive(uniffi::Record)]
+pub struct FfiStoreStats {
+    pub total_messages: u32,
+    pub own_messages: u32,
+    pub active_relay_messages: u32,
+    pub waiting_relay_messages: u32,
+    pub total_bytes: u64,
+    pub budget_bytes: u64,
+}
+
 // ── Namespace Functions ──────────────────────────────────────────────
 
 #[uniffi::export]
@@ -468,5 +478,49 @@ impl FlareNode {
         bytes.push(PROTOCOL_VERSION);
         bytes.extend_from_slice(&self.identity.device_id().short_id());
         bytes
+    }
+
+    // ── Neighborhood Detection ─────────────────────────────────────
+
+    /// Records a peer's short ID (4 bytes) in the neighborhood filter.
+    /// Call this whenever a peer is discovered via BLE scan.
+    pub fn record_neighborhood_peer(&self, short_id: Vec<u8>) {
+        if short_id.len() >= 4 {
+            let mut id = [0u8; 4];
+            id.copy_from_slice(&short_id[..4]);
+            self.router.record_neighborhood_peer(&id);
+        }
+    }
+
+    /// Exports the neighborhood filter bitmap for exchange with a remote peer.
+    pub fn export_neighborhood_bitmap(&self) -> Vec<u8> {
+        self.router.export_neighborhood_bitmap()
+    }
+
+    /// Processes a remote peer's neighborhood bitmap.
+    /// Returns the encounter type as a string: "local", "bridge", or "intermediate".
+    /// If "bridge", stored messages have their TTL automatically extended.
+    pub fn process_remote_neighborhood(&self, remote_bitmap: Vec<u8>) -> String {
+        let encounter = self.router.process_remote_neighborhood(&remote_bitmap);
+        match encounter {
+            crate::routing::neighborhood::EncounterType::Local => "local".to_string(),
+            crate::routing::neighborhood::EncounterType::Bridge => "bridge".to_string(),
+            crate::routing::neighborhood::EncounterType::Intermediate => "intermediate".to_string(),
+        }
+    }
+
+    // ── Store Statistics ───────────────────────────────────────────
+
+    /// Returns detailed store statistics.
+    pub fn get_store_stats(&self) -> FfiStoreStats {
+        let stats = self.router.store().stats();
+        FfiStoreStats {
+            total_messages: stats.total_messages as u32,
+            own_messages: stats.own_messages as u32,
+            active_relay_messages: stats.active_relay_messages as u32,
+            waiting_relay_messages: stats.waiting_relay_messages as u32,
+            total_bytes: stats.total_bytes as u64,
+            budget_bytes: stats.budget_bytes as u64,
+        }
     }
 }

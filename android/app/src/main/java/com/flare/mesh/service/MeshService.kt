@@ -132,11 +132,22 @@ class MeshService : LifecycleService() {
         // Start BLE scanning
         bleScanner.startScanning()
 
-        // Periodic scan cycle: update status and discovered peers
+        // Periodic scan cycle: update status, discovered peers, and neighborhood filter
         scanJob = lifecycleScope.launch {
             while (isActive) {
                 delay(Constants.BLE_SCAN_INTERVAL_MS)
-                _discoveredPeers.value = bleScanner.discoveredPeers.value
+                val peers = bleScanner.discoveredPeers.value
+                _discoveredPeers.value = peers
+
+                // Record discovered peers' BLE addresses as short IDs in neighborhood filter
+                try {
+                    val repo = FlareRepository.getInstance()
+                    peers.keys.forEach { address ->
+                        val shortId = addressToShortId(address)
+                        repo.recordNeighborhoodPeer(shortId)
+                    }
+                } catch (_: Exception) { }
+
                 updateMeshStatus()
             }
         }
@@ -171,8 +182,13 @@ class MeshService : LifecycleService() {
                         try {
                             val repo = FlareRepository.getInstance()
                             repo.notifyPeerConnected(event.address)
-                            // Forward stored messages to newly connected peer
+
                             lifecycleScope.launch(Dispatchers.IO) {
+                                // Exchange neighborhood bitmaps for bridge detection
+                                val localBitmap = repo.exportNeighborhoodBitmap()
+                                gattServer.sendToPeer(event.address, localBitmap)
+
+                                // Forward stored messages to newly connected peer
                                 val messages = repo.getMessagesForPeer(event.address)
                                 messages.forEach { data ->
                                     gattServer.sendToPeer(event.address, data)
@@ -276,15 +292,35 @@ class MeshService : LifecycleService() {
             sent, serverPeers.size + clientPeers.size)
     }
 
+    /**
+     * Derives a deterministic 4-byte short ID from a BLE MAC address.
+     * Uses the last 4 bytes of the address (stripped of colons).
+     */
+    private fun addressToShortId(address: String): ByteArray {
+        val bytes = address.replace(":", "")
+            .chunked(2)
+            .map { it.toInt(16).toByte() }
+            .toByteArray()
+        // Take last 4 bytes, or pad with zeros if shorter
+        return when {
+            bytes.size >= 4 -> bytes.takeLast(4).toByteArray()
+            else -> ByteArray(4 - bytes.size) + bytes
+        }
+    }
+
     private fun updateMeshStatus() {
         val discoveredCount = bleScanner.discoveredPeers.value.size
         val connectedCount = gattServer.connectedCount() + gattClient.connectedAddresses().size
+
+        val storedCount = try {
+            FlareRepository.getInstance().getStoreStats().totalMessages
+        } catch (_: Exception) { 0 }
 
         _meshStatus.value = MeshStatus(
             isActive = true,
             connectedPeerCount = connectedCount,
             discoveredPeerCount = discoveredCount,
-            storedMessageCount = 0,
+            storedMessageCount = storedCount,
             messagesRelayed = _meshStatus.value.messagesRelayed,
         )
 

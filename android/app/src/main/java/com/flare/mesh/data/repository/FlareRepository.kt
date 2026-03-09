@@ -210,6 +210,47 @@ class FlareRepository private constructor(private val node: FlareNode) {
         }
     }
 
+    // ── Neighborhood Detection ──────────────────────────────────────
+
+    /**
+     * Records a peer's 4-byte short ID in the neighborhood Bloom filter.
+     * Call on every BLE scan result to build local cluster awareness.
+     */
+    fun recordNeighborhoodPeer(shortId: ByteArray) {
+        node.recordNeighborhoodPeer(shortId)
+    }
+
+    /**
+     * Exports the current neighborhood bitmap for exchange with a peer.
+     * Send this over BLE after connecting to enable bridge detection.
+     */
+    fun exportNeighborhoodBitmap(): ByteArray = node.exportNeighborhoodBitmap()
+
+    /**
+     * Processes a remote peer's neighborhood bitmap.
+     * Returns the encounter type: "Local", "Bridge", or "Intermediate".
+     * On bridge encounters, the Rust core automatically extends TTL on stored messages.
+     */
+    fun processRemoteNeighborhood(remoteBitmap: ByteArray): String =
+        node.processRemoteNeighborhood(remoteBitmap)
+
+    // ── Store Stats ────────────────────────────────────────────────────
+
+    /**
+     * Returns priority store statistics for monitoring and UI display.
+     */
+    fun getStoreStats(): StoreStats {
+        val ffi = node.getStoreStats()
+        return StoreStats(
+            totalMessages = ffi.totalMessages.toInt(),
+            ownMessages = ffi.ownMessages.toInt(),
+            activeRelayMessages = ffi.activeRelayMessages.toInt(),
+            waitingRelayMessages = ffi.waitingRelayMessages.toInt(),
+            totalBytes = ffi.totalBytes.toLong(),
+            budgetBytes = ffi.budgetBytes.toLong(),
+        )
+    }
+
     // ── Mesh Status ───────────────────────────────────────────────────
 
     fun getMeshStatus(): MeshStatus {
@@ -225,6 +266,15 @@ class FlareRepository private constructor(private val node: FlareNode) {
 
     fun pruneExpiredMessages(): Int = node.pruneExpiredMessages().toInt()
 }
+
+data class StoreStats(
+    val totalMessages: Int,
+    val ownMessages: Int,
+    val activeRelayMessages: Int,
+    val waitingRelayMessages: Int,
+    val totalBytes: Long,
+    val budgetBytes: Long,
+)
 
 enum class RouteDecisionType {
     DELIVER_LOCALLY, FORWARD, STORE, DROP,

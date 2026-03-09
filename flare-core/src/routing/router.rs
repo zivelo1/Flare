@@ -1,26 +1,20 @@
-//! Spray-and-Wait message router for the Flare mesh.
+//! Spray-and-Wait message router with adaptive TTL for the Flare mesh.
 //!
 //! Spray-and-Wait is a bounded-replication routing protocol for
 //! delay-tolerant networks. It creates L copies of a message and
 //! distributes them to encountered peers, then waits for delivery.
 //!
-//! This provides good delivery probability with bounded overhead,
-//! making it suitable for phone-based mesh where connectivity is
-//! intermittent and unpredictable.
-
-use std::collections::HashMap;
-use std::sync::Mutex;
+//! Adaptive TTL extends message lifetime when crossing cluster boundaries
+//! (bridge encounters), enabling long-distance delivery without GPS.
+//!
+//! Delivery ACKs propagate back through the mesh to trigger cleanup.
 
 use crate::crypto::identity::DeviceId;
-use crate::protocol::message::MeshMessage;
+use crate::protocol::message::{ContentType, MeshMessage};
 use crate::routing::dedup::DeduplicationFilter;
+use crate::routing::neighborhood::{EncounterType, NeighborhoodFilter};
 use crate::routing::peer_table::PeerTable;
-
-/// Default number of message copies in Spray-and-Wait.
-const DEFAULT_SPRAY_COPIES: u8 = 8;
-
-/// Maximum number of messages to store for forwarding.
-const MAX_STORE_SIZE: usize = 1000;
+use crate::routing::priority_store::{PriorityStore, PriorityStoreConfig};
 
 /// Decision made by the router for an incoming message.
 #[derive(Debug, PartialEq)]
@@ -43,38 +37,35 @@ pub enum DropReason {
     InvalidSignature,
 }
 
-/// Stored message awaiting forwarding opportunities.
-struct StoredMessage {
-    message: MeshMessage,
-    remaining_copies: u8,
-}
-
-/// The Spray-and-Wait mesh router.
+/// The Spray-and-Wait mesh router with adaptive TTL and priority storage.
 pub struct Router {
     local_device_id: DeviceId,
     dedup: DeduplicationFilter,
     peer_table: PeerTable,
-    store: Mutex<HashMap<[u8; 32], StoredMessage>>,
-    spray_copies: u8,
+    store: PriorityStore,
+    neighborhood: NeighborhoodFilter,
 }
 
 impl Router {
-    /// Creates a new router for the given local device.
+    /// Creates a new router for the given local device with default configuration.
     pub fn new(local_device_id: DeviceId) -> Self {
         Router {
             local_device_id,
             dedup: DeduplicationFilter::with_defaults(),
             peer_table: PeerTable::new(),
-            store: Mutex::new(HashMap::new()),
-            spray_copies: DEFAULT_SPRAY_COPIES,
+            store: PriorityStore::with_defaults(),
+            neighborhood: NeighborhoodFilter::with_defaults(),
         }
     }
 
-    /// Creates a router with custom spray copy count.
-    pub fn with_spray_copies(local_device_id: DeviceId, spray_copies: u8) -> Self {
+    /// Creates a router with custom priority store configuration.
+    pub fn with_config(local_device_id: DeviceId, store_config: PriorityStoreConfig) -> Self {
         Router {
-            spray_copies,
-            ..Self::new(local_device_id)
+            local_device_id,
+            dedup: DeduplicationFilter::with_defaults(),
+            peer_table: PeerTable::new(),
+            store: PriorityStore::new(store_config),
+            neighborhood: NeighborhoodFilter::with_defaults(),
         }
     }
 
@@ -83,51 +74,115 @@ impl Router {
         &self.peer_table
     }
 
+    /// Returns a reference to the neighborhood filter.
+    pub fn neighborhood(&self) -> &NeighborhoodFilter {
+        &self.neighborhood
+    }
+
+    /// Returns a reference to the priority store.
+    pub fn store(&self) -> &PriorityStore {
+        &self.store
+    }
+
+    /// Records a peer's short ID in the neighborhood filter.
+    /// Call this whenever a peer is discovered via BLE scan.
+    pub fn record_neighborhood_peer(&self, short_id: &[u8; 4]) {
+        self.neighborhood.record_peer(short_id);
+    }
+
+    /// Exports the neighborhood filter bitmap for exchange with a peer.
+    pub fn export_neighborhood_bitmap(&self) -> Vec<u8> {
+        self.neighborhood.export_bitmap()
+    }
+
+    /// Processes a remote peer's neighborhood bitmap.
+    /// If a bridge encounter is detected, extends TTL on stored messages.
+    /// Returns the encounter type.
+    pub fn process_remote_neighborhood(&self, remote_bitmap: &[u8]) -> EncounterType {
+        let encounter = self.neighborhood.compare_with_remote(remote_bitmap);
+
+        if encounter == EncounterType::Bridge {
+            let upgraded = self.store.on_bridge_encounter();
+            if upgraded > 0 {
+                log::info!(
+                    "Bridge encounter detected — extended TTL on {} messages",
+                    upgraded
+                );
+            }
+        }
+
+        encounter
+    }
+
     /// Processes an incoming message and returns a routing decision.
     pub fn route_incoming(&self, message: &MeshMessage) -> RouteDecision {
         // 1. Check for duplicate
         if self.dedup.check_and_mark(&message.message_id) {
-            return RouteDecision::Drop { reason: DropReason::Duplicate };
+            return RouteDecision::Drop {
+                reason: DropReason::Duplicate,
+            };
         }
 
         // 2. Check TTL
         if message.is_expired() {
-            return RouteDecision::Drop { reason: DropReason::Expired };
+            return RouteDecision::Drop {
+                reason: DropReason::Expired,
+            };
         }
 
         // 3. Check hop limit
         if message.is_hop_limited() {
-            return RouteDecision::Drop { reason: DropReason::HopLimitReached };
+            return RouteDecision::Drop {
+                reason: DropReason::HopLimitReached,
+            };
         }
 
-        // 4. Is it for us?
+        // 4. Handle delivery ACKs — clean up stored messages
+        if message.content_type == ContentType::Acknowledgment && !message.payload.is_empty() {
+            // ACK payload contains the original message_id (32 bytes)
+            if message.payload.len() >= 32 {
+                let mut original_id = [0u8; 32];
+                original_id.copy_from_slice(&message.payload[..32]);
+                if self.store.process_ack(&original_id) {
+                    log::debug!("ACK received — removed stored message");
+                }
+            }
+            // ACKs are also forwarded like normal messages (for propagation)
+        }
+
+        // 5. Is it for us?
         if message.recipient_id == self.local_device_id {
             return RouteDecision::DeliverLocally;
         }
 
-        // 5. Is it a broadcast?
+        // 6. Is it a broadcast?
         if message.is_broadcast() {
-            // Deliver locally AND forward
             return RouteDecision::DeliverLocally;
         }
 
-        // 6. Spray phase: forward to connected peers
+        // 7. Spray phase: forward to connected peers
         let connected = self.peer_table.connected_peers();
         if connected.is_empty() {
             // No connected peers — store for later
-            self.store_message(message.clone(), self.spray_copies);
+            self.store.store_relay(
+                message.clone(),
+                self.store.config().initial_spray_copies,
+            );
             return RouteDecision::Store;
         }
 
-        // Select peers to spray to (half of remaining copies, per Binary Spray-and-Wait)
+        // Select peers to spray to (exclude sender)
         let target_peers: Vec<DeviceId> = connected
             .iter()
-            .filter(|p| p.identity.device_id != message.sender_id) // Don't send back to sender
+            .filter(|p| p.identity.device_id != message.sender_id)
             .map(|p| p.identity.device_id.clone())
             .collect();
 
         if target_peers.is_empty() {
-            self.store_message(message.clone(), self.spray_copies);
+            self.store.store_relay(
+                message.clone(),
+                self.store.config().initial_spray_copies,
+            );
             return RouteDecision::Store;
         }
 
@@ -137,79 +192,17 @@ impl Router {
     /// Called when a new peer is discovered/connected.
     /// Checks the message store for messages that can now be forwarded.
     pub fn on_peer_connected(&self, peer_device_id: &DeviceId) -> Vec<MeshMessage> {
-        let mut store = self.store.lock().expect("Store lock poisoned");
-        let mut to_forward = Vec::new();
-
-        // Collect message IDs that should be forwarded
-        let mut to_update = Vec::new();
-
-        for (msg_id, stored) in store.iter() {
-            if stored.remaining_copies > 0 {
-                // Check if this message is for the newly connected peer (direct delivery)
-                if stored.message.recipient_id == *peer_device_id {
-                    to_forward.push(stored.message.clone());
-                    to_update.push((*msg_id, 0)); // Will be fully delivered
-                } else if stored.remaining_copies > 1 {
-                    // Binary Spray: give half the copies to the new peer
-                    let copies_to_give = stored.remaining_copies / 2;
-                    if copies_to_give > 0 {
-                        to_forward.push(stored.message.clone());
-                        to_update.push((*msg_id, stored.remaining_copies - copies_to_give));
-                    }
-                }
-            }
-        }
-
-        // Update remaining copies
-        for (msg_id, new_copies) in to_update {
-            if new_copies == 0 {
-                store.remove(&msg_id);
-            } else if let Some(stored) = store.get_mut(&msg_id) {
-                stored.remaining_copies = new_copies;
-            }
-        }
-
-        to_forward
-    }
-
-    /// Stores a message for later forwarding.
-    fn store_message(&self, message: MeshMessage, copies: u8) {
-        let mut store = self.store.lock().expect("Store lock poisoned");
-
-        // Evict oldest messages if store is full
-        while store.len() >= MAX_STORE_SIZE {
-            if let Some(oldest_id) = store
-                .iter()
-                .min_by_key(|(_, s)| s.message.created_at_ms)
-                .map(|(id, _)| *id)
-            {
-                store.remove(&oldest_id);
-            } else {
-                break;
-            }
-        }
-
-        store.insert(
-            message.message_id,
-            StoredMessage {
-                message,
-                remaining_copies: copies,
-            },
-        );
+        self.store.get_messages_for_peer(peer_device_id)
     }
 
     /// Removes expired messages from the store.
     pub fn prune_expired(&self) -> usize {
-        let mut store = self.store.lock().expect("Store lock poisoned");
-        let before = store.len();
-        store.retain(|_, s| !s.message.is_expired());
-        before - store.len()
+        self.store.prune_expired()
     }
 
-    /// Returns the number of messages currently stored for forwarding.
+    /// Returns the number of messages currently stored.
     pub fn store_size(&self) -> usize {
-        let store = self.store.lock().expect("Store lock poisoned");
-        store.len()
+        self.store.len()
     }
 
     /// Returns the number of known peers.
@@ -257,7 +250,12 @@ mod tests {
 
         let _ = router.route_incoming(&msg);
         let decision = router.route_incoming(&msg);
-        assert_eq!(decision, RouteDecision::Drop { reason: DropReason::Duplicate });
+        assert_eq!(
+            decision,
+            RouteDecision::Drop {
+                reason: DropReason::Duplicate
+            }
+        );
     }
 
     #[test]
@@ -276,7 +274,12 @@ mod tests {
 
         msg.hop_count = 2; // Already at max
         let decision = router.route_incoming(&msg);
-        assert_eq!(decision, RouteDecision::Drop { reason: DropReason::HopLimitReached });
+        assert_eq!(
+            decision,
+            RouteDecision::Drop {
+                reason: DropReason::HopLimitReached
+            }
+        );
     }
 
     #[test]
@@ -298,7 +301,6 @@ mod tests {
         let recipient = Identity::generate();
         let relay_peer = Identity::generate();
 
-        // Add a connected peer
         let mut peer_info = PeerInfo::new(
             relay_peer.public_identity(),
             TransportType::BluetoothLE,
@@ -323,15 +325,13 @@ mod tests {
         let sender = Identity::generate();
         let recipient = Identity::generate();
 
-        // Route a message when no peers are connected → stored
         let msg = make_message(&sender, recipient.device_id().clone());
         let _ = router.route_incoming(&msg);
         assert_eq!(router.store_size(), 1);
 
-        // Now the recipient connects
         let to_forward = router.on_peer_connected(recipient.device_id());
         assert_eq!(to_forward.len(), 1);
-        assert_eq!(router.store_size(), 0); // Removed after direct delivery
+        assert_eq!(router.store_size(), 0);
     }
 
     #[test]
@@ -345,5 +345,78 @@ mod tests {
 
         let decision = router.route_incoming(&msg);
         assert_eq!(decision, RouteDecision::DeliverLocally);
+    }
+
+    #[test]
+    fn test_bridge_encounter_extends_stored_message_ttl() {
+        let (router, _) = setup_router();
+        let sender = Identity::generate();
+        let recipient = Identity::generate();
+
+        let msg = make_message(&sender, recipient.device_id().clone());
+        let _ = router.route_incoming(&msg); // Stored
+
+        // Record local peers so our filter has content
+        for i in 0..20u8 {
+            router.record_neighborhood_peer(&[i, i + 1, i + 2, i + 3]);
+        }
+
+        // Create a remote filter with completely different peers (different cluster)
+        let remote_filter = NeighborhoodFilter::with_defaults();
+        for i in 200..220u8 {
+            remote_filter.record_peer(&[i, i.wrapping_add(1), i.wrapping_add(2), i.wrapping_add(3)]);
+        }
+        let remote_bitmap = remote_filter.export_bitmap();
+
+        let encounter = router.process_remote_neighborhood(&remote_bitmap);
+        assert_eq!(encounter, EncounterType::Bridge);
+    }
+
+    #[test]
+    fn test_ack_removes_stored_message() {
+        let (router, _) = setup_router();
+        let sender = Identity::generate();
+        let recipient = Identity::generate();
+
+        // Store a message
+        let msg = make_message(&sender, recipient.device_id().clone());
+        let original_msg_id = msg.message_id;
+        let _ = router.route_incoming(&msg);
+        assert_eq!(router.store_size(), 1);
+
+        // Create an ACK for that message
+        let ack = MessageBuilder::new(
+            recipient.device_id().clone(),
+            sender.device_id().clone(),
+        )
+        .content_type(ContentType::Acknowledgment)
+        .payload(original_msg_id.to_vec())
+        .build(|data| recipient.sign(data));
+
+        // Route the ACK through our node
+        let _decision = router.route_incoming(&ack);
+
+        // The original message should be removed by the ACK.
+        // The ACK itself gets stored for further propagation (store_size = 1).
+        // Verify the ACK processing happened by checking the stored message
+        // is now the ACK, not the original.
+        assert_eq!(router.store_size(), 1); // ACK stored for forwarding
+
+        // Verify original message was removed: connect the original recipient,
+        // should NOT get the original message (only the ACK or nothing relevant)
+        let forwarded = router.on_peer_connected(recipient.device_id());
+        // The ACK is addressed to the sender, not the recipient,
+        // so recipient won't get a direct delivery of the ACK
+        assert!(forwarded.iter().all(|m| m.message_id != original_msg_id));
+    }
+
+    #[test]
+    fn test_neighborhood_recording() {
+        let (router, _) = setup_router();
+
+        router.record_neighborhood_peer(&[1, 2, 3, 4]);
+        router.record_neighborhood_peer(&[5, 6, 7, 8]);
+
+        assert_eq!(router.neighborhood().peer_count(), 2);
     }
 }

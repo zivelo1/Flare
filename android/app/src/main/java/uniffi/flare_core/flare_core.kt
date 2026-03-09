@@ -760,6 +760,14 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -793,6 +801,8 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_decrypt_incoming_message(`ptr`: Pointer,`senderDeviceId`: RustBuffer.ByValue,`senderAgreementKey`: RustBuffer.ByValue,`encryptedData`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_export_neighborhood_bitmap(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_get_device_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_get_mesh_status(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -809,15 +819,21 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_get_safety_number(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_get_store_stats(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_list_contacts(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_notify_peer_connected(`ptr`: Pointer,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_flare_core_fn_method_flarenode_parse_mesh_message(`ptr`: Pointer,`rawData`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_process_remote_neighborhood(`ptr`: Pointer,`remoteBitmap`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_prune_expired_messages(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
     fun uniffi_flare_core_fn_method_flarenode_queue_outbound_message(`ptr`: Pointer,`messageId`: RustBuffer.ByValue,`recipientDeviceId`: RustBuffer.ByValue,`encryptedPayload`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_record_neighborhood_peer(`ptr`: Pointer,`shortId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_flare_core_fn_method_flarenode_remove_from_outbox(`ptr`: Pointer,`messageId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -953,6 +969,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_decrypt_incoming_message(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_export_neighborhood_bitmap(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_get_device_id(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_get_mesh_status(
@@ -969,15 +987,21 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_get_safety_number(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_get_store_stats(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_list_contacts(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_notify_peer_connected(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_parse_mesh_message(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_process_remote_neighborhood(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_prune_expired_messages(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_queue_outbound_message(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_record_neighborhood_peer(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_remove_from_outbox(
     ): Short
@@ -1022,6 +1046,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_decrypt_incoming_message() != 50281.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_export_neighborhood_bitmap() != 57134.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_get_device_id() != 38610.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1046,6 +1073,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_get_safety_number() != 16812.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_get_store_stats() != 14279.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_list_contacts() != 45212.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1055,10 +1085,16 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_parse_mesh_message() != 29282.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_process_remote_neighborhood() != 58979.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_prune_expired_messages() != 54958.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_queue_outbound_message() != 14460.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_record_neighborhood_peer() != 61640.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_remove_from_outbox() != 5188.toShort()) {
@@ -1502,6 +1538,11 @@ public interface FlareNodeInterface {
     fun `decryptIncomingMessage`(`senderDeviceId`: kotlin.String, `senderAgreementKey`: kotlin.ByteArray, `encryptedData`: kotlin.ByteArray): kotlin.String?
     
     /**
+     * Exports the neighborhood filter bitmap for exchange with a remote peer.
+     */
+    fun `exportNeighborhoodBitmap`(): kotlin.ByteArray
+    
+    /**
      * Returns the device ID as a hex string.
      */
     fun `getDeviceId`(): kotlin.String
@@ -1543,6 +1584,11 @@ public interface FlareNodeInterface {
     fun `getSafetyNumber`(): kotlin.String
     
     /**
+     * Returns detailed store statistics.
+     */
+    fun `getStoreStats`(): FfiStoreStats
+    
+    /**
      * Lists all contacts.
      */
     fun `listContacts`(): List<FfiContact>
@@ -1558,6 +1604,13 @@ public interface FlareNodeInterface {
     fun `parseMeshMessage`(`rawData`: kotlin.ByteArray): FfiMeshMessage?
     
     /**
+     * Processes a remote peer's neighborhood bitmap.
+     * Returns the encounter type as a string: "local", "bridge", or "intermediate".
+     * If "bridge", stored messages have their TTL automatically extended.
+     */
+    fun `processRemoteNeighborhood`(`remoteBitmap`: kotlin.ByteArray): kotlin.String
+    
+    /**
      * Prunes expired messages from the routing store.
      */
     fun `pruneExpiredMessages`(): kotlin.UInt
@@ -1566,6 +1619,12 @@ public interface FlareNodeInterface {
      * Queues an outbound message for delivery.
      */
     fun `queueOutboundMessage`(`messageId`: kotlin.String, `recipientDeviceId`: kotlin.String, `encryptedPayload`: kotlin.ByteArray)
+    
+    /**
+     * Records a peer's short ID (4 bytes) in the neighborhood filter.
+     * Call this whenever a peer is discovered via BLE scan.
+     */
+    fun `recordNeighborhoodPeer`(`shortId`: kotlin.ByteArray)
     
     /**
      * Removes a delivered message from the outbox.
@@ -1748,6 +1807,21 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Exports the neighborhood filter bitmap for exchange with a remote peer.
+     */override fun `exportNeighborhoodBitmap`(): kotlin.ByteArray {
+            return FfiConverterByteArray.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_export_neighborhood_bitmap(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Returns the device ID as a hex string.
      */override fun `getDeviceId`(): kotlin.String {
             return FfiConverterString.lift(
@@ -1872,6 +1946,21 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Returns detailed store statistics.
+     */override fun `getStoreStats`(): FfiStoreStats {
+            return FfiConverterTypeFfiStoreStats.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_get_store_stats(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Lists all contacts.
      */
     @Throws(FlareException::class)override fun `listContacts`(): List<FfiContact> {
@@ -1918,6 +2007,23 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Processes a remote peer's neighborhood bitmap.
+     * Returns the encounter type as a string: "local", "bridge", or "intermediate".
+     * If "bridge", stored messages have their TTL automatically extended.
+     */override fun `processRemoteNeighborhood`(`remoteBitmap`: kotlin.ByteArray): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_process_remote_neighborhood(
+        it, FfiConverterByteArray.lower(`remoteBitmap`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Prunes expired messages from the routing store.
      */override fun `pruneExpiredMessages`(): kotlin.UInt {
             return FfiConverterUInt.lift(
@@ -1941,6 +2047,21 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
     uniffiRustCallWithError(FlareException) { _status ->
     UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_queue_outbound_message(
         it, FfiConverterString.lower(`messageId`),FfiConverterString.lower(`recipientDeviceId`),FfiConverterByteArray.lower(`encryptedPayload`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Records a peer's short ID (4 bytes) in the neighborhood filter.
+     * Call this whenever a peer is discovered via BLE scan.
+     */override fun `recordNeighborhoodPeer`(`shortId`: kotlin.ByteArray)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_record_neighborhood_peer(
+        it, FfiConverterByteArray.lower(`shortId`),_status)
 }
     }
     
@@ -2244,6 +2365,54 @@ public object FfiConverterTypeFfiPublicIdentity: FfiConverterRustBuffer<FfiPubli
             FfiConverterString.write(value.`deviceId`, buf)
             FfiConverterByteArray.write(value.`signingPublicKey`, buf)
             FfiConverterByteArray.write(value.`agreementPublicKey`, buf)
+    }
+}
+
+
+
+data class FfiStoreStats (
+    var `totalMessages`: kotlin.UInt, 
+    var `ownMessages`: kotlin.UInt, 
+    var `activeRelayMessages`: kotlin.UInt, 
+    var `waitingRelayMessages`: kotlin.UInt, 
+    var `totalBytes`: kotlin.ULong, 
+    var `budgetBytes`: kotlin.ULong
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeFfiStoreStats: FfiConverterRustBuffer<FfiStoreStats> {
+    override fun read(buf: ByteBuffer): FfiStoreStats {
+        return FfiStoreStats(
+            FfiConverterUInt.read(buf),
+            FfiConverterUInt.read(buf),
+            FfiConverterUInt.read(buf),
+            FfiConverterUInt.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterULong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: FfiStoreStats) = (
+            FfiConverterUInt.allocationSize(value.`totalMessages`) +
+            FfiConverterUInt.allocationSize(value.`ownMessages`) +
+            FfiConverterUInt.allocationSize(value.`activeRelayMessages`) +
+            FfiConverterUInt.allocationSize(value.`waitingRelayMessages`) +
+            FfiConverterULong.allocationSize(value.`totalBytes`) +
+            FfiConverterULong.allocationSize(value.`budgetBytes`)
+    )
+
+    override fun write(value: FfiStoreStats, buf: ByteBuffer) {
+            FfiConverterUInt.write(value.`totalMessages`, buf)
+            FfiConverterUInt.write(value.`ownMessages`, buf)
+            FfiConverterUInt.write(value.`activeRelayMessages`, buf)
+            FfiConverterUInt.write(value.`waitingRelayMessages`, buf)
+            FfiConverterULong.write(value.`totalBytes`, buf)
+            FfiConverterULong.write(value.`budgetBytes`, buf)
     }
 }
 
