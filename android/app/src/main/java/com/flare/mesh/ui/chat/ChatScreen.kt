@@ -1,7 +1,6 @@
 package com.flare.mesh.ui.chat
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,16 +19,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flare.mesh.R
 import com.flare.mesh.data.model.ChatMessage
 import com.flare.mesh.data.model.DeliveryStatus
-import java.time.Instant
+import com.flare.mesh.viewmodel.ChatViewModel
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -38,20 +37,25 @@ import java.time.format.DateTimeFormatter
 fun ChatScreen(
     conversationId: String,
     onNavigateBack: () -> Unit,
+    chatViewModel: ChatViewModel = viewModel(),
 ) {
     var messageText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
 
-    // TODO: Replace with real messages from database/viewmodel
-    val messages = remember { mutableStateListOf<ChatMessage>() }
-    val contactName = remember { "Peer ${conversationId.take(8)}" }
+    val messages by chatViewModel.currentMessages.collectAsState()
+    val contact by chatViewModel.currentContact.collectAsState()
+
+    LaunchedEffect(conversationId) {
+        chatViewModel.loadConversation(conversationId)
+    }
+
+    val contactName = contact?.displayName ?: "Peer ${conversationId.take(8)}"
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Avatar
                         Surface(
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.primaryContainer,
@@ -72,7 +76,7 @@ fun ChatScreen(
                                 style = MaterialTheme.typography.titleMedium,
                             )
                             Text(
-                                text = "via mesh • 2 hops",
+                                text = "via mesh",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -95,18 +99,7 @@ fun ChatScreen(
                 onTextChange = { messageText = it },
                 onSend = {
                     if (messageText.isNotBlank()) {
-                        // TODO: Send via mesh router
-                        messages.add(
-                            ChatMessage(
-                                messageId = System.currentTimeMillis().toString(),
-                                conversationId = conversationId,
-                                senderDeviceId = "self",
-                                content = messageText.trim(),
-                                timestamp = Instant.now(),
-                                isOutgoing = true,
-                                deliveryStatus = DeliveryStatus.PENDING,
-                            )
-                        )
+                        chatViewModel.sendMessage(conversationId, messageText.trim())
                         messageText = ""
                     }
                 },
@@ -218,7 +211,7 @@ private fun DeliveryStatusIcon(status: DeliveryStatus, tint: Color) {
         DeliveryStatus.SENT -> Icons.Filled.Done
         DeliveryStatus.DELIVERED -> Icons.Filled.DoneAll
         DeliveryStatus.READ -> Icons.Filled.DoneAll
-        DeliveryStatus.FAILED -> Icons.Filled.Schedule // TODO: Error icon
+        DeliveryStatus.FAILED -> Icons.Filled.Schedule
     }
     val iconTint = if (status == DeliveryStatus.READ)
         MaterialTheme.colorScheme.inversePrimary

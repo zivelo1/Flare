@@ -7,7 +7,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
@@ -16,12 +15,18 @@ import com.flare.mesh.R
 import com.flare.mesh.ble.BleScanner
 import com.flare.mesh.ble.GattClient
 import com.flare.mesh.ble.GattServer
+import com.flare.mesh.data.model.MeshPeer
 import com.flare.mesh.data.model.MeshStatus
+import com.flare.mesh.data.repository.FlareRepository
+import com.flare.mesh.data.repository.RouteDecisionType
 import com.flare.mesh.ui.MainActivity
 import com.flare.mesh.util.Constants
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import timber.log.Timber
 
@@ -29,7 +34,7 @@ import timber.log.Timber
  * Foreground service that maintains the Flare mesh network.
  *
  * Runs BLE scanning and advertising continuously, manages peer connections,
- * and handles message routing in the background.
+ * and handles message routing via the Rust core (FlareNode).
  */
 class MeshService : LifecycleService() {
 
@@ -47,6 +52,11 @@ class MeshService : LifecycleService() {
         private val _isRunning = MutableStateFlow(false)
         val isRunning: StateFlow<Boolean> = _isRunning.asStateFlow()
 
+        private val _discoveredPeers = MutableStateFlow<Map<String, MeshPeer>>(emptyMap())
+        val discoveredPeers: StateFlow<Map<String, MeshPeer>> = _discoveredPeers.asStateFlow()
+
+        private val _outboundQueue = MutableSharedFlow<OutboundMessage>(extraBufferCapacity = 64)
+
         fun start(context: Context) {
             val intent = Intent(context, MeshService::class.java)
             context.startForegroundService(intent)
@@ -56,7 +66,16 @@ class MeshService : LifecycleService() {
             val intent = Intent(context, MeshService::class.java)
             context.stopService(intent)
         }
+
+        /**
+         * Enqueues a serialized mesh message for BLE transmission to a specific peer.
+         */
+        fun enqueueOutbound(recipientDeviceId: String, serializedMessage: ByteArray) {
+            _outboundQueue.tryEmit(OutboundMessage(recipientDeviceId, serializedMessage))
+        }
     }
+
+    data class OutboundMessage(val recipientDeviceId: String, val data: ByteArray)
 
     override fun onCreate() {
         super.onCreate()
@@ -67,6 +86,14 @@ class MeshService : LifecycleService() {
         gattClient = GattClient(this)
 
         createNotificationChannels()
+
+        // Set peer info bytes from FlareNode on the GATT server
+        try {
+            val repo = FlareRepository.getInstance()
+            gattServer.localPeerInfoBytes = repo.getPeerInfoBytes()
+        } catch (e: Exception) {
+            Timber.w(e, "FlareRepository not yet initialized")
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -105,19 +132,26 @@ class MeshService : LifecycleService() {
         // Start BLE scanning
         bleScanner.startScanning()
 
-        // Periodic scan cycle: scan → pause → scan (saves battery)
+        // Periodic scan cycle: update status and discovered peers
         scanJob = lifecycleScope.launch {
             while (isActive) {
                 delay(Constants.BLE_SCAN_INTERVAL_MS)
+                _discoveredPeers.value = bleScanner.discoveredPeers.value
                 updateMeshStatus()
             }
         }
 
-        // Periodic stale peer cleanup
+        // Periodic stale peer cleanup + message pruning
         pruneJob = lifecycleScope.launch {
             while (isActive) {
                 delay(Constants.PEER_STALE_TIMEOUT_MS / 2)
                 bleScanner.pruneStale()
+                try {
+                    val pruned = FlareRepository.getInstance().pruneExpiredMessages()
+                    if (pruned > 0) {
+                        Timber.d("Pruned %d expired messages from routing store", pruned)
+                    }
+                } catch (_: Exception) { }
             }
         }
 
@@ -128,12 +162,23 @@ class MeshService : LifecycleService() {
             }
         }
 
-        // Collect connection events
+        // Collect connection events from GATT server
         lifecycleScope.launch {
             gattServer.connectionEvents.collect { event ->
                 when (event) {
                     is GattServer.BleConnectionEvent.Connected -> {
                         Timber.i("Peer connected via GATT server: %s", event.address)
+                        try {
+                            val repo = FlareRepository.getInstance()
+                            repo.notifyPeerConnected(event.address)
+                            // Forward stored messages to newly connected peer
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                val messages = repo.getMessagesForPeer(event.address)
+                                messages.forEach { data ->
+                                    gattServer.sendToPeer(event.address, data)
+                                }
+                            }
+                        } catch (_: Exception) { }
                         updateMeshStatus()
                     }
                     is GattServer.BleConnectionEvent.Disconnected -> {
@@ -148,7 +193,16 @@ class MeshService : LifecycleService() {
         lifecycleScope.launch {
             gattClient.receivedData.collect { data ->
                 Timber.d("Received %d bytes from client connection %s", data.data.size, data.fromAddress)
-                // TODO: Route through mesh router
+                handleIncomingMessage(
+                    GattServer.IncomingBleMessage(data.fromAddress, data.data)
+                )
+            }
+        }
+
+        // Process outbound message queue
+        lifecycleScope.launch {
+            _outboundQueue.collect { outbound ->
+                sendToMesh(outbound)
             }
         }
     }
@@ -162,15 +216,64 @@ class MeshService : LifecycleService() {
         gattClient.disconnectAll()
     }
 
-    private fun handleIncomingMessage(message: GattServer.IncomingBleMessage) {
+    private suspend fun handleIncomingMessage(message: GattServer.IncomingBleMessage) {
         Timber.d("Processing incoming message from %s (%d bytes)",
             message.fromAddress, message.data.size)
 
-        // TODO: Deserialize message, pass to Rust router, handle routing decision
-        // For now, count it
-        _meshStatus.value = _meshStatus.value.copy(
-            messagesRelayed = _meshStatus.value.messagesRelayed + 1,
-        )
+        try {
+            val repo = FlareRepository.getInstance()
+            val result = repo.processIncomingMessage(message.data)
+
+            when (result.decision) {
+                RouteDecisionType.DELIVER_LOCALLY -> {
+                    Timber.i("Message delivered locally from %s", result.senderId)
+                    // TODO: Notify ChatViewModel of new incoming message
+                }
+
+                RouteDecisionType.FORWARD -> {
+                    // Forward to all connected peers except sender
+                    val connectedAddresses = gattClient.connectedAddresses() +
+                        gattServer.connectedDeviceAddresses()
+                    connectedAddresses
+                        .filter { it != message.fromAddress }
+                        .forEach { address ->
+                            gattServer.sendToPeer(address, message.data)
+                            gattClient.writeMessage(address, message.data)
+                        }
+                    Timber.d("Forwarded message to %d peers",
+                        connectedAddresses.size - 1)
+                }
+
+                RouteDecisionType.STORE -> {
+                    Timber.d("Message stored for later forwarding")
+                }
+
+                RouteDecisionType.DROP -> {
+                    Timber.d("Message dropped (duplicate/expired/hop limit)")
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error processing incoming message")
+        }
+
+        updateMeshStatus()
+    }
+
+    private fun sendToMesh(outbound: OutboundMessage) {
+        // Send to all connected peers (Spray-and-Wait)
+        val serverPeers = gattServer.connectedDeviceAddresses()
+        val clientPeers = gattClient.connectedAddresses()
+
+        var sent = 0
+        serverPeers.forEach { address ->
+            if (gattServer.sendToPeer(address, outbound.data)) sent++
+        }
+        clientPeers.forEach { address ->
+            if (gattClient.writeMessage(address, outbound.data)) sent++
+        }
+
+        Timber.d("Sent outbound message to %d/%d peers",
+            sent, serverPeers.size + clientPeers.size)
     }
 
     private fun updateMeshStatus() {
@@ -181,7 +284,7 @@ class MeshService : LifecycleService() {
             isActive = true,
             connectedPeerCount = connectedCount,
             discoveredPeerCount = discoveredCount,
-            storedMessageCount = 0, // TODO: From Rust router
+            storedMessageCount = 0,
             messagesRelayed = _meshStatus.value.messagesRelayed,
         )
 

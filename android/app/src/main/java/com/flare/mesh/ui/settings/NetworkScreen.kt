@@ -1,38 +1,35 @@
 package com.flare.mesh.ui.settings
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flare.mesh.R
 import com.flare.mesh.data.model.MeshPeer
 import com.flare.mesh.data.model.MeshStatus
 import com.flare.mesh.data.model.TransportType
-import com.flare.mesh.service.MeshService
-import java.time.Duration
-import java.time.Instant
+import com.flare.mesh.viewmodel.NetworkViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NetworkScreen() {
-    val meshStatus by MeshService.meshStatus.collectAsState()
-    val isRunning by MeshService.isRunning.collectAsState()
-
-    // TODO: Replace with real peers from BleScanner
-    val nearbyPeers = remember { mutableStateListOf<MeshPeer>() }
+fun NetworkScreen(
+    networkViewModel: NetworkViewModel = viewModel(),
+) {
+    val meshStatus by networkViewModel.meshStatus.collectAsState()
+    val isRunning by networkViewModel.isRunning.collectAsState()
+    val nearbyPeersMap by networkViewModel.nearbyPeers.collectAsState()
+    val nearbyPeers = nearbyPeersMap.values.toList()
 
     Scaffold(
         topBar = {
@@ -53,17 +50,14 @@ fun NetworkScreen() {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // Mesh status card
             item {
                 MeshStatusCard(meshStatus, isRunning)
             }
 
-            // Stats row
             item {
                 StatsRow(meshStatus)
             }
 
-            // Nearby peers header
             item {
                 Text(
                     text = "Nearby Devices",
@@ -237,7 +231,6 @@ private fun PeerCard(peer: MeshPeer) {
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Signal strength indicator
             Surface(
                 shape = CircleShape,
                 color = when {

@@ -13,16 +13,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flare.mesh.R
 import com.flare.mesh.data.model.Conversation
 import com.flare.mesh.data.model.MeshStatus
-import com.flare.mesh.service.MeshService
-import java.time.Instant
+import com.flare.mesh.viewmodel.ChatViewModel
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -30,12 +30,11 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun ConversationListScreen(
     onConversationClick: (String) -> Unit,
+    chatViewModel: ChatViewModel = viewModel(),
 ) {
-    val meshStatus by MeshService.meshStatus.collectAsState()
-    val isServiceRunning by MeshService.isRunning.collectAsState()
-
-    // TODO: Replace with real conversations from database
-    val conversations = remember { mutableStateListOf<Conversation>() }
+    val meshStatus by chatViewModel.meshStatus.collectAsState()
+    val isServiceRunning by chatViewModel.isServiceRunning.collectAsState()
+    val conversations by chatViewModel.conversations.collectAsState()
 
     Scaffold(
         topBar = {
@@ -136,7 +135,7 @@ private fun EmptyConversationsView(
             text = stringResource(R.string.no_conversations),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 48.dp),
         )
 
@@ -172,7 +171,6 @@ private fun ConversationItem(
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         leadingContent = {
-            // Avatar circle with first letter of name
             Surface(
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primaryContainer,

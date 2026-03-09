@@ -15,12 +15,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flare.mesh.R
 import com.flare.mesh.data.model.Contact
-import com.flare.mesh.data.model.MeshPeer
-import com.flare.mesh.service.MeshService
+import com.flare.mesh.viewmodel.ContactsViewModel
 import java.time.Duration
 import java.time.Instant
 
@@ -28,11 +29,14 @@ import java.time.Instant
 @Composable
 fun ContactsScreen(
     onContactClick: (String) -> Unit,
+    contactsViewModel: ContactsViewModel = viewModel(),
 ) {
-    val meshStatus by MeshService.meshStatus.collectAsState()
+    val meshStatus by contactsViewModel.meshStatus.collectAsState()
+    val contacts by contactsViewModel.contacts.collectAsState()
 
-    // TODO: Replace with real contacts from database
-    val contacts = remember { mutableStateListOf<Contact>() }
+    LaunchedEffect(Unit) {
+        contactsViewModel.refreshContacts()
+    }
 
     Scaffold(
         topBar = {
@@ -44,14 +48,12 @@ fun ContactsScreen(
                     )
                 },
                 actions = {
-                    // Scan QR to add contact
                     IconButton(onClick = { /* TODO: QR scanner */ }) {
                         Icon(
                             Icons.Default.QrCodeScanner,
                             contentDescription = stringResource(R.string.action_scan_qr),
                         )
                     }
-                    // Show own QR for others to scan
                     IconButton(onClick = { /* TODO: Show QR */ }) {
                         Icon(
                             Icons.Default.QrCode,
@@ -107,7 +109,7 @@ private fun EmptyContactsView(
             text = stringResource(R.string.contacts_empty),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 48.dp),
         )
 

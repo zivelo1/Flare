@@ -11,7 +11,7 @@
 ### Android
 - Android Studio (latest stable)
 - JDK 17+
-- Android SDK API 34+
+- Android SDK API 35+
 - Min SDK: API 26 (Android 8.0) — required for BLE features and Wi-Fi Aware
 
 ### iOS
@@ -26,32 +26,31 @@
 ## Project Structure
 ```
 Flare/
-├── flare-core/          # Rust shared library
+├── flare-core/              # Rust shared library
 │   ├── src/
-│   │   ├── crypto/      # Signal Protocol, key generation, signatures
-│   │   ├── routing/     # Spray-and-Wait, AODV, deduplication
-│   │   ├── storage/     # SQLCipher database layer
-│   │   ├── protocol/    # Message serialization, wire format
-│   │   └── transport/   # Transport abstraction layer
-│   ├── tests/           # Integration tests
+│   │   ├── crypto/          # Ed25519, X25519, AES-256-GCM, HKDF
+│   │   ├── routing/         # Spray-and-Wait router, Bloom filter dedup
+│   │   ├── storage/         # SQLCipher encrypted database
+│   │   ├── protocol/        # Message wire format and serialization
+│   │   ├── transport/       # BLE chunking/reassembly
+│   │   └── ffi.rs           # UniFFI bindings (FlareNode entry point)
+│   ├── uniffi-bindgen.rs    # UniFFI bindgen binary
 │   └── Cargo.toml
-├── android/             # Android app (Kotlin + Jetpack Compose)
+├── android/                 # Android app (Kotlin + Jetpack Compose)
 │   └── app/src/main/
-│       └── java/com/flare/mesh/
-│           ├── ble/         # BLE GATT service/client
-│           ├── transport/   # Transport providers
-│           ├── ui/          # Jetpack Compose screens
-│           ├── service/     # Foreground service
-│           └── util/        # Utilities
-├── ios/                 # iOS app (Swift + SwiftUI)
-│   └── Flare/Sources/
-│       ├── BLE/         # CoreBluetooth implementation
-│       ├── Transport/   # Transport providers
-│       ├── UI/          # SwiftUI views
-│       └── Util/        # Utilities
-├── docs/                # Project documentation
-├── scripts/             # Build and deployment scripts
-├── venv/                # Python virtual environment (gitignored)
+│       └── java/
+│           ├── com/flare/mesh/
+│           │   ├── ble/         # BLE Scanner, GATT Server, GATT Client
+│           │   ├── data/
+│           │   │   ├── model/   # Data classes (DeviceIdentity, Contact, etc.)
+│           │   │   └── repository/ # FlareRepository (UniFFI bridge)
+│           │   ├── service/     # MeshService (foreground service)
+│           │   ├── ui/          # Compose screens and navigation
+│           │   ├── viewmodel/   # ChatViewModel, ContactsViewModel, NetworkViewModel
+│           │   └── util/        # Constants
+│           └── uniffi/flare_core/ # Auto-generated Kotlin bindings
+├── docs/                    # Project documentation
+├── venv/                    # Python virtual environment (gitignored)
 └── FEASIBILITY_AND_ARCHITECTURE.md
 ```
 
@@ -61,17 +60,46 @@ Flare/
 ```bash
 cd flare-core
 cargo build
-cargo test
+cargo test      # 57 tests
 ```
 
-### Android
+### Generate Kotlin Bindings
+```bash
+cd flare-core
+cargo run --bin uniffi-bindgen generate \
+  --library target/debug/libflare_core.dylib \
+  --language kotlin \
+  --out-dir ../android/app/src/main/java
+```
+
+### Cross-Compile for Android
+```bash
+# Requires Android NDK — set ANDROID_NDK_HOME
+cargo build --target aarch64-linux-android --release
+cargo build --target armv7-linux-androideabi --release
+cargo build --target x86_64-linux-android --release
+```
+
+### Android App
 ```bash
 cd android
 ./gradlew assembleDebug
 ```
 
-### iOS
+### iOS (future)
 ```bash
 cd ios
 xcodebuild -scheme Flare -sdk iphoneos build
+```
+
+## Architecture Flow
+
+```
+User Input → ChatViewModel → FlareRepository → FlareNode (Rust/UniFFI)
+                                                    ↓
+BLE ← MeshService ← outbound queue ← encrypt + build mesh message
+  ↓
+Peer GATT → incoming data → MeshService → FlareNode.routeIncoming()
+                                              ↓
+                              DeliverLocally / Forward / Store / Drop
 ```

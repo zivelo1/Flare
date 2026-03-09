@@ -216,6 +216,9 @@ class GattServer(private val context: Context) {
     /** Returns the number of currently connected peers. */
     fun connectedCount(): Int = connectedDevices.size
 
+    /** Returns addresses of all currently connected devices. */
+    fun connectedDeviceAddresses(): Set<String> = connectedDevices.keys.toSet()
+
     private val gattCallback = object : BluetoothGattServerCallback() {
 
         override fun onConnectionStateChange(device: BluetoothDevice, status: Int, newState: Int) {

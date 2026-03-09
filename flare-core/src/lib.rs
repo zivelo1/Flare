@@ -5,10 +5,13 @@
 //! routing, and local storage.
 
 pub mod crypto;
+pub mod ffi;
 pub mod protocol;
 pub mod routing;
 pub mod storage;
 pub mod transport;
+
+uniffi::setup_scaffolding!();
 
 /// Flare protocol version. Increment on breaking wire-format changes.
 pub const PROTOCOL_VERSION: u8 = 1;

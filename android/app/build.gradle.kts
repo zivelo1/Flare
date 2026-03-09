@@ -85,6 +85,9 @@ dependencies {
     // JSON serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
+    // JNA (required by UniFFI Rust bindings)
+    implementation("net.java.dev.jna:jna:5.14.0@aar")
+
     // Logging
     implementation("com.jakewharton.timber:timber:5.0.1")
 

@@ -1,0 +1,130 @@
+package com.flare.mesh.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.flare.mesh.data.model.*
+import com.flare.mesh.data.repository.FlareRepository
+import com.flare.mesh.service.MeshService
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import java.time.Instant
+
+/**
+ * ViewModel for the conversation list and individual chat screens.
+ * Bridges the Rust core (via FlareRepository) to the Compose UI.
+ */
+class ChatViewModel : ViewModel() {
+
+    private val repository: FlareRepository by lazy { FlareRepository.getInstance() }
+
+    private val _conversations = MutableStateFlow<List<Conversation>>(emptyList())
+    val conversations: StateFlow<List<Conversation>> = _conversations.asStateFlow()
+
+    private val _currentMessages = MutableStateFlow<List<ChatMessage>>(emptyList())
+    val currentMessages: StateFlow<List<ChatMessage>> = _currentMessages.asStateFlow()
+
+    private val _currentContact = MutableStateFlow<Contact?>(null)
+    val currentContact: StateFlow<Contact?> = _currentContact.asStateFlow()
+
+    val meshStatus: StateFlow<MeshStatus> = MeshService.meshStatus
+    val isServiceRunning: StateFlow<Boolean> = MeshService.isRunning
+
+    init {
+        viewModelScope.launch {
+            repository.contacts.collect { contacts ->
+                updateConversationList(contacts)
+            }
+        }
+    }
+
+    fun loadConversation(conversationId: String) {
+        val contact = repository.contacts.value.find { it.identity.deviceId == conversationId }
+        _currentContact.value = contact
+
+        // Messages will be loaded from the local store
+        // For now we maintain an in-memory list that gets populated as messages arrive
+        _currentMessages.value = emptyList()
+    }
+
+    fun sendMessage(conversationId: String, text: String) {
+        if (text.isBlank()) return
+
+        val contact = _currentContact.value ?: run {
+            Timber.w("Cannot send: no contact loaded for conversation %s", conversationId)
+            return
+        }
+
+        // Optimistically add the message to the UI
+        val message = ChatMessage(
+            messageId = System.nanoTime().toString(),
+            conversationId = conversationId,
+            senderDeviceId = repository.getDeviceId(),
+            content = text.trim(),
+            timestamp = Instant.now(),
+            isOutgoing = true,
+            deliveryStatus = DeliveryStatus.PENDING,
+        )
+        _currentMessages.value = _currentMessages.value + message
+
+        viewModelScope.launch {
+            try {
+                val serialized = repository.sendMessage(
+                    recipientDeviceId = conversationId,
+                    recipientAgreementKey = contact.identity.agreementPublicKey,
+                    plaintext = text.trim(),
+                )
+
+                // Hand off to MeshService for BLE transmission
+                MeshService.enqueueOutbound(conversationId, serialized)
+
+                // Update delivery status to SENT
+                _currentMessages.value = _currentMessages.value.map { msg ->
+                    if (msg.messageId == message.messageId) {
+                        msg.copy(deliveryStatus = DeliveryStatus.SENT)
+                    } else msg
+                }
+
+                updateConversationList(repository.contacts.value)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to send message to %s", conversationId.take(12))
+                _currentMessages.value = _currentMessages.value.map { msg ->
+                    if (msg.messageId == message.messageId) {
+                        msg.copy(deliveryStatus = DeliveryStatus.FAILED)
+                    } else msg
+                }
+            }
+        }
+    }
+
+    fun onIncomingMessage(senderId: String, plaintext: String) {
+        val message = ChatMessage(
+            messageId = System.nanoTime().toString(),
+            conversationId = senderId,
+            senderDeviceId = senderId,
+            content = plaintext,
+            timestamp = Instant.now(),
+            isOutgoing = false,
+        )
+
+        // If currently viewing this conversation, add to current messages
+        if (_currentContact.value?.identity?.deviceId == senderId) {
+            _currentMessages.value = _currentMessages.value + message
+        }
+
+        updateConversationList(repository.contacts.value)
+    }
+
+    private fun updateConversationList(contacts: List<Contact>) {
+        _conversations.value = contacts.map { contact ->
+            Conversation(
+                id = contact.identity.deviceId,
+                contact = contact,
+                lastMessage = _currentMessages.value
+                    .filter { it.conversationId == contact.identity.deviceId }
+                    .maxByOrNull { it.timestamp },
+                unreadCount = 0,
+            )
+        }
+    }
+}
