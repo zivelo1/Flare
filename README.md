@@ -42,13 +42,19 @@ Each phone acts as both a messenger and a relay. Messages hop from phone to phon
 
 ## Current Status
 
-Phase 1 (Foundation) — Rust core library complete with 57 passing tests:
-- Ed25519 identity + X25519 key agreement
-- AES-256-GCM authenticated encryption
-- Spray-and-Wait mesh routing
-- Bloom filter message deduplication
-- SQLCipher encrypted local database
-- BLE message chunking/reassembly
+**Phase 1 (Foundation)** — Rust core + Android app:
+
+**Rust Core** (57 tests passing):
+- Ed25519/X25519 identity and key agreement
+- AES-256-GCM encryption, HKDF key derivation
+- Spray-and-Wait mesh routing, Bloom filter dedup
+- SQLCipher encrypted database, BLE chunking
+
+**Android App** (Kotlin + Jetpack Compose):
+- BLE GATT server (advertise + accept) and client (scan + connect)
+- Material 3 UI with chat bubbles, contacts, network dashboard
+- Foreground service for background mesh operation
+- Full BLE permission handling (Android 12+ and legacy)
 
 See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for detailed progress.
 

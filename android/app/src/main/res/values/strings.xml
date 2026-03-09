@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Flare</string>
+    <string name="mesh_service_channel_name">Mesh Network</string>
+    <string name="mesh_service_channel_description">Keeps the Flare mesh network active</string>
+    <string name="mesh_notification_title">Flare mesh active</string>
+    <string name="mesh_notification_text_format">Connected to %d peers</string>
+    <string name="mesh_notification_text_no_peers">Searching for nearby devices…</string>
+    <string name="chat_hint">Type a message…</string>
+    <string name="no_conversations">No conversations yet.\nNearby Flare users will appear here.</string>
+    <string name="contacts_empty">No contacts yet.\nScan a QR code to add a contact.</string>
+    <string name="tab_chats">Chats</string>
+    <string name="tab_contacts">Contacts</string>
+    <string name="tab_network">Network</string>
+    <string name="settings_title">Settings</string>
+    <string name="permission_bluetooth_title">Bluetooth Required</string>
+    <string name="permission_bluetooth_message">Flare needs Bluetooth to communicate with nearby devices. No internet or cell service is used.</string>
+    <string name="action_grant_permission">Grant Permission</string>
+    <string name="action_send">Send</string>
+    <string name="action_scan_qr">Scan QR Code</string>
+    <string name="action_show_qr">Show My QR</string>
+    <string name="verified_badge">Verified</string>
+    <string name="unverified_badge">Unverified</string>
+    <string name="network_status_active">Mesh Active</string>
+    <string name="network_status_inactive">Mesh Inactive</string>
+    <string name="peer_count_format">%d peers nearby</string>
+</resources>
