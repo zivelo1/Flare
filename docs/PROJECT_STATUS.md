@@ -88,9 +88,28 @@
 - [x] READ_CONTACTS permission — for phone-based peer discovery
 - [x] Navigation routes — find-contact, phrase-search, phone-search
 
+### iOS App (Swift + SwiftUI)
+- [x] Xcode project via xcodegen (project.yml + .xcodeproj)
+- [x] Info.plist — BLE, camera, contacts permissions, background modes (bluetooth-central, bluetooth-peripheral)
+- [x] Data models (DeviceIdentity, Contact, Conversation, ChatMessage, MeshPeer, MeshStatus)
+- [x] FlareRepository — bridge to Rust FFI (Keychain passphrase, messaging, contacts, rendezvous, neighborhood, duress)
+- [x] BLEManager — CoreBluetooth CBCentralManager + CBPeripheralManager with state restoration
+- [x] MeshService — message routing, rendezvous broadcast, delivery ACK, peer connection handling
+- [x] ChatViewModel, ContactsViewModel, DiscoveryViewModel, NetworkViewModel
+- [x] ConversationListView — conversation list, mesh status indicator, empty state
+- [x] ChatView — message bubbles, delivery status icons, encrypted send
+- [x] ContactsView — contact list, verified badges, last-seen formatting
+- [x] FindContactView — discovery hub (Shared Phrase, QR Code, Phone Number)
+- [x] SharedPhraseSearchView — phrase input, searching animation, contact found
+- [x] PhoneSearchView — bilateral phone entry, security warning, risk acceptance
+- [x] QRDisplayView — QR code generation with safety number
+- [x] QRScannerView — AVFoundation camera with QR detection and format validation
+- [x] NetworkView — mesh status card, stats row, nearby peer list with signal strength
+- [x] MainTabView — tab navigation (Chats, Contacts, Network)
+
 ### Infrastructure
 - [x] GitHub repo (github.com/zivelo1/Flare)
-- [x] .gitignore (secrets, venv, .claude, IDE files excluded)
+- [x] .gitignore (secrets, venv, IDE files excluded)
 - [x] Documentation (architecture decisions, dev setup, project status)
 - [x] ProGuard rules for JNA, UniFFI, BLE callbacks (release build safety)
 
@@ -111,12 +130,12 @@
 - [ ] Cross-compile Rust core for Android ARM targets
 - [ ] Integration test: Two physical Android devices, encrypted chat over BLE
 
-### iOS App (Phase 2B)
-- [ ] Xcode project setup with Swift Package Manager
-- [ ] CoreBluetooth BLE layer (central + peripheral)
-- [ ] Swift FlareRepository bridge layer (bindings already generated)
-- [ ] SwiftUI screens (Chat, Contacts, Network)
-- [ ] Background execution with CoreBluetooth state restoration
+### iOS App — Remaining Work
+- [ ] Cross-compile Rust core for iOS ARM (`aarch64-apple-ios`)
+- [ ] Link `libflare_core.a` into Xcode project and verify build
+- [ ] Integration test: physical iOS device, BLE scanning + advertising
+- [ ] Cross-platform test: Android ↔ iOS message exchange over BLE
+- [ ] Background execution tuning (CoreBluetooth state restoration is wired but untested)
 
 ### Android UI Enhancements
 - [ ] Group messaging UI (create group, add members, group chat)
@@ -134,7 +153,7 @@
 | Phase | Scope | Status |
 |---|---|---|
 | 1 — Foundation | Rust core + Android BLE + UI + UniFFI bridge | **Complete** (awaiting device test with NDK) |
-| 2 — Multi-Hop & iOS | Relay routing + iOS bindings | **Rust core complete**, iOS Swift bindings generated |
+| 2 — Multi-Hop & iOS | Relay routing + iOS app | **Rust core complete**, iOS app implemented (awaiting cross-compile + device test) |
 | 3 — Full Messaging | Groups, receipts, content types | **Rust core complete**, Android UI pending |
 | 4 — Security & Distribution | Duress PIN, APK sharing protocol | **Rust core complete**, Android UI pending |
 | 5 — Launch | Optimization, audit, localization, release | Not started |

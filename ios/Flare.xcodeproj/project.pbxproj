@@ -1,0 +1,479 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0077806F0C68DB9E946B5817 /* MeshService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19CC5CF3C860DEC64E3921F8 /* MeshService.swift */; };
+		0FD767B073E58D0AD98B71ED /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F86E5A5078E1EF3E00FB788F /* Constants.swift */; };
+		10DE3BFE91097C97A338E07F /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C992931A4F4DA0BCC3ADA61 /* ChatView.swift */; };
+		1733A79AAC9A86CAF69935A3 /* DiscoveryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53BD2AFD5C70654941168B4F /* DiscoveryViewModel.swift */; };
+		183D0E1D3C087A6C3DE26F01 /* PhoneSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D564D76EE454C15190904672 /* PhoneSearchView.swift */; };
+		4B5CCF728ECC50C4121AD7F5 /* SharedPhraseSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1907ACDE19F45D853BAC2F7C /* SharedPhraseSearchView.swift */; };
+		5B0143E36410183746421493 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7852FE632D15E0AE4D0143 /* Models.swift */; };
+		67B9A71E0E0E12A5E50916CF /* ContactsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE59CAB64F7401A730F12B39 /* ContactsViewModel.swift */; };
+		7008520B6BADACA0FFC362F7 /* flare_core.swift in Sources */ = {isa = PBXBuildFile; fileRef = 081EF061D9801138AF8AEAC1 /* flare_core.swift */; };
+		71F92FDA231DDD9ECA1424D3 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 026D10CE504BF528A36A9C33 /* ChatViewModel.swift */; };
+		864F08FA91A6F34F8D28EEFA /* FlareRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F8416D775203AB9D89D29C /* FlareRepository.swift */; };
+		89F193544F5BC312B4B368BB /* NetworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDECFA004255B02C0215EBED /* NetworkView.swift */; };
+		A95AED91D9D02BF008DB54B9 /* NetworkViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F253B04C2657DF9396722F55 /* NetworkViewModel.swift */; };
+		AEB741F8039DA173F9FCC675 /* FindContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739C2998A79C43807C6D8C16 /* FindContactView.swift */; };
+		C3C23F1C23627D53883C2BA5 /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6122EFFA4EE4A995F0AA825E /* QRScannerView.swift */; };
+		C5367C3A75D53C569AF440BC /* FlareApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42D8694C1CCC150643877B9E /* FlareApp.swift */; };
+		D292B225D645C15059D19234 /* ConversationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C503BC8D1D391F06EBF1F9DA /* ConversationListView.swift */; };
+		DB20E00CCA4E5571719CAE80 /* QRDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFA583F6900013D7F9B47E76 /* QRDisplayView.swift */; };
+		EF84A739F7D99D534E90A758 /* ContactsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3806FD82CE3CEA905A0F36D0 /* ContactsView.swift */; };
+		F14BB15062BBE1D366F694AE /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54BBB921D126A7267F6EF703 /* MainTabView.swift */; };
+		F55F6FB3C6D70CB4D97704AF /* BLEManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14313A0DACD856023840054B /* BLEManager.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		026D10CE504BF528A36A9C33 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
+		081EF061D9801138AF8AEAC1 /* flare_core.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = flare_core.swift; sourceTree = "<group>"; };
+		11F8416D775203AB9D89D29C /* FlareRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlareRepository.swift; sourceTree = "<group>"; };
+		14313A0DACD856023840054B /* BLEManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEManager.swift; sourceTree = "<group>"; };
+		1907ACDE19F45D853BAC2F7C /* SharedPhraseSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedPhraseSearchView.swift; sourceTree = "<group>"; };
+		19CC5CF3C860DEC64E3921F8 /* MeshService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshService.swift; sourceTree = "<group>"; };
+		1C7852FE632D15E0AE4D0143 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		3806FD82CE3CEA905A0F36D0 /* ContactsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsView.swift; sourceTree = "<group>"; };
+		42D8694C1CCC150643877B9E /* FlareApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlareApp.swift; sourceTree = "<group>"; };
+		53BD2AFD5C70654941168B4F /* DiscoveryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryViewModel.swift; sourceTree = "<group>"; };
+		54BBB921D126A7267F6EF703 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		6122EFFA4EE4A995F0AA825E /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
+		739C2998A79C43807C6D8C16 /* FindContactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindContactView.swift; sourceTree = "<group>"; };
+		9A19D74DB36F74572DAD2829 /* flare_coreFFI.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = flare_coreFFI.modulemap; sourceTree = "<group>"; };
+		9C992931A4F4DA0BCC3ADA61 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		A54C4A6E1CC3B09770EE4B1A /* Flare.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Flare.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AFA583F6900013D7F9B47E76 /* QRDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRDisplayView.swift; sourceTree = "<group>"; };
+		B060B630F3A8DA84C40EA298 /* flare_coreFFI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = flare_coreFFI.h; sourceTree = "<group>"; };
+		BE59CAB64F7401A730F12B39 /* ContactsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsViewModel.swift; sourceTree = "<group>"; };
+		C503BC8D1D391F06EBF1F9DA /* ConversationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationListView.swift; sourceTree = "<group>"; };
+		D564D76EE454C15190904672 /* PhoneSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneSearchView.swift; sourceTree = "<group>"; };
+		DDECFA004255B02C0215EBED /* NetworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkView.swift; sourceTree = "<group>"; };
+		F253B04C2657DF9396722F55 /* NetworkViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkViewModel.swift; sourceTree = "<group>"; };
+		F86E5A5078E1EF3E00FB788F /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0187B7CC49D60D6750B7906F /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				D577D13257959E85CFAF9D9F /* Chat */,
+				BC986C50BC5DDA92D0B8FE60 /* Contacts */,
+				B2C3DBA81F335136FB0ED78B /* Navigation */,
+				E837E7A091E796B28DD9A96F /* Settings */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		33B82DF2A86F95184CAFCFE3 = {
+			isa = PBXGroup;
+			children = (
+				AB0E4480D1AB8AA77BA146D8 /* Generated */,
+				AF2EE5C8666D6EFFEE3AB185 /* Sources */,
+				77EDB58B456972FAA96B4A4A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		3887822C17015E63FB608BEF /* BLE */ = {
+			isa = PBXGroup;
+			children = (
+				14313A0DACD856023840054B /* BLEManager.swift */,
+				19CC5CF3C860DEC64E3921F8 /* MeshService.swift */,
+			);
+			path = BLE;
+			sourceTree = "<group>";
+		};
+		733B10A2071C0E898C979248 /* Util */ = {
+			isa = PBXGroup;
+			children = (
+				F86E5A5078E1EF3E00FB788F /* Constants.swift */,
+			);
+			path = Util;
+			sourceTree = "<group>";
+		};
+		77EDB58B456972FAA96B4A4A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A54C4A6E1CC3B09770EE4B1A /* Flare.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AB0E4480D1AB8AA77BA146D8 /* Generated */ = {
+			isa = PBXGroup;
+			children = (
+				081EF061D9801138AF8AEAC1 /* flare_core.swift */,
+				B060B630F3A8DA84C40EA298 /* flare_coreFFI.h */,
+				9A19D74DB36F74572DAD2829 /* flare_coreFFI.modulemap */,
+			);
+			name = Generated;
+			path = FlareCore/Generated;
+			sourceTree = "<group>";
+		};
+		AF2EE5C8666D6EFFEE3AB185 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				42D8694C1CCC150643877B9E /* FlareApp.swift */,
+				3887822C17015E63FB608BEF /* BLE */,
+				CEC386EEA8C6664CC7A299CF /* Data */,
+				0187B7CC49D60D6750B7906F /* UI */,
+				733B10A2071C0E898C979248 /* Util */,
+				AF4B2A11E4EF0F30ECCD4D88 /* ViewModels */,
+			);
+			name = Sources;
+			path = Flare/Sources;
+			sourceTree = "<group>";
+		};
+		AF4B2A11E4EF0F30ECCD4D88 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				026D10CE504BF528A36A9C33 /* ChatViewModel.swift */,
+				BE59CAB64F7401A730F12B39 /* ContactsViewModel.swift */,
+				53BD2AFD5C70654941168B4F /* DiscoveryViewModel.swift */,
+				F253B04C2657DF9396722F55 /* NetworkViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		B2C3DBA81F335136FB0ED78B /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
+				54BBB921D126A7267F6EF703 /* MainTabView.swift */,
+			);
+			path = Navigation;
+			sourceTree = "<group>";
+		};
+		BC986C50BC5DDA92D0B8FE60 /* Contacts */ = {
+			isa = PBXGroup;
+			children = (
+				3806FD82CE3CEA905A0F36D0 /* ContactsView.swift */,
+				739C2998A79C43807C6D8C16 /* FindContactView.swift */,
+				D564D76EE454C15190904672 /* PhoneSearchView.swift */,
+				AFA583F6900013D7F9B47E76 /* QRDisplayView.swift */,
+				6122EFFA4EE4A995F0AA825E /* QRScannerView.swift */,
+				1907ACDE19F45D853BAC2F7C /* SharedPhraseSearchView.swift */,
+			);
+			path = Contacts;
+			sourceTree = "<group>";
+		};
+		CEC386EEA8C6664CC7A299CF /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				11F8416D775203AB9D89D29C /* FlareRepository.swift */,
+				1C7852FE632D15E0AE4D0143 /* Models.swift */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		D577D13257959E85CFAF9D9F /* Chat */ = {
+			isa = PBXGroup;
+			children = (
+				9C992931A4F4DA0BCC3ADA61 /* ChatView.swift */,
+				C503BC8D1D391F06EBF1F9DA /* ConversationListView.swift */,
+			);
+			path = Chat;
+			sourceTree = "<group>";
+		};
+		E837E7A091E796B28DD9A96F /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				DDECFA004255B02C0215EBED /* NetworkView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AAEFF2D6694AA197C07481DA /* Flare */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E29D5392657225832C7D65FF /* Build configuration list for PBXNativeTarget "Flare" */;
+			buildPhases = (
+				FC1A910FE9C0003576F816B8 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Flare;
+			packageProductDependencies = (
+			);
+			productName = Flare;
+			productReference = A54C4A6E1CC3B09770EE4B1A /* Flare.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3F54DB5AAF6A868D9F734248 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					AAEFF2D6694AA197C07481DA = {
+						DevelopmentTeam = "";
+					};
+				};
+			};
+			buildConfigurationList = E9D3C2DAFBE258A76E3430E2 /* Build configuration list for PBXProject "Flare" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 33B82DF2A86F95184CAFCFE3;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 77EDB58B456972FAA96B4A4A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AAEFF2D6694AA197C07481DA /* Flare */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FC1A910FE9C0003576F816B8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F55F6FB3C6D70CB4D97704AF /* BLEManager.swift in Sources */,
+				10DE3BFE91097C97A338E07F /* ChatView.swift in Sources */,
+				71F92FDA231DDD9ECA1424D3 /* ChatViewModel.swift in Sources */,
+				0FD767B073E58D0AD98B71ED /* Constants.swift in Sources */,
+				EF84A739F7D99D534E90A758 /* ContactsView.swift in Sources */,
+				67B9A71E0E0E12A5E50916CF /* ContactsViewModel.swift in Sources */,
+				D292B225D645C15059D19234 /* ConversationListView.swift in Sources */,
+				1733A79AAC9A86CAF69935A3 /* DiscoveryViewModel.swift in Sources */,
+				AEB741F8039DA173F9FCC675 /* FindContactView.swift in Sources */,
+				C5367C3A75D53C569AF440BC /* FlareApp.swift in Sources */,
+				864F08FA91A6F34F8D28EEFA /* FlareRepository.swift in Sources */,
+				F14BB15062BBE1D366F694AE /* MainTabView.swift in Sources */,
+				0077806F0C68DB9E946B5817 /* MeshService.swift in Sources */,
+				5B0143E36410183746421493 /* Models.swift in Sources */,
+				89F193544F5BC312B4B368BB /* NetworkView.swift in Sources */,
+				A95AED91D9D02BF008DB54B9 /* NetworkViewModel.swift in Sources */,
+				183D0E1D3C087A6C3DE26F01 /* PhoneSearchView.swift in Sources */,
+				DB20E00CCA4E5571719CAE80 /* QRDisplayView.swift in Sources */,
+				C3C23F1C23627D53883C2BA5 /* QRScannerView.swift in Sources */,
+				4B5CCF728ECC50C4121AD7F5 /* SharedPhraseSearchView.swift in Sources */,
+				7008520B6BADACA0FFC362F7 /* flare_core.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		5D73397861F2534DC12A9E00 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		6E23BD4AE022C672F4973AFA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Flare/Flare.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/FlareCore/Generated",
+				);
+				INFOPLIST_FILE = Flare/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../flare-core/target/aarch64-apple-ios/release",
+				);
+				OTHER_LDFLAGS = (
+					"-lflare_core",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.flare.mesh;
+				SDKROOT = iphoneos;
+				SWIFT_INCLUDE_PATHS = (
+					"$(PROJECT_DIR)/FlareCore/Generated",
+				);
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A18A72C33FCA5AFBB3FB2828 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Flare/Flare.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/FlareCore/Generated",
+				);
+				INFOPLIST_FILE = Flare/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../flare-core/target/aarch64-apple-ios/release",
+				);
+				OTHER_LDFLAGS = (
+					"-lflare_core",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.flare.mesh;
+				SDKROOT = iphoneos;
+				SWIFT_INCLUDE_PATHS = (
+					"$(PROJECT_DIR)/FlareCore/Generated",
+				);
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B1E012D5130FF3F5D0807853 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E29D5392657225832C7D65FF /* Build configuration list for PBXNativeTarget "Flare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A18A72C33FCA5AFBB3FB2828 /* Debug */,
+				6E23BD4AE022C672F4973AFA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E9D3C2DAFBE258A76E3430E2 /* Build configuration list for PBXProject "Flare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B1E012D5130FF3F5D0807853 /* Debug */,
+				5D73397861F2534DC12A9E00 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3F54DB5AAF6A868D9F734248 /* Project object */;
+}

@@ -34,7 +34,7 @@
 ## ADR-007: Adaptive TTL with Neighborhood Bloom Filter
 **Date:** 2026-03-09
 **Decision:** Messages use adaptive TTL tiers based on network topology detection via Neighborhood Bloom Filters. No GPS, no individual tracking.
-**Rationale:** Long-distance delivery (e.g., 100km across Iran) requires messages to survive days in the mesh. Static TTL is either too short (messages die before reaching far destinations) or too long (wastes storage on local messages). Adaptive TTL solves this by detecting "bridge encounters" — when a relay node from a different mesh cluster connects, the message's TTL is extended.
+**Rationale:** Long-distance delivery (e.g., 100km across a country) requires messages to survive days in the mesh. Static TTL is either too short (messages die before reaching far destinations) or too long (wastes storage on local messages). Adaptive TTL solves this by detecting "bridge encounters" — when a relay node from a different mesh cluster connects, the message's TTL is extended.
 
 **Mechanism:**
 - Each device maintains a Bloom filter of recently-seen peer short IDs (rolling 6-hour window)
@@ -75,7 +75,7 @@
 ## ADR-010: No Social-Aware Routing
 **Date:** 2026-03-09
 **Decision:** Routing decisions must NEVER track individual movement patterns, travel habits, or social connections between users.
-**Rationale:** In authoritarian contexts (Iran, Myanmar, etc.), tracking which users travel between cities or frequently encounter each other creates a surveillance tool. Even anonymized movement data can be deanonymized with auxiliary information. The Neighborhood Bloom Filter approach detects network topology diversity without identifying individuals.
+**Rationale:** In authoritarian contexts, tracking which users travel between cities or frequently encounter each other creates a surveillance tool. Even anonymized movement data can be deanonymized with auxiliary information. The Neighborhood Bloom Filter approach detects network topology diversity without identifying individuals.
 
 ## ADR-011: Multi-Hop Signature Exclusion
 **Date:** 2026-03-09

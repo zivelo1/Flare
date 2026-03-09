@@ -1,0 +1,57 @@
+name: Flare
+options:
+  bundleIdPrefix: com.flare
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "15.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    DEVELOPMENT_TEAM: ""
+
+targets:
+  Flare:
+    type: application
+    platform: iOS
+    sources:
+      - path: Flare/Sources
+      - path: FlareCore/Generated
+    resources:
+      - path: Flare/Resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.flare.mesh
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_OBJC_BRIDGING_HEADER: ""
+        OTHER_LDFLAGS:
+          - "-lflare_core"
+        LIBRARY_SEARCH_PATHS:
+          - "$(PROJECT_DIR)/../flare-core/target/aarch64-apple-ios/release"
+        HEADER_SEARCH_PATHS:
+          - "$(PROJECT_DIR)/FlareCore/Generated"
+        SWIFT_INCLUDE_PATHS:
+          - "$(PROJECT_DIR)/FlareCore/Generated"
+    info:
+      path: Flare/Info.plist
+      properties:
+        CFBundleDisplayName: Flare
+        LSRequiresIPhoneOS: true
+        UILaunchScreen: {}
+        UIRequiredDeviceCapabilities:
+          - bluetooth-le
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSBluetoothAlwaysUsageDescription: "Flare uses Bluetooth to send and receive encrypted messages through the mesh network."
+        NSBluetoothPeripheralUsageDescription: "Flare uses Bluetooth to relay encrypted messages to nearby devices."
+        NSCameraUsageDescription: "Flare uses the camera to scan QR codes for adding contacts securely."
+        NSContactsUsageDescription: "Flare can use your contacts to find friends who also use Flare, using privacy-preserving tokens that never leave your device."
+        UIBackgroundModes:
+          - bluetooth-central
+          - bluetooth-peripheral
+    entitlements:
+      path: Flare/Flare.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
