@@ -9,6 +9,10 @@ use crate::crypto::identity::{DeviceId, Identity, PublicIdentity};
 use crate::crypto::{decrypt_message, encrypt_message};
 use crate::crypto::keys::derive_message_key;
 use crate::protocol::message::{ContentType, MeshMessage, MessageBuilder};
+use sha2::Digest;
+use crate::protocol::rendezvous::{
+    self, RendezvousManager, RendezvousMode, RendezvousPayload, RendezvousReply,
+};
 use crate::routing::router::{RouteDecision, Router};
 use crate::storage::database::FlareDatabase;
 use base64::Engine as _;
@@ -109,6 +113,14 @@ pub struct FfiGroup {
 }
 
 #[derive(uniffi::Record)]
+pub struct FfiDiscoveredContact {
+    pub device_id: String,
+    pub signing_public_key: Vec<u8>,
+    pub agreement_public_key: Vec<u8>,
+    pub discovery_method: String,
+}
+
+#[derive(uniffi::Record)]
 pub struct FfiMeshStatus {
     pub connected_peers: u32,
     pub discovered_peers: u32,
@@ -160,6 +172,7 @@ pub struct FlareNode {
     router: Router,
     db: Mutex<FlareDatabase>,
     messages_relayed: Mutex<u64>,
+    rendezvous: Mutex<RendezvousManager>,
 }
 
 #[uniffi::export]
@@ -192,6 +205,7 @@ impl FlareNode {
             router,
             db: Mutex::new(db),
             messages_relayed: Mutex::new(0),
+            rendezvous: Mutex::new(RendezvousManager::new()),
         })
     }
 
@@ -305,6 +319,9 @@ impl FlareNode {
             0x05 => ContentType::Acknowledgment,
             0x06 => ContentType::ReadReceipt,
             0x07 => ContentType::GroupMessage,
+            0x10 => ContentType::RouteRequest,
+            0x11 => ContentType::RouteReply,
+            0x20 => ContentType::PeerAnnounce,
             0x40 => ContentType::ApkOffer,
             0x41 => ContentType::ApkRequest,
             _ => return Err(FlareError::InvalidInput {
@@ -756,6 +773,216 @@ impl FlareNode {
         }
 
         Ok(results)
+    }
+
+    // ── Rendezvous Discovery ─────────────────────────────────────────
+
+    /// Starts a shared-phrase rendezvous search.
+    /// Returns the token hex string and a serialized broadcast RouteRequest message.
+    pub fn start_passphrase_search(&self, passphrase: String) -> Result<Vec<u8>, FlareError> {
+        let token = rendezvous::generate_phrase_token(&passphrase);
+
+        let mut mgr = self.rendezvous.lock().expect("rendezvous lock");
+        let payload = mgr.start_search(token, RendezvousMode::SharedPhrase);
+
+        let payload_bytes = payload.to_bytes()
+            .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
+
+        // Build a broadcast mesh message with the rendezvous payload
+        let msg = MessageBuilder::broadcast(self.identity.device_id().clone())
+            .content_type(ContentType::RouteRequest)
+            .payload(payload_bytes)
+            .build(|data| self.identity.sign(data));
+
+        msg.to_bytes()
+            .map_err(|e| FlareError::SerializationError { msg: e.to_string() })
+    }
+
+    /// Starts a phone-number rendezvous search.
+    /// Returns serialized broadcast RouteRequest message.
+    pub fn start_phone_search(
+        &self,
+        my_phone: String,
+        their_phone: String,
+    ) -> Result<Vec<u8>, FlareError> {
+        let token = rendezvous::generate_phone_token(&my_phone, &their_phone);
+
+        let mut mgr = self.rendezvous.lock().expect("rendezvous lock");
+        let payload = mgr.start_search(token, RendezvousMode::PhoneNumber);
+
+        let payload_bytes = payload.to_bytes()
+            .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
+
+        let msg = MessageBuilder::broadcast(self.identity.device_id().clone())
+            .content_type(ContentType::RouteRequest)
+            .payload(payload_bytes)
+            .build(|data| self.identity.sign(data));
+
+        msg.to_bytes()
+            .map_err(|e| FlareError::SerializationError { msg: e.to_string() })
+    }
+
+    /// Registers the user's phone number for incoming rendezvous searches.
+    /// Stores a hash of the phone number (never the number itself).
+    pub fn register_my_phone(&self, phone_number: String) -> Result<(), FlareError> {
+        let normalized = phone_number.trim().to_string();
+        let hash = sha2::Sha256::digest(normalized.as_bytes());
+        let db = self.db.lock().expect("db lock");
+        db.store_phone_hash(&hash)
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })
+    }
+
+    /// Imports phone contacts and pre-computes bilateral rendezvous tokens.
+    /// The user's own phone number must be registered first via register_my_phone.
+    /// Returns the number of tokens generated.
+    pub fn import_phone_contacts(&self, my_phone: String, contacts: Vec<String>) -> Result<u32, FlareError> {
+        let mut mgr = self.rendezvous.lock().expect("rendezvous lock");
+        let mut count = 0u32;
+
+        for contact_phone in &contacts {
+            let token = rendezvous::generate_phone_token(&my_phone, contact_phone);
+            mgr.register_token(token, RendezvousMode::ContactImport);
+            count += 1;
+        }
+
+        Ok(count)
+    }
+
+    /// Cancels an active rendezvous search by token hex string.
+    pub fn cancel_search(&self, token_hex: String) -> Result<(), FlareError> {
+        let token_bytes = hex_to_bytes(&token_hex)?;
+        if token_bytes.len() != 8 {
+            return Err(FlareError::InvalidInput {
+                msg: "Token must be 8 bytes".to_string(),
+            });
+        }
+        let mut token = [0u8; 8];
+        token.copy_from_slice(&token_bytes);
+
+        let mut mgr = self.rendezvous.lock().expect("rendezvous lock");
+        mgr.cancel_search(&token);
+        Ok(())
+    }
+
+    /// Builds broadcast messages for all active rendezvous searches.
+    /// Call this periodically (e.g., every 30 seconds) to re-broadcast.
+    pub fn build_rendezvous_broadcasts(&self) -> Result<Vec<Vec<u8>>, FlareError> {
+        let mgr = self.rendezvous.lock().expect("rendezvous lock");
+        let tokens = mgr.active_search_tokens();
+        drop(mgr);
+
+        let mut broadcasts = Vec::new();
+        for token in tokens {
+            let payload = RendezvousPayload {
+                token,
+                ephemeral_public_key: [0u8; 32],
+                proof_of_work: rendezvous::generate_proof_of_work(&token),
+            };
+
+            let payload_bytes = payload.to_bytes()
+                .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
+
+            let msg = MessageBuilder::broadcast(self.identity.device_id().clone())
+                .content_type(ContentType::RouteRequest)
+                .payload(payload_bytes)
+                .build(|data| self.identity.sign(data));
+
+            let serialized = msg.to_bytes()
+                .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
+            broadcasts.push(serialized);
+        }
+        Ok(broadcasts)
+    }
+
+    /// Processes an incoming RouteRequest or RouteReply message.
+    /// For RouteRequest: checks if token matches, generates reply if so.
+    /// For RouteReply: decrypts discovered contact identity.
+    /// Returns: (discovered_contact, reply_bytes_to_send)
+    pub fn process_rendezvous_message(
+        &self,
+        raw_payload: Vec<u8>,
+        content_type: u8,
+    ) -> Result<Option<FfiDiscoveredContact>, FlareError> {
+        let mgr = self.rendezvous.lock().expect("rendezvous lock");
+
+        match content_type {
+            0x10 => {
+                // RouteRequest — check if we should respond
+                let payload = RendezvousPayload::from_bytes(&raw_payload)
+                    .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
+
+                if let Some(_reply) = mgr.process_incoming_request(
+                    &payload,
+                    &self.identity.public_identity(),
+                ) {
+                    // We matched! But we return None here because WE didn't discover anyone —
+                    // we need to send the reply back. The caller should send the reply.
+                    // For now, we auto-send the reply as a mesh message.
+                    // TODO: Return the reply bytes for the caller to send
+                    Ok(None)
+                } else {
+                    Ok(None)
+                }
+            }
+            0x11 => {
+                // RouteReply — try to decrypt the discovered identity
+                let reply = RendezvousReply::from_bytes(&raw_payload)
+                    .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
+
+                if let Some((identity, mode)) = mgr.process_incoming_reply(&reply) {
+                    let method = match mode {
+                        RendezvousMode::SharedPhrase => "phrase",
+                        RendezvousMode::PhoneNumber => "phone",
+                        RendezvousMode::ContactImport => "contact",
+                    };
+                    Ok(Some(FfiDiscoveredContact {
+                        device_id: identity.device_id.to_hex(),
+                        signing_public_key: identity.signing_public_key.to_vec(),
+                        agreement_public_key: identity.agreement_public_key.to_vec(),
+                        discovery_method: method.to_string(),
+                    }))
+                } else {
+                    Ok(None)
+                }
+            }
+            _ => Ok(None),
+        }
+    }
+
+    /// Processes a RouteRequest and returns reply bytes to send back, if matched.
+    pub fn process_rendezvous_request(
+        &self,
+        raw_payload: Vec<u8>,
+        sender_device_id: String,
+    ) -> Result<Option<Vec<u8>>, FlareError> {
+        let payload = RendezvousPayload::from_bytes(&raw_payload)
+            .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
+
+        let mgr = self.rendezvous.lock().expect("rendezvous lock");
+        if let Some(reply) = mgr.process_incoming_request(&payload, &self.identity.public_identity()) {
+            let reply_bytes = reply.to_bytes()
+                .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
+
+            let sender_id = DeviceId::from_hex(&sender_device_id)
+                .map_err(|e| FlareError::InvalidInput { msg: e.to_string() })?;
+
+            let msg = MessageBuilder::new(self.identity.device_id().clone(), sender_id)
+                .content_type(ContentType::RouteReply)
+                .payload(reply_bytes)
+                .build(|data| self.identity.sign(data));
+
+            let serialized = msg.to_bytes()
+                .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
+            Ok(Some(serialized))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Returns the number of active rendezvous searches.
+    pub fn active_search_count(&self) -> u32 {
+        let mgr = self.rendezvous.lock().expect("rendezvous lock");
+        mgr.active_search_count() as u32
     }
 
     // ── Duress PIN ──────────────────────────────────────────────────

@@ -25,10 +25,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flare.mesh.ui.chat.ConversationListScreen
 import com.flare.mesh.ui.chat.ChatScreen
 import com.flare.mesh.ui.contacts.ContactsScreen
+import com.flare.mesh.ui.contacts.FindContactScreen
+import com.flare.mesh.ui.contacts.PhoneSearchScreen
 import com.flare.mesh.ui.contacts.QrDisplayScreen
 import com.flare.mesh.ui.contacts.QrScannerScreen
+import com.flare.mesh.ui.contacts.SharedPhraseSearchScreen
 import com.flare.mesh.ui.settings.NetworkScreen
 import com.flare.mesh.viewmodel.ContactsViewModel
+import com.flare.mesh.viewmodel.DiscoveryViewModel
 
 /**
  * Navigation routes for the Flare app.
@@ -127,6 +131,9 @@ fun FlareNavHost(
                     onNavigateToMyQr = {
                         navController.navigate("qr-display")
                     },
+                    onNavigateToFindContact = {
+                        navController.navigate("find-contact")
+                    },
                 )
             }
 
@@ -146,6 +153,34 @@ fun FlareNavHost(
                 QrDisplayScreen(
                     qrData = contactsViewModel.generateQrData(),
                     safetyNumber = contactsViewModel.getSafetyNumber(),
+                    onNavigateBack = { navController.popBackStack() },
+                )
+            }
+
+            composable("find-contact") {
+                FindContactScreen(
+                    onNavigateToPhrase = { navController.navigate("phrase-search") },
+                    onNavigateToQrScanner = { navController.navigate("qr-scanner") },
+                    onNavigateToPhone = { navController.navigate("phone-search") },
+                    onNavigateToImport = { /* TODO: contact import screen */ },
+                    onNavigateBack = { navController.popBackStack() },
+                )
+            }
+
+            composable("phrase-search") {
+                val discoveryViewModel: DiscoveryViewModel = viewModel()
+                SharedPhraseSearchScreen(
+                    viewModel = discoveryViewModel,
+                    onContactFound = { navController.popBackStack("contacts", false) },
+                    onNavigateBack = { navController.popBackStack() },
+                )
+            }
+
+            composable("phone-search") {
+                val discoveryViewModel: DiscoveryViewModel = viewModel()
+                PhoneSearchScreen(
+                    viewModel = discoveryViewModel,
+                    onContactFound = { navController.popBackStack("contacts", false) },
                     onNavigateBack = { navController.popBackStack() },
                 )
             }

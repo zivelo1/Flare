@@ -148,6 +148,25 @@ impl FlareDatabase {
                 passphrase_hash BLOB NOT NULL,
                 salt BLOB NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS rendezvous_tokens (
+                token BLOB PRIMARY KEY,
+                source_type TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                expires_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS active_searches (
+                token BLOB PRIMARY KEY,
+                ephemeral_private_key BLOB NOT NULL,
+                source_type TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+
+            CREATE TABLE IF NOT EXISTS phone_registry (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                phone_number_hash BLOB NOT NULL
+            );
             "
         )?;
         Ok(())
@@ -517,6 +536,116 @@ impl FlareDatabase {
     pub fn clear_duress_passphrase(&self) -> Result<(), DatabaseError> {
         self.conn.execute("DELETE FROM duress_config", [])?;
         Ok(())
+    }
+
+    // ── Rendezvous Discovery ─────────────────────────────────────
+
+    /// Stores a rendezvous token for responding to incoming searches.
+    pub fn store_rendezvous_token(
+        &self,
+        token: &[u8],
+        source_type: &str,
+        expires_at: &str,
+    ) -> Result<(), DatabaseError> {
+        self.conn.execute(
+            "INSERT OR REPLACE INTO rendezvous_tokens (token, source_type, expires_at) VALUES (?1, ?2, ?3)",
+            params![token, source_type, expires_at],
+        )?;
+        Ok(())
+    }
+
+    /// Removes a rendezvous token.
+    pub fn remove_rendezvous_token(&self, token: &[u8]) -> Result<(), DatabaseError> {
+        self.conn.execute(
+            "DELETE FROM rendezvous_tokens WHERE token = ?1",
+            params![token],
+        )?;
+        Ok(())
+    }
+
+    /// Lists all rendezvous tokens.
+    pub fn list_rendezvous_tokens(&self) -> Result<Vec<(Vec<u8>, String, String)>, DatabaseError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT token, source_type, expires_at FROM rendezvous_tokens ORDER BY created_at ASC"
+        )?;
+        let tokens = stmt.query_map([], |row| {
+            Ok((
+                row.get::<_, Vec<u8>>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+            ))
+        })?.collect::<Result<Vec<_>, _>>()?;
+        Ok(tokens)
+    }
+
+    /// Stores an active search (outbound rendezvous query).
+    pub fn store_active_search(
+        &self,
+        token: &[u8],
+        ephemeral_private_key: &[u8],
+        source_type: &str,
+    ) -> Result<(), DatabaseError> {
+        self.conn.execute(
+            "INSERT OR REPLACE INTO active_searches (token, ephemeral_private_key, source_type) VALUES (?1, ?2, ?3)",
+            params![token, ephemeral_private_key, source_type],
+        )?;
+        Ok(())
+    }
+
+    /// Removes an active search.
+    pub fn remove_active_search(&self, token: &[u8]) -> Result<(), DatabaseError> {
+        self.conn.execute(
+            "DELETE FROM active_searches WHERE token = ?1",
+            params![token],
+        )?;
+        Ok(())
+    }
+
+    /// Loads an active search by token.
+    pub fn load_active_search(&self, token: &[u8]) -> Result<Option<(Vec<u8>, String)>, DatabaseError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT ephemeral_private_key, source_type FROM active_searches WHERE token = ?1"
+        )?;
+        let result = stmt.query_row(params![token], |row| {
+            Ok((row.get::<_, Vec<u8>>(0)?, row.get::<_, String>(1)?))
+        });
+        match result {
+            Ok(data) => Ok(Some(data)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(DatabaseError::Sqlite(e)),
+        }
+    }
+
+    /// Prunes expired rendezvous tokens.
+    pub fn prune_expired_rendezvous(&self) -> Result<usize, DatabaseError> {
+        let count = self.conn.execute(
+            "DELETE FROM rendezvous_tokens WHERE expires_at < datetime('now')",
+            [],
+        )?;
+        Ok(count)
+    }
+
+    /// Stores the user's phone number hash for rendezvous (optional registration).
+    pub fn store_phone_hash(&self, phone_hash: &[u8]) -> Result<(), DatabaseError> {
+        self.conn.execute(
+            "INSERT OR REPLACE INTO phone_registry (id, phone_number_hash) VALUES (1, ?1)",
+            params![phone_hash],
+        )?;
+        Ok(())
+    }
+
+    /// Loads the stored phone number hash.
+    pub fn load_phone_hash(&self) -> Result<Option<Vec<u8>>, DatabaseError> {
+        let result = self.conn.query_row(
+            "SELECT phone_number_hash FROM phone_registry WHERE id = 1",
+            [],
+            |row| row.get::<_, Vec<u8>>(0),
+        );
+        match result {
+            Ok(hash) => Ok(Some(hash)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(DatabaseError::Sqlite(e)),
+        }
     }
 
     /// Removes a message from the outbox after successful delivery.

@@ -553,6 +553,11 @@ fileprivate struct FfiConverterData: FfiConverterRustBuffer {
 public protocol FlareNodeProtocol : AnyObject {
     
     /**
+     * Returns the number of active rendezvous searches.
+     */
+    func activeSearchCount()  -> UInt32
+    
+    /**
      * Adds or updates a contact.
      */
     func addContact(contact: FfiContact) throws 
@@ -573,6 +578,17 @@ public protocol FlareNodeProtocol : AnyObject {
      * content_type: 1=Text, 2=VoiceMessage, 3=Image, 4=KeyExchange, 5=Acknowledgment, 6=ReadReceipt
      */
     func buildMeshMessage(recipientDeviceId: String, encryptedPayload: Data, contentType: UInt8) throws  -> FfiMeshMessage
+    
+    /**
+     * Builds broadcast messages for all active rendezvous searches.
+     * Call this periodically (e.g., every 30 seconds) to re-broadcast.
+     */
+    func buildRendezvousBroadcasts() throws  -> [Data]
+    
+    /**
+     * Cancels an active rendezvous search by token hex string.
+     */
+    func cancelSearch(tokenHex: String) throws 
     
     /**
      * Checks whether the given passphrase is the duress passphrase.
@@ -677,6 +693,13 @@ public protocol FlareNodeProtocol : AnyObject {
     func hasDuressPassphrase() throws  -> Bool
     
     /**
+     * Imports phone contacts and pre-computes bilateral rendezvous tokens.
+     * The user's own phone number must be registered first via register_my_phone.
+     * Returns the number of tokens generated.
+     */
+    func importPhoneContacts(myPhone: String, contacts: [String]) throws  -> UInt32
+    
+    /**
      * Lists all contacts.
      */
     func listContacts() throws  -> [FfiContact]
@@ -710,6 +733,19 @@ public protocol FlareNodeProtocol : AnyObject {
     func processRemoteNeighborhood(remoteBitmap: Data)  -> String
     
     /**
+     * Processes an incoming RouteRequest or RouteReply message.
+     * For RouteRequest: checks if token matches, generates reply if so.
+     * For RouteReply: decrypts discovered contact identity.
+     * Returns: (discovered_contact, reply_bytes_to_send)
+     */
+    func processRendezvousMessage(rawPayload: Data, contentType: UInt8) throws  -> FfiDiscoveredContact?
+    
+    /**
+     * Processes a RouteRequest and returns reply bytes to send back, if matched.
+     */
+    func processRendezvousRequest(rawPayload: Data, senderDeviceId: String) throws  -> Data?
+    
+    /**
      * Prunes expired messages from the routing store.
      */
     func pruneExpiredMessages()  -> UInt32
@@ -724,6 +760,12 @@ public protocol FlareNodeProtocol : AnyObject {
      * Call this whenever a peer is discovered via BLE scan.
      */
     func recordNeighborhoodPeer(shortId: Data) 
+    
+    /**
+     * Registers the user's phone number for incoming rendezvous searches.
+     * Stores a hash of the phone number (never the number itself).
+     */
+    func registerMyPhone(phoneNumber: String) throws 
     
     /**
      * Removes a delivered message from the outbox.
@@ -745,6 +787,18 @@ public protocol FlareNodeProtocol : AnyObject {
      * with innocent data while the real database stays hidden.
      */
     func setDuressPassphrase(passphrase: String) throws 
+    
+    /**
+     * Starts a shared-phrase rendezvous search.
+     * Returns the token hex string and a serialized broadcast RouteRequest message.
+     */
+    func startPassphraseSearch(passphrase: String) throws  -> Data
+    
+    /**
+     * Starts a phone-number rendezvous search.
+     * Returns serialized broadcast RouteRequest message.
+     */
+    func startPhoneSearch(myPhone: String, theirPhone: String) throws  -> Data
     
     /**
      * Stores a chat message locally.
@@ -826,6 +880,16 @@ public convenience init(dbPath: String, passphrase: String)throws  {
 
     
     /**
+     * Returns the number of active rendezvous searches.
+     */
+open func activeSearchCount() -> UInt32 {
+    return try!  FfiConverterUInt32.lift(try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_active_search_count(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+    /**
      * Adds or updates a contact.
      */
 open func addContact(contact: FfiContact)throws  {try rustCallWithError(FfiConverterTypeFlareError.lift) {
@@ -872,6 +936,27 @@ open func buildMeshMessage(recipientDeviceId: String, encryptedPayload: Data, co
         FfiConverterUInt8.lower(contentType),$0
     )
 })
+}
+    
+    /**
+     * Builds broadcast messages for all active rendezvous searches.
+     * Call this periodically (e.g., every 30 seconds) to re-broadcast.
+     */
+open func buildRendezvousBroadcasts()throws  -> [Data] {
+    return try  FfiConverterSequenceData.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_build_rendezvous_broadcasts(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+    /**
+     * Cancels an active rendezvous search by token hex string.
+     */
+open func cancelSearch(tokenHex: String)throws  {try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_cancel_search(self.uniffiClonePointer(),
+        FfiConverterString.lower(tokenHex),$0
+    )
+}
 }
     
     /**
@@ -1086,6 +1171,20 @@ open func hasDuressPassphrase()throws  -> Bool {
 }
     
     /**
+     * Imports phone contacts and pre-computes bilateral rendezvous tokens.
+     * The user's own phone number must be registered first via register_my_phone.
+     * Returns the number of tokens generated.
+     */
+open func importPhoneContacts(myPhone: String, contacts: [String])throws  -> UInt32 {
+    return try  FfiConverterUInt32.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_import_phone_contacts(self.uniffiClonePointer(),
+        FfiConverterString.lower(myPhone),
+        FfiConverterSequenceString.lower(contacts),$0
+    )
+})
+}
+    
+    /**
      * Lists all contacts.
      */
 open func listContacts()throws  -> [FfiContact] {
@@ -1152,6 +1251,33 @@ open func processRemoteNeighborhood(remoteBitmap: Data) -> String {
 }
     
     /**
+     * Processes an incoming RouteRequest or RouteReply message.
+     * For RouteRequest: checks if token matches, generates reply if so.
+     * For RouteReply: decrypts discovered contact identity.
+     * Returns: (discovered_contact, reply_bytes_to_send)
+     */
+open func processRendezvousMessage(rawPayload: Data, contentType: UInt8)throws  -> FfiDiscoveredContact? {
+    return try  FfiConverterOptionTypeFfiDiscoveredContact.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_process_rendezvous_message(self.uniffiClonePointer(),
+        FfiConverterData.lower(rawPayload),
+        FfiConverterUInt8.lower(contentType),$0
+    )
+})
+}
+    
+    /**
+     * Processes a RouteRequest and returns reply bytes to send back, if matched.
+     */
+open func processRendezvousRequest(rawPayload: Data, senderDeviceId: String)throws  -> Data? {
+    return try  FfiConverterOptionData.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_process_rendezvous_request(self.uniffiClonePointer(),
+        FfiConverterData.lower(rawPayload),
+        FfiConverterString.lower(senderDeviceId),$0
+    )
+})
+}
+    
+    /**
      * Prunes expired messages from the routing store.
      */
 open func pruneExpiredMessages() -> UInt32 {
@@ -1180,6 +1306,17 @@ open func queueOutboundMessage(messageId: String, recipientDeviceId: String, enc
 open func recordNeighborhoodPeer(shortId: Data) {try! rustCall() {
     uniffi_flare_core_fn_method_flarenode_record_neighborhood_peer(self.uniffiClonePointer(),
         FfiConverterData.lower(shortId),$0
+    )
+}
+}
+    
+    /**
+     * Registers the user's phone number for incoming rendezvous searches.
+     * Stores a hash of the phone number (never the number itself).
+     */
+open func registerMyPhone(phoneNumber: String)throws  {try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_register_my_phone(self.uniffiClonePointer(),
+        FfiConverterString.lower(phoneNumber),$0
     )
 }
 }
@@ -1225,6 +1362,31 @@ open func setDuressPassphrase(passphrase: String)throws  {try rustCallWithError(
         FfiConverterString.lower(passphrase),$0
     )
 }
+}
+    
+    /**
+     * Starts a shared-phrase rendezvous search.
+     * Returns the token hex string and a serialized broadcast RouteRequest message.
+     */
+open func startPassphraseSearch(passphrase: String)throws  -> Data {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_start_passphrase_search(self.uniffiClonePointer(),
+        FfiConverterString.lower(passphrase),$0
+    )
+})
+}
+    
+    /**
+     * Starts a phone-number rendezvous search.
+     * Returns serialized broadcast RouteRequest message.
+     */
+open func startPhoneSearch(myPhone: String, theirPhone: String)throws  -> Data {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_start_phone_search(self.uniffiClonePointer(),
+        FfiConverterString.lower(myPhone),
+        FfiConverterString.lower(theirPhone),$0
+    )
+})
 }
     
     /**
@@ -1496,6 +1658,88 @@ public func FfiConverterTypeFfiContact_lift(_ buf: RustBuffer) throws -> FfiCont
 #endif
 public func FfiConverterTypeFfiContact_lower(_ value: FfiContact) -> RustBuffer {
     return FfiConverterTypeFfiContact.lower(value)
+}
+
+
+public struct FfiDiscoveredContact {
+    public var deviceId: String
+    public var signingPublicKey: Data
+    public var agreementPublicKey: Data
+    public var discoveryMethod: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(deviceId: String, signingPublicKey: Data, agreementPublicKey: Data, discoveryMethod: String) {
+        self.deviceId = deviceId
+        self.signingPublicKey = signingPublicKey
+        self.agreementPublicKey = agreementPublicKey
+        self.discoveryMethod = discoveryMethod
+    }
+}
+
+
+
+extension FfiDiscoveredContact: Equatable, Hashable {
+    public static func ==(lhs: FfiDiscoveredContact, rhs: FfiDiscoveredContact) -> Bool {
+        if lhs.deviceId != rhs.deviceId {
+            return false
+        }
+        if lhs.signingPublicKey != rhs.signingPublicKey {
+            return false
+        }
+        if lhs.agreementPublicKey != rhs.agreementPublicKey {
+            return false
+        }
+        if lhs.discoveryMethod != rhs.discoveryMethod {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(deviceId)
+        hasher.combine(signingPublicKey)
+        hasher.combine(agreementPublicKey)
+        hasher.combine(discoveryMethod)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeFfiDiscoveredContact: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FfiDiscoveredContact {
+        return
+            try FfiDiscoveredContact(
+                deviceId: FfiConverterString.read(from: &buf), 
+                signingPublicKey: FfiConverterData.read(from: &buf), 
+                agreementPublicKey: FfiConverterData.read(from: &buf), 
+                discoveryMethod: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: FfiDiscoveredContact, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.deviceId, into: &buf)
+        FfiConverterData.write(value.signingPublicKey, into: &buf)
+        FfiConverterData.write(value.agreementPublicKey, into: &buf)
+        FfiConverterString.write(value.discoveryMethod, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFfiDiscoveredContact_lift(_ buf: RustBuffer) throws -> FfiDiscoveredContact {
+    return try FfiConverterTypeFfiDiscoveredContact.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFfiDiscoveredContact_lower(_ value: FfiDiscoveredContact) -> RustBuffer {
+    return FfiConverterTypeFfiDiscoveredContact.lower(value)
 }
 
 
@@ -2165,6 +2409,54 @@ fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterOptionData: FfiConverterRustBuffer {
+    typealias SwiftType = Data?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterData.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterData.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterOptionTypeFfiDiscoveredContact: FfiConverterRustBuffer {
+    typealias SwiftType = FfiDiscoveredContact?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeFfiDiscoveredContact.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeFfiDiscoveredContact.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeFfiMeshMessage: FfiConverterRustBuffer {
     typealias SwiftType = FfiMeshMessage?
 
@@ -2386,6 +2678,9 @@ private var initializationResult: InitializationResult = {
     if (uniffi_flare_core_checksum_func_get_service_identifier() != 5467) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_flare_core_checksum_method_flarenode_active_search_count() != 8081) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_flare_core_checksum_method_flarenode_add_contact() != 55877) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -2396,6 +2691,12 @@ private var initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_build_mesh_message() != 58071) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_build_rendezvous_broadcasts() != 43389) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_cancel_search() != 26441) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_check_duress_passphrase() != 47522) {
@@ -2455,6 +2756,9 @@ private var initializationResult: InitializationResult = {
     if (uniffi_flare_core_checksum_method_flarenode_has_duress_passphrase() != 5490) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_flare_core_checksum_method_flarenode_import_phone_contacts() != 9747) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_flare_core_checksum_method_flarenode_list_contacts() != 45212) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -2473,6 +2777,12 @@ private var initializationResult: InitializationResult = {
     if (uniffi_flare_core_checksum_method_flarenode_process_remote_neighborhood() != 58979) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_flare_core_checksum_method_flarenode_process_rendezvous_message() != 35635) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_process_rendezvous_request() != 65192) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_flare_core_checksum_method_flarenode_prune_expired_messages() != 54958) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -2480,6 +2790,9 @@ private var initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_record_neighborhood_peer() != 61640) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_register_my_phone() != 27914) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_remove_from_outbox() != 5188) {
@@ -2492,6 +2805,12 @@ private var initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_set_duress_passphrase() != 12496) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_start_passphrase_search() != 47233) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_start_phone_search() != 15834) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_store_chat_message() != 48119) {

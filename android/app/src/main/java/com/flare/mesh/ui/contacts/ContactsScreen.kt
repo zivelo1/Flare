@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Verified
@@ -31,6 +32,7 @@ fun ContactsScreen(
     onContactClick: (String) -> Unit,
     onNavigateToScanner: () -> Unit,
     onNavigateToMyQr: () -> Unit,
+    onNavigateToFindContact: () -> Unit = {},
     contactsViewModel: ContactsViewModel = viewModel(),
 ) {
     val meshStatus by contactsViewModel.meshStatus.collectAsState()
@@ -50,6 +52,12 @@ fun ContactsScreen(
                     )
                 },
                 actions = {
+                    IconButton(onClick = onNavigateToFindContact) {
+                        Icon(
+                            Icons.Default.PersonSearch,
+                            contentDescription = "Find Contact",
+                        )
+                    }
                     IconButton(onClick = onNavigateToScanner) {
                         Icon(
                             Icons.Default.QrCodeScanner,

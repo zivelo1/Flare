@@ -96,3 +96,25 @@
 **Date:** 2026-03-09
 **Decision:** Group messages are encrypted individually for each group member using their respective DH shared secrets, not a shared group key.
 **Rationale:** In a mesh network without a reliable server to manage group key distribution, per-member encryption is more robust. Each member receives their own copy encrypted with their unique shared secret. This avoids the complexity of group key agreement protocols in a delay-tolerant network where members may be offline for days.
+
+## ADR-015: Blind Rendezvous Protocol for Peer Discovery
+**Date:** 2026-03-09
+**Decision:** Decentralized peer discovery using three-tier Blind Rendezvous: Shared Phrase (recommended), Phone Number (convenience), and Contact Import.
+**Rationale:** Without servers, users need a way to find each other on the mesh. Traditional approaches (usernames, phone numbers as identifiers) require a directory service. Blind Rendezvous lets two parties who share a secret (a phrase, phone numbers) independently derive the same token and find each other through the mesh without revealing their identities to anyone else.
+
+**Mechanism:**
+- **Shared Phrase** (recommended): Both parties enter the same passphrase (a shared memory, inside joke, etc.). Token = Argon2id(normalized_phrase, salt=epoch_week). High entropy (~50+ bits), resistant to brute-force even by nation-state adversaries.
+- **Phone Number** (convenience): Both parties enter each other's phone numbers. Token = Argon2id(sort(phone_A, phone_B), salt=epoch_week). Bilateral — both must participate. Vulnerable to targeted brute-force by adversary who knows one number (~10^8 possibilities). Explicit security warning shown in UI.
+- **Contact Import**: Pre-compute bilateral tokens for all phone contacts, matching against tokens broadcast on the mesh.
+
+**Anti-spam:** Proof-of-work (16 leading zero bits in SHA256(token || nonce), ~65K iterations, ~50ms) prevents token flooding.
+
+**Forward secrecy:** Each search generates an ephemeral X25519 keypair. The reply encrypts the responder's identity using HKDF(ephemeral_public_key, salt=token) → AES-256-GCM.
+
+**Token rotation:** Tokens rotate weekly via epoch_week = unix_timestamp / (7 * 86400). Old tokens cannot be used to correlate searches across weeks.
+
+**Privacy properties:**
+- Passphrases and phone numbers never leave the device — only Argon2id-derived tokens are broadcast
+- Tokens are 8-byte truncated hashes — cannot be reversed to the input
+- Ephemeral keys provide forward secrecy for the discovery handshake
+- Bilateral phone hashing means both parties must actively participate

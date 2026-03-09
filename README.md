@@ -1,86 +1,101 @@
 # Flare
 
-**Encrypted peer-to-peer messaging over Bluetooth mesh. No internet, no servers, no cell towers.**
+**Encrypted messaging that works without internet. Phone to phone, through Bluetooth.**
 
-Flare is a fully decentralized messaging application for Android and iOS that creates mesh networks using nearby phones. Designed for internet shutdowns, natural disasters, and off-grid communication.
+## What Is Flare?
+
+Flare lets you send encrypted messages to anyone — even when there is no internet, no cell service, and no Wi-Fi. Your messages travel from phone to phone using Bluetooth, hopping through other Flare users until they reach your contact, even if they are dozens of kilometers away.
+
+No servers. No accounts. No phone number required. Just install and start messaging.
+
+## Who Is This For?
+
+- **People in areas with no connectivity** — remote villages, mountains, deserts, ships at sea
+- **People during natural disasters** — earthquakes, hurricanes, floods that destroy cell towers
+- **Journalists and aid workers** — operating in conflict zones without reliable infrastructure
+- **Protesters and activists** — communicating when governments shut down the internet
+- **Festival and event attendees** — crowded venues where cell networks are overwhelmed
+- **Hikers and outdoor groups** — staying in touch off the grid
+- **Anyone who values privacy** — messages never touch a server, ever
 
 ## How It Works
 
 ```
-Phone A ←──BLE──→ Phone B ←──BLE──→ Phone C ←──BLE──→ Phone D
-         15m              15m              15m
+You ←──BLE──→ Stranger's ←──BLE──→ Another ←──BLE──→ Your
+                phone               phone           friend
 ```
 
-Each phone acts as both a messenger and a relay. Messages hop from phone to phone using Bluetooth Low Energy (BLE), reaching recipients who may be far away — as long as there are enough phones in between.
+1. **Install Flare** on your phone (Android or iPhone)
+2. **Find your friend** by entering a shared phrase you both know — a memory, a place, an inside joke. Flare searches the mesh network and connects you securely.
+3. **Send messages.** Your messages are encrypted on your phone and hop through other Flare users' phones until they reach your friend. Nobody in between can read them — not even the people whose phones relay them.
 
-## Features (Planned)
+Messages can travel across a city or even between cities, as long as there are enough Flare users along the way. The more people using Flare, the further messages can reach.
 
-- **No infrastructure required** — works without internet, Wi-Fi, or cell service
-- **End-to-end encrypted** — AES-256-GCM with keys from X25519 Diffie-Hellman + HKDF
-- **Cross-platform** — Android and iPhone communicate seamlessly over BLE GATT
-- **Store-and-forward** — messages wait and travel with phones until they reach the recipient
-- **Offline installable** — share the app phone-to-phone via Bluetooth, no app store needed
+## Finding Your Contacts Without Internet
+
+Since there are no servers, Flare uses a **Blind Rendezvous** protocol to help you find people you know:
+
+| Method | How It Works | Best For |
+|---|---|---|
+| **Shared Phrase** | Both you and your friend type the same phrase (a shared memory). Flare matches you securely. | Most situations — secure and private |
+| **QR Code** | Scan each other's QR code when you meet in person | Maximum security |
+| **Phone Number** | Enter each other's phone numbers. Both must do it. | Convenience (with privacy tradeoff) |
+| **Contact Import** | Import your phone contacts to find friends already on Flare | Quick setup |
+
+Your phone number, passphrase, and contacts **never leave your device**. Only a mathematical fingerprint is shared — it cannot be reversed.
+
+## Key Features
+
+- **Works offline** — no internet, no Wi-Fi, no cell service needed
+- **End-to-end encrypted** — only you and your recipient can read messages
+- **No accounts or registration** — no phone number, no email, no sign-up
+- **Store and forward** — messages wait on relay phones until they can be delivered, even if it takes days
+- **Multi-hop routing** — messages travel through many phones to reach distant recipients
+- **Duress protection** — a panic PIN opens a decoy app with fake messages if you are forced to unlock
+- **Phone-to-phone install** — share Flare with others via Bluetooth, no app store needed
 - **Open source** — GPLv3, auditable, community-maintained
 
 ## Architecture
 
 ```
-┌─────────────────────────────┐
-│   Shared Core (Rust)         │
-│   Crypto · Routing · Storage │
-├──────────────┬──────────────┤
-│ Android      │ iOS          │
-│ Kotlin +     │ Swift +      │
-│ Jetpack      │ SwiftUI      │
-│ Compose      │              │
-└──────────────┴──────────────┘
+┌───────────────────────────────────┐
+│   Shared Core (Rust)               │
+│   Crypto · Routing · Discovery     │
+│   Storage · Protocol               │
+├────────────────┬──────────────────┤
+│ Android        │ iOS               │
+│ Kotlin +       │ Swift +           │
+│ Jetpack        │ SwiftUI           │
+│ Compose        │                   │
+└────────────────┴──────────────────┘
 ```
 
-- **Rust core** — cryptography, message protocol, mesh routing, encrypted storage
-- **Android** — BLE GATT, Wi-Fi Direct, Jetpack Compose UI
+- **Rust core** — cryptography, mesh routing, Blind Rendezvous discovery, encrypted storage
+- **Android** — BLE GATT, Wi-Fi Direct, Material 3 UI
 - **iOS** — CoreBluetooth, Multipeer Connectivity, SwiftUI
 
 ## Current Status
 
-**Phases 1-4 (Foundation through Security)** — Rust core + Android app + UniFFI bridge:
-
-**Rust Core** (94 tests passing):
+**Rust Core** (109 tests passing):
 - Ed25519/X25519 identity and key agreement
 - AES-256-GCM encryption, HKDF key derivation
 - Spray-and-Wait mesh routing with adaptive TTL (48h → 72h → 7d)
+- Blind Rendezvous discovery — shared phrase (Argon2id-hardened), phone number (bilateral hash), contact import
 - Multi-hop relay with hop count increment (signature excludes mutable fields)
 - Neighborhood Bloom Filter for privacy-preserving bridge detection (no GPS)
 - Priority message store with 50MB budget and 3-tier eviction
 - Delivery ACK and read receipt processing for relay cleanup
-- Group messaging — SQLCipher storage with group CRUD operations
-- Duress PIN — Argon2id-hashed duress passphrase for decoy database
-- APK sharing protocol — chunked transfer with SHA-256 verification
-- SQLCipher encrypted database with conversation query, BLE chunking
-- UniFFI FFI layer with `FlareNode` object, payload extraction, message persistence
-
-**UniFFI Bridge** (Rust → Kotlin/Swift):
-- Auto-generated Kotlin and Swift bindings from compiled Rust library
-- FlareRepository bridge layer with clean Kotlin API
-- Neighborhood detection + store stats FFI methods
-- Multi-hop relay, delivery ACK, read receipt, group, duress PIN FFI methods
-- Device-bound database passphrase via Android Keystore
+- Group messaging, duress PIN, APK sharing protocol
+- SQLCipher encrypted database, BLE chunking, UniFFI FFI layer
 
 **Android App** (Kotlin + Jetpack Compose):
-- BLE GATT server (advertise + accept) and client (scan + connect)
-- Material 3 UI with chat bubbles, contacts, network dashboard
-- QR code scanner (CameraX + ML Kit) and display (ZXing) for contact exchange
-- Foreground service with message routing via Rust core
-- Full incoming message pipeline: decrypt → persist → notify UI → send delivery ACK
-- Multi-hop relay: `prepareForRelay()` increments hop count before forwarding
-- Neighborhood bitmap exchange on peer connect for bridge detection
-- ViewModels wired to FlareRepository for real encrypted messaging
-- ProGuard rules for JNA/UniFFI release build safety
-- Full BLE permission handling (Android 12+ and legacy)
+- BLE GATT server + client with full mesh routing
+- Material 3 UI: chat bubbles, contacts, network dashboard
+- Find Contact screen: shared phrase, QR code, phone number discovery
+- Full message pipeline: encrypt → send → relay → deliver → ACK
+- Foreground service, neighborhood detection, ProGuard rules
 
-**CI/CD** (GitHub Actions):
-- Rust tests, clippy, formatting checks
-- Cross-compilation for Android (arm64-v8a, armeabi-v7a, x86_64)
-- Kotlin binding generation and debug APK build
+**iOS** — Swift bindings generated, app implementation pending
 
 See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for detailed progress.
 
@@ -100,7 +115,6 @@ cargo test
 
 ## Documentation
 
-- [Feasibility & Architecture](FEASIBILITY_AND_ARCHITECTURE.md) — comprehensive technical assessment
 - [Architecture Decisions](docs/ARCHITECTURE_DECISIONS.md) — ADR log
 - [Development Setup](docs/DEVELOPMENT_SETUP.md) — build instructions
 - [Project Status](docs/PROJECT_STATUS.md) — current progress
@@ -112,8 +126,15 @@ Flare uses established, audited cryptographic primitives:
 - **X25519** — Diffie-Hellman key agreement
 - **AES-256-GCM** — authenticated encryption
 - **HKDF-SHA256** — key derivation
-- **Argon2id** — passphrase-based key derivation for database encryption
+- **Argon2id** — passphrase-based key derivation (database encryption + rendezvous tokens)
 - **SQLCipher** — encrypted SQLite for data at rest
+
+**Privacy by design:**
+- No servers, no accounts, no tracking
+- Messages never touch the internet
+- Phone numbers and passphrases never leave your device
+- Rendezvous tokens rotate weekly and cannot be reversed
+- Duress PIN opens a decoy database if you are coerced
 
 ## License
 

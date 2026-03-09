@@ -5,7 +5,7 @@
 
 ## What's Done
 
-### Rust Core (94 tests passing)
+### Rust Core (109 tests passing)
 - [x] Identity generation (Ed25519 signing + X25519 key agreement)
 - [x] Diffie-Hellman key agreement between devices
 - [x] HKDF key derivation (per-message keys from shared secrets)
@@ -28,6 +28,16 @@
 - [x] **Group messaging (database layer)** — `groups` and `group_members` tables, CRUD operations, `build_group_messages()` FFI
 - [x] **Duress PIN** — Argon2id-hashed duress passphrase stored in `duress_config` table, `check_duress_passphrase()` standalone function for pre-login check
 - [x] **APK sharing protocol** — `ApkOfferPayload`, `ApkRequestPayload`, `ApkChunk` types, chunked transfer with SHA-256 verification, 16KB chunk size
+- [x] **Blind Rendezvous Protocol** — decentralized peer discovery without servers:
+  - Shared Phrase mode: Argon2id(normalized_phrase, salt=epoch_week), ~50+ bits entropy, nation-state resistant
+  - Phone Number mode: Bilateral hash = Argon2id(sort(phone_A, phone_B), salt=epoch_week), with explicit security warning
+  - Contact Import mode: Pre-compute bilateral tokens for all phone contacts
+  - Proof-of-work anti-spam: 16 leading zero bits in SHA256(token || nonce), ~50ms per token
+  - Weekly epoch rotation: tokens rotate via `epoch_week = unix_timestamp / (7 * 86400)`
+  - Ephemeral X25519 keypair per search for forward secrecy
+  - Identity encryption in replies: HKDF(ephemeral_key, salt=token) → AES-256-GCM
+  - `RendezvousManager` with active search tracking, token registration, request/reply processing
+  - 15 dedicated tests for rendezvous protocol
 
 ### UniFFI Bridge (Rust → Kotlin/Swift)
 - [x] FFI types: `FfiPublicIdentity`, `FfiContact`, `FfiChatMessage`, `FfiMeshMessage`, `FfiMeshStatus`, `FfiStoreStats`, `FfiGroup`
@@ -41,6 +51,7 @@
 - [x] Receipts: `createDeliveryAck`, `createReadReceipt`, `updateDeliveryStatus`
 - [x] Groups: `createGroup`, `addGroupMember`, `removeGroupMember`, `listGroups`, `getGroupMembers`, `buildGroupMessages`
 - [x] Duress: `setDuressPassphrase`, `hasDuressPassphrase`, `clearDuressPassphrase`, `checkDuressPassphrase`
+- [x] Rendezvous: `startPassphraseSearch`, `startPhoneSearch`, `registerMyPhone`, `importPhoneContacts`, `cancelSearch`, `buildRendezvousBroadcasts`, `processRendezvousMessage`, `processRendezvousRequest`, `activeSearchCount`
 
 ### Android App
 - [x] Gradle project setup (AGP 8.7, Kotlin 2.1, Compose BOM 2024.12)
@@ -58,17 +69,29 @@
 - [x] FlareApplication — initializes FlareNode with device-bound passphrase (Android Keystore)
 - [x] ChatViewModel — conversation list, message sending via Rust encryption, incoming message delivery, persisted chat history
 - [x] ContactsViewModel — contact management, QR code data generation/parsing
+- [x] DiscoveryViewModel — shared phrase search, phone number search, contact import with SearchState management
 - [x] NetworkViewModel — mesh status, nearby peers from BLE scanner
 - [x] Navigation — bottom tabs (Chats, Contacts, Network) with Compose Navigation
 - [x] ConversationListScreen — conversation list with mesh status, unread badges, avatars
 - [x] ChatScreen — message bubbles, delivery status icons, encrypted send via Rust core
 - [x] ContactsScreen — contact list, verified badges, QR code actions, last-seen formatting
+- [x] FindContactScreen — discovery hub with 4 methods (Shared Phrase, QR Code, Phone Number, Contact Import)
+- [x] SharedPhraseSearchScreen — passphrase entry, searching animation, contact found state
+- [x] PhoneSearchScreen — bilateral phone number entry, security warning, risk acceptance
 - [x] NetworkScreen — mesh status card, stats row, nearby peer list with signal strength
+
+### Blind Rendezvous Discovery (Android)
+- [x] Find Contact screen — discovery hub with 4 methods
+- [x] Shared Phrase search — passphrase entry, mesh broadcast, contact discovery
+- [x] Phone Number search — bilateral phone hash, security warning with risk acceptance
+- [x] Rendezvous broadcast loop — 30-second periodic broadcast while searches active
+- [x] READ_CONTACTS permission — for phone-based peer discovery
+- [x] Navigation routes — find-contact, phrase-search, phone-search
 
 ### Infrastructure
 - [x] GitHub repo (github.com/zivelo1/Flare)
 - [x] .gitignore (secrets, venv, .claude, IDE files excluded)
-- [x] Documentation (feasibility, architecture decisions, dev setup)
+- [x] Documentation (architecture decisions, dev setup, project status)
 - [x] ProGuard rules for JNA, UniFFI, BLE callbacks (release build safety)
 
 ### CI/CD Pipeline

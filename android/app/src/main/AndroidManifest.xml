@@ -37,6 +37,9 @@
     <!-- Camera for QR code scanning -->
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <!-- Contacts for phone-number-based peer discovery -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
     <!-- BLE feature declaration (not required, allows install on non-BLE devices) -->
     <uses-feature
         android:name="android.hardware.bluetooth_le"

@@ -798,6 +798,24 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -823,6 +841,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_flare_core_fn_constructor_flarenode_new(`dbPath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_flare_core_fn_method_flarenode_active_search_count(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
     fun uniffi_flare_core_fn_method_flarenode_add_contact(`ptr`: Pointer,`contact`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_flare_core_fn_method_flarenode_add_group_member(`ptr`: Pointer,`groupId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -831,6 +851,10 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_build_mesh_message(`ptr`: Pointer,`recipientDeviceId`: RustBuffer.ByValue,`encryptedPayload`: RustBuffer.ByValue,`contentType`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_build_rendezvous_broadcasts(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_cancel_search(`ptr`: Pointer,`tokenHex`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_flare_core_fn_method_flarenode_check_duress_passphrase(`ptr`: Pointer,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
     fun uniffi_flare_core_fn_method_flarenode_clear_duress_passphrase(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -869,6 +893,8 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_has_duress_passphrase(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
+    fun uniffi_flare_core_fn_method_flarenode_import_phone_contacts(`ptr`: Pointer,`myPhone`: RustBuffer.ByValue,`contacts`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
     fun uniffi_flare_core_fn_method_flarenode_list_contacts(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_list_groups(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -881,11 +907,17 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_process_remote_neighborhood(`ptr`: Pointer,`remoteBitmap`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_process_rendezvous_message(`ptr`: Pointer,`rawPayload`: RustBuffer.ByValue,`contentType`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_process_rendezvous_request(`ptr`: Pointer,`rawPayload`: RustBuffer.ByValue,`senderDeviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_prune_expired_messages(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
     fun uniffi_flare_core_fn_method_flarenode_queue_outbound_message(`ptr`: Pointer,`messageId`: RustBuffer.ByValue,`recipientDeviceId`: RustBuffer.ByValue,`encryptedPayload`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_flare_core_fn_method_flarenode_record_neighborhood_peer(`ptr`: Pointer,`shortId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_register_my_phone(`ptr`: Pointer,`phoneNumber`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_flare_core_fn_method_flarenode_remove_from_outbox(`ptr`: Pointer,`messageId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -895,6 +927,10 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_set_duress_passphrase(`ptr`: Pointer,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_start_passphrase_search(`ptr`: Pointer,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_start_phone_search(`ptr`: Pointer,`myPhone`: RustBuffer.ByValue,`theirPhone`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_store_chat_message(`ptr`: Pointer,`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_flare_core_fn_method_flarenode_update_delivery_status(`ptr`: Pointer,`messageId`: RustBuffer.ByValue,`status`: Byte,uniffi_out_err: UniffiRustCallStatus, 
@@ -1023,6 +1059,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_func_get_service_identifier(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_active_search_count(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_add_contact(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_add_group_member(
@@ -1030,6 +1068,10 @@ internal interface UniffiLib : Library {
     fun uniffi_flare_core_checksum_method_flarenode_build_group_messages(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_build_mesh_message(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_build_rendezvous_broadcasts(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_cancel_search(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_check_duress_passphrase(
     ): Short
@@ -1069,6 +1111,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_has_duress_passphrase(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_import_phone_contacts(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_list_contacts(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_list_groups(
@@ -1081,11 +1125,17 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_process_remote_neighborhood(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_process_rendezvous_message(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_process_rendezvous_request(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_prune_expired_messages(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_queue_outbound_message(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_record_neighborhood_peer(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_register_my_phone(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_remove_from_outbox(
     ): Short
@@ -1094,6 +1144,10 @@ internal interface UniffiLib : Library {
     fun uniffi_flare_core_checksum_method_flarenode_route_incoming(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_set_duress_passphrase(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_start_passphrase_search(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_start_phone_search(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_store_chat_message(
     ): Short
@@ -1127,6 +1181,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_func_get_service_identifier() != 5467.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_active_search_count() != 8081.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_add_contact() != 55877.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1137,6 +1194,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_build_mesh_message() != 58071.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_build_rendezvous_broadcasts() != 43389.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_cancel_search() != 26441.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_check_duress_passphrase() != 47522.toShort()) {
@@ -1196,6 +1259,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_has_duress_passphrase() != 5490.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_import_phone_contacts() != 9747.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_list_contacts() != 45212.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1214,6 +1280,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_process_remote_neighborhood() != 58979.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_process_rendezvous_message() != 35635.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_process_rendezvous_request() != 65192.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_prune_expired_messages() != 54958.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1221,6 +1293,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_record_neighborhood_peer() != 61640.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_register_my_phone() != 27914.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_remove_from_outbox() != 5188.toShort()) {
@@ -1233,6 +1308,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_set_duress_passphrase() != 12496.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_start_passphrase_search() != 47233.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_start_phone_search() != 15834.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_store_chat_message() != 48119.toShort()) {
@@ -1651,6 +1732,11 @@ private class JavaLangRefCleanable(
 public interface FlareNodeInterface {
     
     /**
+     * Returns the number of active rendezvous searches.
+     */
+    fun `activeSearchCount`(): kotlin.UInt
+    
+    /**
      * Adds or updates a contact.
      */
     fun `addContact`(`contact`: FfiContact)
@@ -1671,6 +1757,17 @@ public interface FlareNodeInterface {
      * content_type: 1=Text, 2=VoiceMessage, 3=Image, 4=KeyExchange, 5=Acknowledgment, 6=ReadReceipt
      */
     fun `buildMeshMessage`(`recipientDeviceId`: kotlin.String, `encryptedPayload`: kotlin.ByteArray, `contentType`: kotlin.UByte): FfiMeshMessage
+    
+    /**
+     * Builds broadcast messages for all active rendezvous searches.
+     * Call this periodically (e.g., every 30 seconds) to re-broadcast.
+     */
+    fun `buildRendezvousBroadcasts`(): List<kotlin.ByteArray>
+    
+    /**
+     * Cancels an active rendezvous search by token hex string.
+     */
+    fun `cancelSearch`(`tokenHex`: kotlin.String)
     
     /**
      * Checks whether the given passphrase is the duress passphrase.
@@ -1775,6 +1872,13 @@ public interface FlareNodeInterface {
     fun `hasDuressPassphrase`(): kotlin.Boolean
     
     /**
+     * Imports phone contacts and pre-computes bilateral rendezvous tokens.
+     * The user's own phone number must be registered first via register_my_phone.
+     * Returns the number of tokens generated.
+     */
+    fun `importPhoneContacts`(`myPhone`: kotlin.String, `contacts`: List<kotlin.String>): kotlin.UInt
+    
+    /**
      * Lists all contacts.
      */
     fun `listContacts`(): List<FfiContact>
@@ -1808,6 +1912,19 @@ public interface FlareNodeInterface {
     fun `processRemoteNeighborhood`(`remoteBitmap`: kotlin.ByteArray): kotlin.String
     
     /**
+     * Processes an incoming RouteRequest or RouteReply message.
+     * For RouteRequest: checks if token matches, generates reply if so.
+     * For RouteReply: decrypts discovered contact identity.
+     * Returns: (discovered_contact, reply_bytes_to_send)
+     */
+    fun `processRendezvousMessage`(`rawPayload`: kotlin.ByteArray, `contentType`: kotlin.UByte): FfiDiscoveredContact?
+    
+    /**
+     * Processes a RouteRequest and returns reply bytes to send back, if matched.
+     */
+    fun `processRendezvousRequest`(`rawPayload`: kotlin.ByteArray, `senderDeviceId`: kotlin.String): kotlin.ByteArray?
+    
+    /**
      * Prunes expired messages from the routing store.
      */
     fun `pruneExpiredMessages`(): kotlin.UInt
@@ -1822,6 +1939,12 @@ public interface FlareNodeInterface {
      * Call this whenever a peer is discovered via BLE scan.
      */
     fun `recordNeighborhoodPeer`(`shortId`: kotlin.ByteArray)
+    
+    /**
+     * Registers the user's phone number for incoming rendezvous searches.
+     * Stores a hash of the phone number (never the number itself).
+     */
+    fun `registerMyPhone`(`phoneNumber`: kotlin.String)
     
     /**
      * Removes a delivered message from the outbox.
@@ -1843,6 +1966,18 @@ public interface FlareNodeInterface {
      * with innocent data while the real database stays hidden.
      */
     fun `setDuressPassphrase`(`passphrase`: kotlin.String)
+    
+    /**
+     * Starts a shared-phrase rendezvous search.
+     * Returns the token hex string and a serialized broadcast RouteRequest message.
+     */
+    fun `startPassphraseSearch`(`passphrase`: kotlin.String): kotlin.ByteArray
+    
+    /**
+     * Starts a phone-number rendezvous search.
+     * Returns serialized broadcast RouteRequest message.
+     */
+    fun `startPhoneSearch`(`myPhone`: kotlin.String, `theirPhone`: kotlin.String): kotlin.ByteArray
     
     /**
      * Stores a chat message locally.
@@ -1955,6 +2090,21 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Returns the number of active rendezvous searches.
+     */override fun `activeSearchCount`(): kotlin.UInt {
+            return FfiConverterUInt.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_active_search_count(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Adds or updates a contact.
      */
     @Throws(FlareException::class)override fun `addContact`(`contact`: FfiContact)
@@ -2015,6 +2165,38 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
     }
     )
     }
+    
+
+    
+    /**
+     * Builds broadcast messages for all active rendezvous searches.
+     * Call this periodically (e.g., every 30 seconds) to re-broadcast.
+     */
+    @Throws(FlareException::class)override fun `buildRendezvousBroadcasts`(): List<kotlin.ByteArray> {
+            return FfiConverterSequenceByteArray.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_build_rendezvous_broadcasts(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Cancels an active rendezvous search by token hex string.
+     */
+    @Throws(FlareException::class)override fun `cancelSearch`(`tokenHex`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_cancel_search(
+        it, FfiConverterString.lower(`tokenHex`),_status)
+}
+    }
+    
     
 
     
@@ -2321,6 +2503,24 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Imports phone contacts and pre-computes bilateral rendezvous tokens.
+     * The user's own phone number must be registered first via register_my_phone.
+     * Returns the number of tokens generated.
+     */
+    @Throws(FlareException::class)override fun `importPhoneContacts`(`myPhone`: kotlin.String, `contacts`: List<kotlin.String>): kotlin.UInt {
+            return FfiConverterUInt.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_import_phone_contacts(
+        it, FfiConverterString.lower(`myPhone`),FfiConverterSequenceString.lower(`contacts`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Lists all contacts.
      */
     @Throws(FlareException::class)override fun `listContacts`(): List<FfiContact> {
@@ -2417,6 +2617,41 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Processes an incoming RouteRequest or RouteReply message.
+     * For RouteRequest: checks if token matches, generates reply if so.
+     * For RouteReply: decrypts discovered contact identity.
+     * Returns: (discovered_contact, reply_bytes_to_send)
+     */
+    @Throws(FlareException::class)override fun `processRendezvousMessage`(`rawPayload`: kotlin.ByteArray, `contentType`: kotlin.UByte): FfiDiscoveredContact? {
+            return FfiConverterOptionalTypeFfiDiscoveredContact.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_process_rendezvous_message(
+        it, FfiConverterByteArray.lower(`rawPayload`),FfiConverterUByte.lower(`contentType`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Processes a RouteRequest and returns reply bytes to send back, if matched.
+     */
+    @Throws(FlareException::class)override fun `processRendezvousRequest`(`rawPayload`: kotlin.ByteArray, `senderDeviceId`: kotlin.String): kotlin.ByteArray? {
+            return FfiConverterOptionalByteArray.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_process_rendezvous_request(
+        it, FfiConverterByteArray.lower(`rawPayload`),FfiConverterString.lower(`senderDeviceId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Prunes expired messages from the routing store.
      */override fun `pruneExpiredMessages`(): kotlin.UInt {
             return FfiConverterUInt.lift(
@@ -2455,6 +2690,22 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_record_neighborhood_peer(
         it, FfiConverterByteArray.lower(`shortId`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Registers the user's phone number for incoming rendezvous searches.
+     * Stores a hash of the phone number (never the number itself).
+     */
+    @Throws(FlareException::class)override fun `registerMyPhone`(`phoneNumber`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_register_my_phone(
+        it, FfiConverterString.lower(`phoneNumber`),_status)
 }
     }
     
@@ -2519,6 +2770,40 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 }
     }
     
+    
+
+    
+    /**
+     * Starts a shared-phrase rendezvous search.
+     * Returns the token hex string and a serialized broadcast RouteRequest message.
+     */
+    @Throws(FlareException::class)override fun `startPassphraseSearch`(`passphrase`: kotlin.String): kotlin.ByteArray {
+            return FfiConverterByteArray.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_start_passphrase_search(
+        it, FfiConverterString.lower(`passphrase`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Starts a phone-number rendezvous search.
+     * Returns serialized broadcast RouteRequest message.
+     */
+    @Throws(FlareException::class)override fun `startPhoneSearch`(`myPhone`: kotlin.String, `theirPhone`: kotlin.String): kotlin.ByteArray {
+            return FfiConverterByteArray.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_start_phone_search(
+        it, FfiConverterString.lower(`myPhone`),FfiConverterString.lower(`theirPhone`),_status)
+}
+    }
+    )
+    }
     
 
     
@@ -2680,6 +2965,46 @@ public object FfiConverterTypeFfiContact: FfiConverterRustBuffer<FfiContact> {
             FfiConverterByteArray.write(value.`agreementPublicKey`, buf)
             FfiConverterOptionalString.write(value.`displayName`, buf)
             FfiConverterBoolean.write(value.`isVerified`, buf)
+    }
+}
+
+
+
+data class FfiDiscoveredContact (
+    var `deviceId`: kotlin.String, 
+    var `signingPublicKey`: kotlin.ByteArray, 
+    var `agreementPublicKey`: kotlin.ByteArray, 
+    var `discoveryMethod`: kotlin.String
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeFfiDiscoveredContact: FfiConverterRustBuffer<FfiDiscoveredContact> {
+    override fun read(buf: ByteBuffer): FfiDiscoveredContact {
+        return FfiDiscoveredContact(
+            FfiConverterString.read(buf),
+            FfiConverterByteArray.read(buf),
+            FfiConverterByteArray.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: FfiDiscoveredContact) = (
+            FfiConverterString.allocationSize(value.`deviceId`) +
+            FfiConverterByteArray.allocationSize(value.`signingPublicKey`) +
+            FfiConverterByteArray.allocationSize(value.`agreementPublicKey`) +
+            FfiConverterString.allocationSize(value.`discoveryMethod`)
+    )
+
+    override fun write(value: FfiDiscoveredContact, buf: ByteBuffer) {
+            FfiConverterString.write(value.`deviceId`, buf)
+            FfiConverterByteArray.write(value.`signingPublicKey`, buf)
+            FfiConverterByteArray.write(value.`agreementPublicKey`, buf)
+            FfiConverterString.write(value.`discoveryMethod`, buf)
     }
 }
 
@@ -3111,6 +3436,70 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?>
         } else {
             buf.put(1)
             FfiConverterString.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalByteArray: FfiConverterRustBuffer<kotlin.ByteArray?> {
+    override fun read(buf: ByteBuffer): kotlin.ByteArray? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterByteArray.read(buf)
+    }
+
+    override fun allocationSize(value: kotlin.ByteArray?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterByteArray.allocationSize(value)
+        }
+    }
+
+    override fun write(value: kotlin.ByteArray?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterByteArray.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalTypeFfiDiscoveredContact: FfiConverterRustBuffer<FfiDiscoveredContact?> {
+    override fun read(buf: ByteBuffer): FfiDiscoveredContact? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeFfiDiscoveredContact.read(buf)
+    }
+
+    override fun allocationSize(value: FfiDiscoveredContact?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeFfiDiscoveredContact.allocationSize(value)
+        }
+    }
+
+    override fun write(value: FfiDiscoveredContact?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeFfiDiscoveredContact.write(value, buf)
         }
     }
 }

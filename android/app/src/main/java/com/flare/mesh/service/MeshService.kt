@@ -44,6 +44,7 @@ class MeshService : LifecycleService() {
 
     private var scanJob: Job? = null
     private var pruneJob: Job? = null
+    private var rendezvousJob: Job? = null
 
     companion object {
         private val _meshStatus = MutableStateFlow(MeshStatus())
@@ -225,12 +226,32 @@ class MeshService : LifecycleService() {
                 sendToMesh(outbound)
             }
         }
+
+        // Periodic rendezvous broadcast (every 30 seconds while searches are active)
+        rendezvousJob = lifecycleScope.launch {
+            while (isActive) {
+                delay(30_000L)
+                try {
+                    val repo = FlareRepository.getInstance()
+                    if (repo.activeSearchCount() > 0) {
+                        val broadcasts = repo.buildRendezvousBroadcasts()
+                        broadcasts.forEach { data ->
+                            sendToMesh(OutboundMessage("broadcast", data))
+                        }
+                        if (broadcasts.isNotEmpty()) {
+                            Timber.d("Broadcast %d rendezvous tokens", broadcasts.size)
+                        }
+                    }
+                } catch (_: Exception) { }
+            }
+        }
     }
 
     private fun stopMesh() {
         Timber.i("Stopping mesh network")
         scanJob?.cancel()
         pruneJob?.cancel()
+        rendezvousJob?.cancel()
         bleScanner.stopScanning()
         gattServer.stop()
         gattClient.disconnectAll()

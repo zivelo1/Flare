@@ -5,5 +5,6 @@
 
 pub mod apk_share;
 pub mod message;
+pub mod rendezvous;
 
 pub use message::{MeshMessage, ContentType, MessageBuilder};

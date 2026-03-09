@@ -319,6 +319,82 @@ class FlareRepository private constructor(private val node: FlareNode) {
         )
     }
 
+    // ── Rendezvous Discovery ─────────────────────────────────────────
+
+    /**
+     * Starts a shared-phrase rendezvous search.
+     * Returns serialized broadcast RouteRequest message for BLE transmission.
+     */
+    suspend fun startPassphraseSearch(passphrase: String): ByteArray =
+        withContext(Dispatchers.IO) {
+            node.startPassphraseSearch(passphrase)
+        }
+
+    /**
+     * Starts a phone-number rendezvous search.
+     * Returns serialized broadcast RouteRequest message for BLE transmission.
+     */
+    suspend fun startPhoneSearch(myPhone: String, theirPhone: String): ByteArray =
+        withContext(Dispatchers.IO) {
+            node.startPhoneSearch(myPhone, theirPhone)
+        }
+
+    /**
+     * Registers the user's phone number for incoming rendezvous searches.
+     * Only a hash is stored — the phone number itself is never persisted.
+     */
+    suspend fun registerMyPhone(phoneNumber: String) =
+        withContext(Dispatchers.IO) {
+            node.registerMyPhone(phoneNumber)
+        }
+
+    /**
+     * Imports phone contacts and pre-computes bilateral rendezvous tokens.
+     * Returns the number of tokens generated.
+     */
+    suspend fun importPhoneContacts(myPhone: String, contacts: List<String>): UInt =
+        withContext(Dispatchers.IO) {
+            node.importPhoneContacts(myPhone, contacts)
+        }
+
+    /**
+     * Cancels an active rendezvous search.
+     */
+    suspend fun cancelSearch(tokenHex: String) =
+        withContext(Dispatchers.IO) {
+            node.cancelSearch(tokenHex)
+        }
+
+    /**
+     * Builds broadcast messages for all active rendezvous searches.
+     * Called periodically by MeshService.
+     */
+    suspend fun buildRendezvousBroadcasts(): List<ByteArray> =
+        withContext(Dispatchers.IO) {
+            node.buildRendezvousBroadcasts()
+        }
+
+    /**
+     * Processes an incoming RouteRequest — checks for token match and returns reply bytes.
+     */
+    suspend fun processRendezvousRequest(rawPayload: ByteArray, senderDeviceId: String): ByteArray? =
+        withContext(Dispatchers.IO) {
+            node.processRendezvousRequest(rawPayload, senderDeviceId)
+        }
+
+    /**
+     * Processes an incoming RouteReply — decrypts discovered contact identity.
+     */
+    suspend fun processRendezvousReply(rawPayload: ByteArray): uniffi.flare_core.FfiDiscoveredContact? =
+        withContext(Dispatchers.IO) {
+            node.processRendezvousMessage(rawPayload, 0x11u)
+        }
+
+    /**
+     * Returns the number of active rendezvous searches.
+     */
+    fun activeSearchCount(): Int = node.activeSearchCount().toInt()
+
     // ── Mesh Status ───────────────────────────────────────────────────
 
     fun getMeshStatus(): MeshStatus {
