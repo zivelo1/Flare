@@ -1,0 +1,73 @@
+# ============================================
+# Flare - .gitignore
+# ============================================
+
+# --- Secrets & Credentials (NEVER commit) ---
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+credentials.json
+secrets.json
+google-services.json
+service-account*.json
+
+# --- Python / venv ---
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# --- Claude Code / AI ---
+.claude/
+
+# --- Rust ---
+flare-core/target/
+**/*.rs.bk
+Cargo.lock
+
+# --- Android ---
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/*.iml
+android/.idea/
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+
+# --- iOS ---
+ios/build/
+ios/DerivedData/
+ios/Pods/
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+ios/.build/
+
+# --- IDE ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- Build artifacts ---
+*.so
+*.dylib
+*.dll
+*.a
+*.o
+*.apk
+*.ipa
+*.aab
+
+# --- Logs ---
+*.log
+npm-debug.log*
