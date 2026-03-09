@@ -10,12 +10,12 @@ No servers. No accounts. No phone number required. Just install and start messag
 
 ## Who Is This For?
 
-- **People in areas with no connectivity** — remote villages, mountains, deserts
-- **People during natural disasters** — earthquakes, hurricanes, floods that destroy cell towers
-- **Journalists and aid workers** — operating in conflict zones without reliable infrastructure
-- **Protesters and activists** — communicating when governments shut down the internet
+- **People during internet shutdowns** — governments blocking communication during protests or unrest
+- **People during natural disasters** — earthquakes, hurricanes, floods that destroy cell towers, in areas where survivors are gathered
+- **Journalists and aid workers** — operating in conflict zones where infrastructure is destroyed but people are present
+- **Protesters and activists** — communicating in crowded streets when networks are shut down
 - **Festival and event attendees** — crowded venues where cell networks are overwhelmed
-- **Hikers and outdoor groups** — staying in touch off the grid
+- **Refugee camps and shelters** — dense populations with no telecom infrastructure
 - **Anyone who values privacy** — messages never touch a server, ever
 
 ## How It Works
