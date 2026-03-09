@@ -14,6 +14,21 @@ use crate::storage::database::FlareDatabase;
 use base64::Engine as _;
 use crate::{PROTOCOL_VERSION, SERVICE_IDENTIFIER};
 
+fn hex_to_bytes(hex: &str) -> Result<Vec<u8>, FlareError> {
+    if hex.len() % 2 != 0 {
+        return Err(FlareError::InvalidInput {
+            msg: "Hex string must have even length".to_string(),
+        });
+    }
+    (0..hex.len())
+        .step_by(2)
+        .map(|i| {
+            u8::from_str_radix(&hex[i..i + 2], 16)
+                .map_err(|e| FlareError::InvalidInput { msg: e.to_string() })
+        })
+        .collect()
+}
+
 /// Error type exposed to mobile platforms via UniFFI.
 #[derive(Debug, thiserror::Error, uniffi::Error)]
 pub enum FlareError {
@@ -86,6 +101,14 @@ pub enum FfiRouteDecision {
 }
 
 #[derive(uniffi::Record)]
+pub struct FfiGroup {
+    pub group_id: String,
+    pub group_name: String,
+    pub created_at: String,
+    pub creator_device_id: String,
+}
+
+#[derive(uniffi::Record)]
 pub struct FfiMeshStatus {
     pub connected_peers: u32,
     pub discovered_peers: u32,
@@ -113,6 +136,18 @@ pub fn get_protocol_version() -> String {
 #[uniffi::export]
 pub fn get_service_identifier() -> String {
     SERVICE_IDENTIFIER.to_string()
+}
+
+/// Checks if a passphrase is the duress passphrase for a given database.
+/// Call this BEFORE constructing FlareNode to decide which database to open.
+/// Returns false if the database doesn't exist or has no duress config.
+#[uniffi::export]
+pub fn check_duress_passphrase(db_path: String, passphrase: String, check_passphrase: String) -> bool {
+    let db = match FlareDatabase::open(&db_path, &passphrase) {
+        Ok(db) => db,
+        Err(_) => return false,
+    };
+    db.check_duress_passphrase(&check_passphrase).unwrap_or(false)
 }
 
 // ── FlareNode (main entry point for mobile) ──────────────────────────
@@ -252,19 +287,36 @@ impl FlareNode {
     }
 
     /// Builds a mesh message ready for BLE transmission.
+    /// content_type: 1=Text, 2=VoiceMessage, 3=Image, 4=KeyExchange, 5=Acknowledgment, 6=ReadReceipt
     pub fn build_mesh_message(
         &self,
         recipient_device_id: String,
         encrypted_payload: Vec<u8>,
+        content_type: u8,
     ) -> Result<FfiMeshMessage, FlareError> {
         let recipient_id = DeviceId::from_hex(&recipient_device_id)
             .map_err(|e| FlareError::InvalidInput { msg: e.to_string() })?;
+
+        let ct = match content_type {
+            0x01 => ContentType::Text,
+            0x02 => ContentType::VoiceMessage,
+            0x03 => ContentType::Image,
+            0x04 => ContentType::KeyExchange,
+            0x05 => ContentType::Acknowledgment,
+            0x06 => ContentType::ReadReceipt,
+            0x07 => ContentType::GroupMessage,
+            0x40 => ContentType::ApkOffer,
+            0x41 => ContentType::ApkRequest,
+            _ => return Err(FlareError::InvalidInput {
+                msg: format!("Unknown content type: {}", content_type),
+            }),
+        };
 
         let msg = MessageBuilder::new(
             self.identity.device_id().clone(),
             recipient_id,
         )
-        .content_type(ContentType::Text)
+        .content_type(ct)
         .payload(encrypted_payload)
         .build(|data| self.identity.sign(data));
 
@@ -504,6 +556,85 @@ impl FlareNode {
         bytes
     }
 
+    // ── Multi-Hop Relay ─────────────────────────────────────────────
+
+    /// Prepares a raw mesh message for relay by incrementing its hop count.
+    /// Returns the updated serialized message, or an error if hop limit is reached.
+    pub fn prepare_for_relay(&self, raw_message: Vec<u8>) -> Result<Vec<u8>, FlareError> {
+        let mut msg = MeshMessage::from_bytes(&raw_message)
+            .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
+
+        if !self.router.prepare_for_relay(&mut msg) {
+            return Err(FlareError::RoutingError {
+                msg: "Message has reached its hop limit".to_string(),
+            });
+        }
+
+        msg.to_bytes()
+            .map_err(|e| FlareError::SerializationError { msg: e.to_string() })
+    }
+
+    // ── Receipts ──────────────────────────────────────────────────────
+
+    /// Creates a delivery acknowledgment for a received message.
+    /// Returns serialized mesh message bytes ready for BLE transmission.
+    pub fn create_delivery_ack(
+        &self,
+        original_message_id: String,
+        sender_device_id: String,
+    ) -> Result<Vec<u8>, FlareError> {
+        let sender_id = DeviceId::from_hex(&sender_device_id)
+            .map_err(|e| FlareError::InvalidInput { msg: e.to_string() })?;
+
+        let msg_id_bytes = hex_to_bytes(&original_message_id)?;
+
+        let msg = MessageBuilder::new(
+            self.identity.device_id().clone(),
+            sender_id,
+        )
+        .content_type(ContentType::Acknowledgment)
+        .payload(msg_id_bytes)
+        .build(|data| self.identity.sign(data));
+
+        msg.to_bytes()
+            .map_err(|e| FlareError::SerializationError { msg: e.to_string() })
+    }
+
+    /// Creates a read receipt for a message the user has viewed.
+    /// Returns serialized mesh message bytes ready for BLE transmission.
+    pub fn create_read_receipt(
+        &self,
+        original_message_id: String,
+        sender_device_id: String,
+    ) -> Result<Vec<u8>, FlareError> {
+        let sender_id = DeviceId::from_hex(&sender_device_id)
+            .map_err(|e| FlareError::InvalidInput { msg: e.to_string() })?;
+
+        let msg_id_bytes = hex_to_bytes(&original_message_id)?;
+
+        let msg = MessageBuilder::new(
+            self.identity.device_id().clone(),
+            sender_id,
+        )
+        .content_type(ContentType::ReadReceipt)
+        .payload(msg_id_bytes)
+        .build(|data| self.identity.sign(data));
+
+        msg.to_bytes()
+            .map_err(|e| FlareError::SerializationError { msg: e.to_string() })
+    }
+
+    /// Updates the delivery status of a stored message.
+    pub fn update_delivery_status(
+        &self,
+        message_id: String,
+        status: u8,
+    ) -> Result<(), FlareError> {
+        let db = self.db.lock().expect("db lock");
+        db.update_delivery_status(&message_id, status)
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })
+    }
+
     // ── Neighborhood Detection ─────────────────────────────────────
 
     /// Records a peer's short ID (4 bytes) in the neighborhood filter.
@@ -531,6 +662,133 @@ impl FlareNode {
             crate::routing::neighborhood::EncounterType::Bridge => "bridge".to_string(),
             crate::routing::neighborhood::EncounterType::Intermediate => "intermediate".to_string(),
         }
+    }
+
+    // ── Store Statistics ───────────────────────────────────────────
+
+    // ── Group Messaging ─────────────────────────────────────────────
+
+    /// Creates a new group.
+    pub fn create_group(
+        &self,
+        group_id: String,
+        group_name: String,
+    ) -> Result<(), FlareError> {
+        let creator_id = self.identity.device_id().to_hex();
+        let db = self.db.lock().expect("db lock");
+        db.create_group(&group_id, &group_name, &creator_id)
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })?;
+        // Add ourselves as first member
+        db.add_group_member(&group_id, &creator_id)
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })
+    }
+
+    /// Adds a member to a group.
+    pub fn add_group_member(
+        &self,
+        group_id: String,
+        device_id: String,
+    ) -> Result<(), FlareError> {
+        let db = self.db.lock().expect("db lock");
+        db.add_group_member(&group_id, &device_id)
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })
+    }
+
+    /// Removes a member from a group.
+    pub fn remove_group_member(
+        &self,
+        group_id: String,
+        device_id: String,
+    ) -> Result<(), FlareError> {
+        let db = self.db.lock().expect("db lock");
+        db.remove_group_member(&group_id, &device_id)
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })
+    }
+
+    /// Lists all groups.
+    pub fn list_groups(&self) -> Result<Vec<FfiGroup>, FlareError> {
+        let db = self.db.lock().expect("db lock");
+        let groups = db.list_groups()
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })?;
+
+        Ok(groups.into_iter().map(|(id, name, created_at, creator)| {
+            FfiGroup {
+                group_id: id,
+                group_name: name,
+                created_at,
+                creator_device_id: creator,
+            }
+        }).collect())
+    }
+
+    /// Gets all member device IDs for a group.
+    pub fn get_group_members(&self, group_id: String) -> Result<Vec<String>, FlareError> {
+        let db = self.db.lock().expect("db lock");
+        db.get_group_members(&group_id)
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })
+    }
+
+    /// Sends a group message by encrypting it individually for each member.
+    /// Returns the serialized mesh messages (one per member, excluding self).
+    pub fn build_group_messages(
+        &self,
+        _group_id: String,
+        encrypted_payloads: Vec<Vec<u8>>,
+        member_device_ids: Vec<String>,
+    ) -> Result<Vec<FfiMeshMessage>, FlareError> {
+        if encrypted_payloads.len() != member_device_ids.len() {
+            return Err(FlareError::InvalidInput {
+                msg: "Payload count must match member count".to_string(),
+            });
+        }
+
+        let my_device_id = self.identity.device_id().to_hex();
+        let mut results = Vec::new();
+
+        for (payload, recipient_id) in encrypted_payloads.into_iter().zip(member_device_ids.into_iter()) {
+            // Skip ourselves
+            if recipient_id == my_device_id {
+                continue;
+            }
+
+            let msg = self.build_mesh_message(recipient_id, payload, 0x07)?;
+            results.push(msg);
+        }
+
+        Ok(results)
+    }
+
+    // ── Duress PIN ──────────────────────────────────────────────────
+
+    /// Sets a duress passphrase. When entered at login, a decoy database is opened
+    /// with innocent data while the real database stays hidden.
+    pub fn set_duress_passphrase(&self, passphrase: String) -> Result<(), FlareError> {
+        let db = self.db.lock().expect("db lock");
+        db.set_duress_passphrase(&passphrase)
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })
+    }
+
+    /// Returns true if a duress passphrase has been configured.
+    pub fn has_duress_passphrase(&self) -> Result<bool, FlareError> {
+        let db = self.db.lock().expect("db lock");
+        db.has_duress_passphrase()
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })
+    }
+
+    /// Removes the duress passphrase configuration.
+    pub fn clear_duress_passphrase(&self) -> Result<(), FlareError> {
+        let db = self.db.lock().expect("db lock");
+        db.clear_duress_passphrase()
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })
+    }
+
+    /// Checks whether the given passphrase is the duress passphrase.
+    /// The mobile app should call this BEFORE opening the main database.
+    /// If true, the app should open the decoy database instead.
+    pub fn check_duress_passphrase(&self, passphrase: String) -> Result<bool, FlareError> {
+        let db = self.db.lock().expect("db lock");
+        db.check_duress_passphrase(&passphrase)
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })
     }
 
     // ── Store Statistics ───────────────────────────────────────────

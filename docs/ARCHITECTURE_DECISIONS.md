@@ -76,3 +76,23 @@
 **Date:** 2026-03-09
 **Decision:** Routing decisions must NEVER track individual movement patterns, travel habits, or social connections between users.
 **Rationale:** In authoritarian contexts (Iran, Myanmar, etc.), tracking which users travel between cities or frequently encounter each other creates a surveillance tool. Even anonymized movement data can be deanonymized with auxiliary information. The Neighborhood Bloom Filter approach detects network topology diversity without identifying individuals.
+
+## ADR-011: Multi-Hop Signature Exclusion
+**Date:** 2026-03-09
+**Decision:** `hop_count` and `ttl_seconds` are excluded from the Ed25519 `signable_bytes()`.
+**Rationale:** Relay nodes must increment `hop_count` during forwarding and the adaptive TTL system may extend `ttl_seconds` on bridge encounters. Including these mutable fields in the signature would cause signature verification to fail after the first relay hop, breaking multi-hop delivery entirely.
+
+## ADR-012: Duress PIN with Dual Database
+**Date:** 2026-03-09
+**Decision:** Users can configure a duress passphrase. Entering it at login opens a separate decoy database with innocent data while the real database stays hidden and encrypted.
+**Rationale:** In authoritarian contexts, users may be forced to unlock their phone and show their messaging app. The duress PIN provides plausible deniability — the decoy database shows a convincing but harmless message history. The duress passphrase hash is stored via Argon2id in the main database; the mobile app checks it before constructing the FlareNode to decide which database file to open.
+
+## ADR-013: APK Sharing Protocol
+**Date:** 2026-03-09
+**Decision:** Flare can share its own APK file phone-to-phone using `ApkOffer`/`ApkRequest` mesh messages and chunked transfer with SHA-256 verification.
+**Rationale:** During internet shutdowns, app stores are inaccessible. Users need to install Flare from nearby phones. The protocol advertises APK metadata (version, size, hash), allows peers to request it, and transfers in 16KB chunks verified by SHA-256 hash. This enables viral distribution without any internet connectivity.
+
+## ADR-014: Group Messaging via Individual Encryption
+**Date:** 2026-03-09
+**Decision:** Group messages are encrypted individually for each group member using their respective DH shared secrets, not a shared group key.
+**Rationale:** In a mesh network without a reliable server to manage group key distribution, per-member encryption is more robust. Each member receives their own copy encrypted with their unique shared secret. This avoids the complexity of group key agreement protocols in a delay-tolerant network where members may be offline for days.

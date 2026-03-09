@@ -29,9 +29,13 @@ pub enum ContentType {
     Image = 0x03,
     KeyExchange = 0x04,
     Acknowledgment = 0x05,
+    ReadReceipt = 0x06,
+    GroupMessage = 0x07,
     RouteRequest = 0x10,
     RouteReply = 0x11,
     PeerAnnounce = 0x20,
+    ApkOffer = 0x40,
+    ApkRequest = 0x41,
 }
 
 /// A message that travels through the Flare mesh network.
@@ -77,16 +81,20 @@ pub struct MeshMessage {
 
 impl MeshMessage {
     /// Returns the bytes that are covered by the signature.
-    /// This is everything except the signature field itself.
+    /// This is everything except the signature field and hop_count.
+    ///
+    /// hop_count is excluded because relay nodes increment it during forwarding.
+    /// Including it would invalidate the sender's signature after the first relay.
+    /// ttl_seconds is also excluded because adaptive TTL extends it on bridge encounters.
     pub fn signable_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::new();
         bytes.push(self.version);
         bytes.extend_from_slice(&self.message_id);
         bytes.extend_from_slice(&self.sender_id.0);
         bytes.extend_from_slice(&self.recipient_id.0);
-        bytes.push(self.hop_count);
+        // hop_count intentionally excluded — mutable by relay nodes
         bytes.push(self.max_hops);
-        bytes.extend_from_slice(&self.ttl_seconds.to_le_bytes());
+        // ttl_seconds intentionally excluded — mutable by adaptive TTL
         bytes.extend_from_slice(&self.created_at_ms.to_le_bytes());
         bytes.push(self.content_type as u8);
         bytes.extend_from_slice(&(self.payload.len() as u16).to_le_bytes());

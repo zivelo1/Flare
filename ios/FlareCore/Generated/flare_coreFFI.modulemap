@@ -1,0 +1,4 @@
+module flare_coreFFI {
+    header "flare_coreFFI.h"
+    export *
+}

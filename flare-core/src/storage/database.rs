@@ -127,6 +127,27 @@ impl FlareDatabase {
                 ttl_seconds INTEGER NOT NULL,
                 retry_count INTEGER NOT NULL DEFAULT 0
             );
+
+            CREATE TABLE IF NOT EXISTS groups (
+                group_id TEXT PRIMARY KEY,
+                group_name TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                creator_device_id TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS group_members (
+                group_id TEXT NOT NULL,
+                device_id TEXT NOT NULL,
+                joined_at TEXT NOT NULL DEFAULT (datetime('now')),
+                PRIMARY KEY (group_id, device_id),
+                FOREIGN KEY (group_id) REFERENCES groups(group_id)
+            );
+
+            CREATE TABLE IF NOT EXISTS duress_config (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                passphrase_hash BLOB NOT NULL,
+                salt BLOB NOT NULL
+            );
             "
         )?;
         Ok(())
@@ -313,6 +334,94 @@ impl FlareDatabase {
         Ok(messages)
     }
 
+    // ── Groups ──────────────────────────────────────────────────────
+
+    /// Creates a new group and returns the group ID.
+    pub fn create_group(
+        &self,
+        group_id: &str,
+        group_name: &str,
+        creator_device_id: &str,
+    ) -> Result<(), DatabaseError> {
+        self.conn.execute(
+            "INSERT INTO groups (group_id, group_name, creator_device_id) VALUES (?1, ?2, ?3)",
+            params![group_id, group_name, creator_device_id],
+        )?;
+        Ok(())
+    }
+
+    /// Adds a member to a group.
+    pub fn add_group_member(
+        &self,
+        group_id: &str,
+        device_id: &str,
+    ) -> Result<(), DatabaseError> {
+        self.conn.execute(
+            "INSERT OR IGNORE INTO group_members (group_id, device_id) VALUES (?1, ?2)",
+            params![group_id, device_id],
+        )?;
+        Ok(())
+    }
+
+    /// Removes a member from a group.
+    pub fn remove_group_member(
+        &self,
+        group_id: &str,
+        device_id: &str,
+    ) -> Result<(), DatabaseError> {
+        self.conn.execute(
+            "DELETE FROM group_members WHERE group_id = ?1 AND device_id = ?2",
+            params![group_id, device_id],
+        )?;
+        Ok(())
+    }
+
+    /// Lists all groups.
+    pub fn list_groups(&self) -> Result<Vec<(String, String, String, String)>, DatabaseError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT group_id, group_name, created_at, creator_device_id FROM groups ORDER BY created_at DESC"
+        )?;
+
+        let groups = stmt.query_map([], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+                row.get::<_, String>(3)?,
+            ))
+        })?.collect::<Result<Vec<_>, _>>()?;
+
+        Ok(groups)
+    }
+
+    /// Gets all member device IDs for a group.
+    pub fn get_group_members(&self, group_id: &str) -> Result<Vec<String>, DatabaseError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT device_id FROM group_members WHERE group_id = ?1 ORDER BY joined_at ASC"
+        )?;
+
+        let members = stmt.query_map(params![group_id], |row| {
+            row.get::<_, String>(0)
+        })?.collect::<Result<Vec<_>, _>>()?;
+
+        Ok(members)
+    }
+
+    // ── Delivery Status ────────────────────────────────────────────
+
+    /// Updates the delivery status of a stored message.
+    pub fn update_delivery_status(
+        &self,
+        message_id: &str,
+        status: u8,
+    ) -> Result<(), DatabaseError> {
+        self.conn.execute(
+            "UPDATE messages SET delivery_status = ?2 WHERE message_id = ?1",
+            params![message_id, status],
+        )?;
+        Ok(())
+    }
+
     /// Queues a message for outbound delivery.
     pub fn queue_outbound(
         &self,
@@ -346,6 +455,68 @@ impl FlareDatabase {
         })?.collect::<Result<Vec<_>, _>>()?;
 
         Ok(messages)
+    }
+
+    // ── Duress PIN ──────────────────────────────────────────────────
+
+    /// Sets (or replaces) the duress passphrase.
+    /// Stores an Argon2id hash so we can check it on next login.
+    pub fn set_duress_passphrase(&self, passphrase: &str) -> Result<(), DatabaseError> {
+        let salt = SaltString::generate(&mut OsRng);
+        let argon2 = Argon2::default();
+        let hash = argon2
+            .hash_password(passphrase.as_bytes(), &salt)
+            .map_err(|e| DatabaseError::KeyDerivation(e.to_string()))?;
+
+        let hash_string = hash.to_string();
+        self.conn.execute(
+            "INSERT OR REPLACE INTO duress_config (id, passphrase_hash, salt) VALUES (1, ?1, ?2)",
+            params![hash_string.as_bytes(), salt.as_str().as_bytes()],
+        )?;
+        Ok(())
+    }
+
+    /// Checks if a passphrase matches the stored duress passphrase.
+    /// Returns false if no duress passphrase has been configured.
+    pub fn check_duress_passphrase(&self, passphrase: &str) -> Result<bool, DatabaseError> {
+        let result: Result<Vec<u8>, _> = self.conn.query_row(
+            "SELECT passphrase_hash FROM duress_config WHERE id = 1",
+            [],
+            |row| row.get(0),
+        );
+
+        match result {
+            Ok(hash_bytes) => {
+                let hash_str = String::from_utf8(hash_bytes)
+                    .map_err(|e| DatabaseError::Serialization(e.to_string()))?;
+
+                use argon2::PasswordVerifier;
+                let parsed_hash = argon2::PasswordHash::new(&hash_str)
+                    .map_err(|e| DatabaseError::KeyDerivation(e.to_string()))?;
+
+                Ok(Argon2::default()
+                    .verify_password(passphrase.as_bytes(), &parsed_hash)
+                    .is_ok())
+            }
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(false),
+            Err(e) => Err(DatabaseError::Sqlite(e)),
+        }
+    }
+
+    /// Returns true if a duress passphrase has been configured.
+    pub fn has_duress_passphrase(&self) -> Result<bool, DatabaseError> {
+        let count: i64 = self.conn.query_row(
+            "SELECT COUNT(*) FROM duress_config",
+            [],
+            |row| row.get(0),
+        )?;
+        Ok(count > 0)
+    }
+
+    /// Removes the duress passphrase configuration.
+    pub fn clear_duress_passphrase(&self) -> Result<(), DatabaseError> {
+        self.conn.execute("DELETE FROM duress_config", [])?;
+        Ok(())
     }
 
     /// Removes a message from the outbox after successful delivery.
@@ -426,6 +597,94 @@ mod tests {
 
         let contacts = db.list_contacts().unwrap();
         assert_eq!(contacts.len(), 3);
+    }
+
+    #[test]
+    fn test_store_and_get_messages() {
+        let db = test_db();
+        let peer = Identity::generate();
+        db.upsert_contact(&peer.public_identity(), Some("Alice"), false).unwrap();
+
+        let conv_id = peer.device_id().to_hex();
+
+        // Insert a conversation row (required by FK in some setups)
+        db.conn.execute(
+            "INSERT INTO conversations (id, peer_device_id) VALUES (?1, ?2)",
+            params![conv_id, conv_id],
+        ).unwrap();
+
+        db.store_message("msg-001", &conv_id, &conv_id, 1, b"Hello", "2025-01-01T00:00:00Z", false).unwrap();
+        db.store_message("msg-002", &conv_id, "self", 1, b"Hi back", "2025-01-01T00:00:01Z", true).unwrap();
+
+        let msgs = db.get_messages_for_conversation(&conv_id).unwrap();
+        assert_eq!(msgs.len(), 2);
+        assert_eq!(msgs[0].0, "msg-001");
+        assert_eq!(msgs[1].0, "msg-002");
+    }
+
+    #[test]
+    fn test_delivery_status_update() {
+        let db = test_db();
+        let peer = Identity::generate();
+        db.upsert_contact(&peer.public_identity(), Some("Bob"), false).unwrap();
+
+        let conv_id = peer.device_id().to_hex();
+        db.conn.execute(
+            "INSERT INTO conversations (id, peer_device_id) VALUES (?1, ?2)",
+            params![conv_id, conv_id],
+        ).unwrap();
+
+        db.store_message("msg-100", &conv_id, "self", 1, b"Test", "2025-01-01T00:00:00Z", true).unwrap();
+        db.update_delivery_status("msg-100", 2).unwrap();
+
+        let msgs = db.get_messages_for_conversation(&conv_id).unwrap();
+        assert_eq!(msgs[0].7, 2); // delivery_status
+    }
+
+    #[test]
+    fn test_group_operations() {
+        let db = test_db();
+
+        db.create_group("grp-001", "Test Group", "device-aaa").unwrap();
+        db.add_group_member("grp-001", "device-aaa").unwrap();
+        db.add_group_member("grp-001", "device-bbb").unwrap();
+        db.add_group_member("grp-001", "device-ccc").unwrap();
+
+        let groups = db.list_groups().unwrap();
+        assert_eq!(groups.len(), 1);
+        assert_eq!(groups[0].1, "Test Group");
+
+        let members = db.get_group_members("grp-001").unwrap();
+        assert_eq!(members.len(), 3);
+
+        db.remove_group_member("grp-001", "device-bbb").unwrap();
+        let members = db.get_group_members("grp-001").unwrap();
+        assert_eq!(members.len(), 2);
+    }
+
+    #[test]
+    fn test_duress_passphrase() {
+        let db = test_db();
+
+        // No duress passphrase configured initially
+        assert!(!db.has_duress_passphrase().unwrap());
+        assert!(!db.check_duress_passphrase("anything").unwrap());
+
+        // Set duress passphrase
+        db.set_duress_passphrase("panic123").unwrap();
+        assert!(db.has_duress_passphrase().unwrap());
+
+        // Correct duress passphrase matches
+        assert!(db.check_duress_passphrase("panic123").unwrap());
+
+        // Wrong passphrase does not match
+        assert!(!db.check_duress_passphrase("wrong-pass").unwrap());
+        assert!(!db.check_duress_passphrase("").unwrap());
+
+        // Clear and verify
+        db.clear_duress_passphrase().unwrap();
+        assert!(!db.has_duress_passphrase().unwrap());
+        assert!(!db.check_duress_passphrase("panic123").unwrap());
     }
 
     #[test]

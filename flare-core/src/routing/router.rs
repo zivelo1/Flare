@@ -209,6 +209,14 @@ impl Router {
     pub fn peer_count(&self) -> usize {
         self.peer_table.len()
     }
+
+    /// Prepares a message for relay by incrementing the hop count.
+    /// Call this before forwarding a message to the next hop.
+    /// Returns None if the message would exceed its hop limit after increment.
+    pub fn prepare_for_relay(&self, message: &mut MeshMessage) -> bool {
+        message.increment_hop();
+        !message.is_hop_limited()
+    }
 }
 
 #[cfg(test)]

@@ -96,8 +96,8 @@ class FlareRepository private constructor(private val node: FlareNode) {
             recipientDeviceId, recipientAgreementKey, plaintext,
         )
 
-        // Build the mesh message envelope
-        val meshMsg = node.buildMeshMessage(recipientDeviceId, encrypted)
+        // Build the mesh message envelope (content_type 0x01 = Text)
+        val meshMsg = node.buildMeshMessage(recipientDeviceId, encrypted, 1u)
 
         // Store locally
         node.storeChatMessage(FfiChatMessage(
@@ -159,6 +159,7 @@ class FlareRepository private constructor(private val node: FlareNode) {
                             decision = RouteDecisionType.DELIVER_LOCALLY,
                             senderId = parsed.senderId,
                             plaintext = plaintext,
+                            messageId = parsed.messageId,
                         )
                     } else {
                         IncomingMessageResult(decision = RouteDecisionType.DROP)
@@ -177,6 +178,38 @@ class FlareRepository private constructor(private val node: FlareNode) {
                     IncomingMessageResult(decision = RouteDecisionType.DROP)
                 }
             }
+        }
+
+    /**
+     * Prepares a raw mesh message for relay by incrementing its hop count.
+     * Returns the updated serialized message, or null if hop limit reached.
+     */
+    suspend fun prepareForRelay(rawData: ByteArray): ByteArray? =
+        withContext(Dispatchers.IO) {
+            try {
+                node.prepareForRelay(rawData)
+            } catch (e: Exception) {
+                Timber.d("Message reached hop limit, not relaying")
+                null
+            }
+        }
+
+    /**
+     * Creates a delivery ACK for a received message, to propagate back to sender.
+     * Returns serialized mesh message bytes.
+     */
+    suspend fun createDeliveryAck(originalMessageId: String, senderDeviceId: String): ByteArray =
+        withContext(Dispatchers.IO) {
+            node.createDeliveryAck(originalMessageId, senderDeviceId)
+        }
+
+    /**
+     * Creates a read receipt for a message the user has viewed.
+     * Returns serialized mesh message bytes.
+     */
+    suspend fun createReadReceipt(originalMessageId: String, senderDeviceId: String): ByteArray =
+        withContext(Dispatchers.IO) {
+            node.createReadReceipt(originalMessageId, senderDeviceId)
         }
 
     /**
@@ -319,4 +352,5 @@ data class IncomingMessageResult(
     val decision: RouteDecisionType,
     val senderId: String? = null,
     val plaintext: String? = null,
+    val messageId: String? = null,
 )

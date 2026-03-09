@@ -42,22 +42,27 @@ Each phone acts as both a messenger and a relay. Messages hop from phone to phon
 
 ## Current Status
 
-**Phase 1 (Foundation)** — Rust core + Android app + UniFFI bridge:
+**Phases 1-4 (Foundation through Security)** — Rust core + Android app + UniFFI bridge:
 
-**Rust Core** (85 tests passing):
+**Rust Core** (94 tests passing):
 - Ed25519/X25519 identity and key agreement
 - AES-256-GCM encryption, HKDF key derivation
 - Spray-and-Wait mesh routing with adaptive TTL (48h → 72h → 7d)
+- Multi-hop relay with hop count increment (signature excludes mutable fields)
 - Neighborhood Bloom Filter for privacy-preserving bridge detection (no GPS)
 - Priority message store with 50MB budget and 3-tier eviction
-- Delivery ACK processing for relay cleanup
+- Delivery ACK and read receipt processing for relay cleanup
+- Group messaging — SQLCipher storage with group CRUD operations
+- Duress PIN — Argon2id-hashed duress passphrase for decoy database
+- APK sharing protocol — chunked transfer with SHA-256 verification
 - SQLCipher encrypted database with conversation query, BLE chunking
 - UniFFI FFI layer with `FlareNode` object, payload extraction, message persistence
 
-**UniFFI Bridge** (Rust → Kotlin):
-- Auto-generated Kotlin bindings from compiled Rust library
+**UniFFI Bridge** (Rust → Kotlin/Swift):
+- Auto-generated Kotlin and Swift bindings from compiled Rust library
 - FlareRepository bridge layer with clean Kotlin API
 - Neighborhood detection + store stats FFI methods
+- Multi-hop relay, delivery ACK, read receipt, group, duress PIN FFI methods
 - Device-bound database passphrase via Android Keystore
 
 **Android App** (Kotlin + Jetpack Compose):
@@ -65,7 +70,8 @@ Each phone acts as both a messenger and a relay. Messages hop from phone to phon
 - Material 3 UI with chat bubbles, contacts, network dashboard
 - QR code scanner (CameraX + ML Kit) and display (ZXing) for contact exchange
 - Foreground service with message routing via Rust core
-- Full incoming message pipeline: decrypt → persist → notify UI
+- Full incoming message pipeline: decrypt → persist → notify UI → send delivery ACK
+- Multi-hop relay: `prepareForRelay()` increments hop count before forwarding
 - Neighborhood bitmap exchange on peer connect for bridge detection
 - ViewModels wired to FlareRepository for real encrypted messaging
 - ProGuard rules for JNA/UniFFI release build safety

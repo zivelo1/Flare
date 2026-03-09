@@ -768,6 +768,36 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -795,15 +825,31 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_flare_core_fn_method_flarenode_add_contact(`ptr`: Pointer,`contact`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_flare_core_fn_method_flarenode_build_mesh_message(`ptr`: Pointer,`recipientDeviceId`: RustBuffer.ByValue,`encryptedPayload`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_flare_core_fn_method_flarenode_add_group_member(`ptr`: Pointer,`groupId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_build_group_messages(`ptr`: Pointer,`groupId`: RustBuffer.ByValue,`encryptedPayloads`: RustBuffer.ByValue,`memberDeviceIds`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_build_mesh_message(`ptr`: Pointer,`recipientDeviceId`: RustBuffer.ByValue,`encryptedPayload`: RustBuffer.ByValue,`contentType`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_check_duress_passphrase(`ptr`: Pointer,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun uniffi_flare_core_fn_method_flarenode_clear_duress_passphrase(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_create_delivery_ack(`ptr`: Pointer,`originalMessageId`: RustBuffer.ByValue,`senderDeviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_create_encrypted_message(`ptr`: Pointer,`recipientDeviceId`: RustBuffer.ByValue,`recipientAgreementKey`: RustBuffer.ByValue,`plaintext`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_create_group(`ptr`: Pointer,`groupId`: RustBuffer.ByValue,`groupName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_create_read_receipt(`ptr`: Pointer,`originalMessageId`: RustBuffer.ByValue,`senderDeviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_decrypt_incoming_message(`ptr`: Pointer,`senderDeviceId`: RustBuffer.ByValue,`senderAgreementKey`: RustBuffer.ByValue,`encryptedData`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_export_neighborhood_bitmap(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_get_device_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_get_group_members(`ptr`: Pointer,`groupId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_get_mesh_status(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -821,11 +867,17 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_get_store_stats(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_has_duress_passphrase(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
     fun uniffi_flare_core_fn_method_flarenode_list_contacts(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_list_groups(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_notify_peer_connected(`ptr`: Pointer,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_flare_core_fn_method_flarenode_parse_mesh_message(`ptr`: Pointer,`rawData`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_prepare_for_relay(`ptr`: Pointer,`rawMessage`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_process_remote_neighborhood(`ptr`: Pointer,`remoteBitmap`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -837,10 +889,18 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_flare_core_fn_method_flarenode_remove_from_outbox(`ptr`: Pointer,`messageId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_remove_group_member(`ptr`: Pointer,`groupId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_flare_core_fn_method_flarenode_route_incoming(`ptr`: Pointer,`rawMessage`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_set_duress_passphrase(`ptr`: Pointer,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_flare_core_fn_method_flarenode_store_chat_message(`ptr`: Pointer,`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_update_delivery_status(`ptr`: Pointer,`messageId`: RustBuffer.ByValue,`status`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_flare_core_fn_func_check_duress_passphrase(`dbPath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`checkPassphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
     fun uniffi_flare_core_fn_func_get_protocol_version(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_func_get_service_identifier(uniffi_out_err: UniffiRustCallStatus, 
@@ -957,21 +1017,39 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_flare_core_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_flare_core_checksum_func_check_duress_passphrase(
+    ): Short
     fun uniffi_flare_core_checksum_func_get_protocol_version(
     ): Short
     fun uniffi_flare_core_checksum_func_get_service_identifier(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_add_contact(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_add_group_member(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_build_group_messages(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_build_mesh_message(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_check_duress_passphrase(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_clear_duress_passphrase(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_create_delivery_ack(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_create_encrypted_message(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_create_group(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_create_read_receipt(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_decrypt_incoming_message(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_export_neighborhood_bitmap(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_get_device_id(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_get_group_members(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_get_mesh_status(
     ): Short
@@ -989,11 +1067,17 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_get_store_stats(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_has_duress_passphrase(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_list_contacts(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_list_groups(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_notify_peer_connected(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_parse_mesh_message(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_prepare_for_relay(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_process_remote_neighborhood(
     ): Short
@@ -1005,9 +1089,15 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_remove_from_outbox(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_remove_group_member(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_route_incoming(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_set_duress_passphrase(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_store_chat_message(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_update_delivery_status(
     ): Short
     fun uniffi_flare_core_checksum_constructor_flarenode_new(
     ): Short
@@ -1028,6 +1118,9 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
+    if (lib.uniffi_flare_core_checksum_func_check_duress_passphrase() != 36699.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_func_get_protocol_version() != 26623.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1037,10 +1130,31 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_add_contact() != 55877.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_flare_core_checksum_method_flarenode_build_mesh_message() != 11978.toShort()) {
+    if (lib.uniffi_flare_core_checksum_method_flarenode_add_group_member() != 61468.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_build_group_messages() != 30329.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_build_mesh_message() != 58071.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_check_duress_passphrase() != 47522.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_clear_duress_passphrase() != 25691.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_create_delivery_ack() != 63712.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_create_encrypted_message() != 50436.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_create_group() != 18809.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_create_read_receipt() != 53109.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_decrypt_incoming_message() != 50281.toShort()) {
@@ -1050,6 +1164,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_get_device_id() != 38610.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_get_group_members() != 3280.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_get_mesh_status() != 6066.toShort()) {
@@ -1076,13 +1193,22 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_get_store_stats() != 14279.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_has_duress_passphrase() != 5490.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_list_contacts() != 45212.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_list_groups() != 43920.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_notify_peer_connected() != 413.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_parse_mesh_message() != 29282.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_prepare_for_relay() != 35136.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_process_remote_neighborhood() != 58979.toShort()) {
@@ -1100,10 +1226,19 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_remove_from_outbox() != 5188.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_remove_group_member() != 43399.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_route_incoming() != 42385.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_set_duress_passphrase() != 12496.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_store_chat_message() != 48119.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_update_delivery_status() != 16495.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_constructor_flarenode_new() != 12965.toShort()) {
@@ -1521,15 +1656,56 @@ public interface FlareNodeInterface {
     fun `addContact`(`contact`: FfiContact)
     
     /**
-     * Builds a mesh message ready for BLE transmission.
+     * Adds a member to a group.
      */
-    fun `buildMeshMessage`(`recipientDeviceId`: kotlin.String, `encryptedPayload`: kotlin.ByteArray): FfiMeshMessage
+    fun `addGroupMember`(`groupId`: kotlin.String, `deviceId`: kotlin.String)
+    
+    /**
+     * Sends a group message by encrypting it individually for each member.
+     * Returns the serialized mesh messages (one per member, excluding self).
+     */
+    fun `buildGroupMessages`(`groupId`: kotlin.String, `encryptedPayloads`: List<kotlin.ByteArray>, `memberDeviceIds`: List<kotlin.String>): List<FfiMeshMessage>
+    
+    /**
+     * Builds a mesh message ready for BLE transmission.
+     * content_type: 1=Text, 2=VoiceMessage, 3=Image, 4=KeyExchange, 5=Acknowledgment, 6=ReadReceipt
+     */
+    fun `buildMeshMessage`(`recipientDeviceId`: kotlin.String, `encryptedPayload`: kotlin.ByteArray, `contentType`: kotlin.UByte): FfiMeshMessage
+    
+    /**
+     * Checks whether the given passphrase is the duress passphrase.
+     * The mobile app should call this BEFORE opening the main database.
+     * If true, the app should open the decoy database instead.
+     */
+    fun `checkDuressPassphrase`(`passphrase`: kotlin.String): kotlin.Boolean
+    
+    /**
+     * Removes the duress passphrase configuration.
+     */
+    fun `clearDuressPassphrase`()
+    
+    /**
+     * Creates a delivery acknowledgment for a received message.
+     * Returns serialized mesh message bytes ready for BLE transmission.
+     */
+    fun `createDeliveryAck`(`originalMessageId`: kotlin.String, `senderDeviceId`: kotlin.String): kotlin.ByteArray
     
     /**
      * Encrypts a plaintext message for a specific recipient.
      * Returns the encrypted payload bytes.
      */
     fun `createEncryptedMessage`(`recipientDeviceId`: kotlin.String, `recipientAgreementKey`: kotlin.ByteArray, `plaintext`: kotlin.String): kotlin.ByteArray
+    
+    /**
+     * Creates a new group.
+     */
+    fun `createGroup`(`groupId`: kotlin.String, `groupName`: kotlin.String)
+    
+    /**
+     * Creates a read receipt for a message the user has viewed.
+     * Returns serialized mesh message bytes ready for BLE transmission.
+     */
+    fun `createReadReceipt`(`originalMessageId`: kotlin.String, `senderDeviceId`: kotlin.String): kotlin.ByteArray
     
     /**
      * Decrypts an incoming encrypted message from a sender.
@@ -1546,6 +1722,11 @@ public interface FlareNodeInterface {
      * Returns the device ID as a hex string.
      */
     fun `getDeviceId`(): kotlin.String
+    
+    /**
+     * Gets all member device IDs for a group.
+     */
+    fun `getGroupMembers`(`groupId`: kotlin.String): List<kotlin.String>
     
     /**
      * Returns current mesh network status.
@@ -1589,9 +1770,19 @@ public interface FlareNodeInterface {
     fun `getStoreStats`(): FfiStoreStats
     
     /**
+     * Returns true if a duress passphrase has been configured.
+     */
+    fun `hasDuressPassphrase`(): kotlin.Boolean
+    
+    /**
      * Lists all contacts.
      */
     fun `listContacts`(): List<FfiContact>
+    
+    /**
+     * Lists all groups.
+     */
+    fun `listGroups`(): List<FfiGroup>
     
     /**
      * Notifies the router that a peer has connected.
@@ -1602,6 +1793,12 @@ public interface FlareNodeInterface {
      * Parses a raw mesh message received from BLE.
      */
     fun `parseMeshMessage`(`rawData`: kotlin.ByteArray): FfiMeshMessage?
+    
+    /**
+     * Prepares a raw mesh message for relay by incrementing its hop count.
+     * Returns the updated serialized message, or an error if hop limit is reached.
+     */
+    fun `prepareForRelay`(`rawMessage`: kotlin.ByteArray): kotlin.ByteArray
     
     /**
      * Processes a remote peer's neighborhood bitmap.
@@ -1632,14 +1829,30 @@ public interface FlareNodeInterface {
     fun `removeFromOutbox`(`messageId`: kotlin.String)
     
     /**
+     * Removes a member from a group.
+     */
+    fun `removeGroupMember`(`groupId`: kotlin.String, `deviceId`: kotlin.String)
+    
+    /**
      * Routes an incoming mesh message and returns the routing decision.
      */
     fun `routeIncoming`(`rawMessage`: kotlin.ByteArray): FfiRouteDecision
     
     /**
+     * Sets a duress passphrase. When entered at login, a decoy database is opened
+     * with innocent data while the real database stays hidden.
+     */
+    fun `setDuressPassphrase`(`passphrase`: kotlin.String)
+    
+    /**
      * Stores a chat message locally.
      */
     fun `storeChatMessage`(`message`: FfiChatMessage)
+    
+    /**
+     * Updates the delivery status of a stored message.
+     */
+    fun `updateDeliveryStatus`(`messageId`: kotlin.String, `status`: kotlin.UByte)
     
     companion object
 }
@@ -1757,14 +1970,97 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
-     * Builds a mesh message ready for BLE transmission.
+     * Adds a member to a group.
      */
-    @Throws(FlareException::class)override fun `buildMeshMessage`(`recipientDeviceId`: kotlin.String, `encryptedPayload`: kotlin.ByteArray): FfiMeshMessage {
+    @Throws(FlareException::class)override fun `addGroupMember`(`groupId`: kotlin.String, `deviceId`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_add_group_member(
+        it, FfiConverterString.lower(`groupId`),FfiConverterString.lower(`deviceId`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Sends a group message by encrypting it individually for each member.
+     * Returns the serialized mesh messages (one per member, excluding self).
+     */
+    @Throws(FlareException::class)override fun `buildGroupMessages`(`groupId`: kotlin.String, `encryptedPayloads`: List<kotlin.ByteArray>, `memberDeviceIds`: List<kotlin.String>): List<FfiMeshMessage> {
+            return FfiConverterSequenceTypeFfiMeshMessage.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_build_group_messages(
+        it, FfiConverterString.lower(`groupId`),FfiConverterSequenceByteArray.lower(`encryptedPayloads`),FfiConverterSequenceString.lower(`memberDeviceIds`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Builds a mesh message ready for BLE transmission.
+     * content_type: 1=Text, 2=VoiceMessage, 3=Image, 4=KeyExchange, 5=Acknowledgment, 6=ReadReceipt
+     */
+    @Throws(FlareException::class)override fun `buildMeshMessage`(`recipientDeviceId`: kotlin.String, `encryptedPayload`: kotlin.ByteArray, `contentType`: kotlin.UByte): FfiMeshMessage {
             return FfiConverterTypeFfiMeshMessage.lift(
     callWithPointer {
     uniffiRustCallWithError(FlareException) { _status ->
     UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_build_mesh_message(
-        it, FfiConverterString.lower(`recipientDeviceId`),FfiConverterByteArray.lower(`encryptedPayload`),_status)
+        it, FfiConverterString.lower(`recipientDeviceId`),FfiConverterByteArray.lower(`encryptedPayload`),FfiConverterUByte.lower(`contentType`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Checks whether the given passphrase is the duress passphrase.
+     * The mobile app should call this BEFORE opening the main database.
+     * If true, the app should open the decoy database instead.
+     */
+    @Throws(FlareException::class)override fun `checkDuressPassphrase`(`passphrase`: kotlin.String): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_check_duress_passphrase(
+        it, FfiConverterString.lower(`passphrase`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Removes the duress passphrase configuration.
+     */
+    @Throws(FlareException::class)override fun `clearDuressPassphrase`()
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_clear_duress_passphrase(
+        it, _status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Creates a delivery acknowledgment for a received message.
+     * Returns serialized mesh message bytes ready for BLE transmission.
+     */
+    @Throws(FlareException::class)override fun `createDeliveryAck`(`originalMessageId`: kotlin.String, `senderDeviceId`: kotlin.String): kotlin.ByteArray {
+            return FfiConverterByteArray.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_create_delivery_ack(
+        it, FfiConverterString.lower(`originalMessageId`),FfiConverterString.lower(`senderDeviceId`),_status)
 }
     }
     )
@@ -1782,6 +2078,38 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
     uniffiRustCallWithError(FlareException) { _status ->
     UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_create_encrypted_message(
         it, FfiConverterString.lower(`recipientDeviceId`),FfiConverterByteArray.lower(`recipientAgreementKey`),FfiConverterString.lower(`plaintext`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Creates a new group.
+     */
+    @Throws(FlareException::class)override fun `createGroup`(`groupId`: kotlin.String, `groupName`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_create_group(
+        it, FfiConverterString.lower(`groupId`),FfiConverterString.lower(`groupName`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Creates a read receipt for a message the user has viewed.
+     * Returns serialized mesh message bytes ready for BLE transmission.
+     */
+    @Throws(FlareException::class)override fun `createReadReceipt`(`originalMessageId`: kotlin.String, `senderDeviceId`: kotlin.String): kotlin.ByteArray {
+            return FfiConverterByteArray.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_create_read_receipt(
+        it, FfiConverterString.lower(`originalMessageId`),FfiConverterString.lower(`senderDeviceId`),_status)
 }
     }
     )
@@ -1829,6 +2157,22 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_get_device_id(
         it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Gets all member device IDs for a group.
+     */
+    @Throws(FlareException::class)override fun `getGroupMembers`(`groupId`: kotlin.String): List<kotlin.String> {
+            return FfiConverterSequenceString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_get_group_members(
+        it, FfiConverterString.lower(`groupId`),_status)
 }
     }
     )
@@ -1961,6 +2305,22 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Returns true if a duress passphrase has been configured.
+     */
+    @Throws(FlareException::class)override fun `hasDuressPassphrase`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_has_duress_passphrase(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Lists all contacts.
      */
     @Throws(FlareException::class)override fun `listContacts`(): List<FfiContact> {
@@ -1968,6 +2328,22 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
     callWithPointer {
     uniffiRustCallWithError(FlareException) { _status ->
     UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_list_contacts(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Lists all groups.
+     */
+    @Throws(FlareException::class)override fun `listGroups`(): List<FfiGroup> {
+            return FfiConverterSequenceTypeFfiGroup.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_list_groups(
         it, _status)
 }
     }
@@ -1999,6 +2375,23 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
     uniffiRustCallWithError(FlareException) { _status ->
     UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_parse_mesh_message(
         it, FfiConverterByteArray.lower(`rawData`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Prepares a raw mesh message for relay by incrementing its hop count.
+     * Returns the updated serialized message, or an error if hop limit is reached.
+     */
+    @Throws(FlareException::class)override fun `prepareForRelay`(`rawMessage`: kotlin.ByteArray): kotlin.ByteArray {
+            return FfiConverterByteArray.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_prepare_for_relay(
+        it, FfiConverterByteArray.lower(`rawMessage`),_status)
 }
     }
     )
@@ -2084,6 +2477,21 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Removes a member from a group.
+     */
+    @Throws(FlareException::class)override fun `removeGroupMember`(`groupId`: kotlin.String, `deviceId`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_remove_group_member(
+        it, FfiConverterString.lower(`groupId`),FfiConverterString.lower(`deviceId`),_status)
+}
+    }
+    
+    
+
+    
+    /**
      * Routes an incoming mesh message and returns the routing decision.
      */override fun `routeIncoming`(`rawMessage`: kotlin.ByteArray): FfiRouteDecision {
             return FfiConverterTypeFfiRouteDecision.lift(
@@ -2099,6 +2507,22 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Sets a duress passphrase. When entered at login, a decoy database is opened
+     * with innocent data while the real database stays hidden.
+     */
+    @Throws(FlareException::class)override fun `setDuressPassphrase`(`passphrase`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_set_duress_passphrase(
+        it, FfiConverterString.lower(`passphrase`),_status)
+}
+    }
+    
+    
+
+    
+    /**
      * Stores a chat message locally.
      */
     @Throws(FlareException::class)override fun `storeChatMessage`(`message`: FfiChatMessage)
@@ -2107,6 +2531,21 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
     uniffiRustCallWithError(FlareException) { _status ->
     UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_store_chat_message(
         it, FfiConverterTypeFfiChatMessage.lower(`message`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Updates the delivery status of a stored message.
+     */
+    @Throws(FlareException::class)override fun `updateDeliveryStatus`(`messageId`: kotlin.String, `status`: kotlin.UByte)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_update_delivery_status(
+        it, FfiConverterString.lower(`messageId`),FfiConverterUByte.lower(`status`),_status)
 }
     }
     
@@ -2241,6 +2680,46 @@ public object FfiConverterTypeFfiContact: FfiConverterRustBuffer<FfiContact> {
             FfiConverterByteArray.write(value.`agreementPublicKey`, buf)
             FfiConverterOptionalString.write(value.`displayName`, buf)
             FfiConverterBoolean.write(value.`isVerified`, buf)
+    }
+}
+
+
+
+data class FfiGroup (
+    var `groupId`: kotlin.String, 
+    var `groupName`: kotlin.String, 
+    var `createdAt`: kotlin.String, 
+    var `creatorDeviceId`: kotlin.String
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeFfiGroup: FfiConverterRustBuffer<FfiGroup> {
+    override fun read(buf: ByteBuffer): FfiGroup {
+        return FfiGroup(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: FfiGroup) = (
+            FfiConverterString.allocationSize(value.`groupId`) +
+            FfiConverterString.allocationSize(value.`groupName`) +
+            FfiConverterString.allocationSize(value.`createdAt`) +
+            FfiConverterString.allocationSize(value.`creatorDeviceId`)
+    )
+
+    override fun write(value: FfiGroup, buf: ByteBuffer) {
+            FfiConverterString.write(value.`groupId`, buf)
+            FfiConverterString.write(value.`groupName`, buf)
+            FfiConverterString.write(value.`createdAt`, buf)
+            FfiConverterString.write(value.`creatorDeviceId`, buf)
     }
 }
 
@@ -2674,6 +3153,34 @@ public object FfiConverterOptionalTypeFfiMeshMessage: FfiConverterRustBuffer<Ffi
 /**
  * @suppress
  */
+public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.String>> {
+    override fun read(buf: ByteBuffer): List<kotlin.String> {
+        val len = buf.getInt()
+        return List<kotlin.String>(len) {
+            FfiConverterString.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<kotlin.String>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterString.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<kotlin.String>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterString.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceByteArray: FfiConverterRustBuffer<List<kotlin.ByteArray>> {
     override fun read(buf: ByteBuffer): List<kotlin.ByteArray> {
         val len = buf.getInt()
@@ -2750,7 +3257,77 @@ public object FfiConverterSequenceTypeFfiContact: FfiConverterRustBuffer<List<Ff
             FfiConverterTypeFfiContact.write(it, buf)
         }
     }
-} fun `getProtocolVersion`(): kotlin.String {
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeFfiGroup: FfiConverterRustBuffer<List<FfiGroup>> {
+    override fun read(buf: ByteBuffer): List<FfiGroup> {
+        val len = buf.getInt()
+        return List<FfiGroup>(len) {
+            FfiConverterTypeFfiGroup.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<FfiGroup>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeFfiGroup.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<FfiGroup>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeFfiGroup.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeFfiMeshMessage: FfiConverterRustBuffer<List<FfiMeshMessage>> {
+    override fun read(buf: ByteBuffer): List<FfiMeshMessage> {
+        val len = buf.getInt()
+        return List<FfiMeshMessage>(len) {
+            FfiConverterTypeFfiMeshMessage.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<FfiMeshMessage>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeFfiMeshMessage.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<FfiMeshMessage>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeFfiMeshMessage.write(it, buf)
+        }
+    }
+}
+        /**
+         * Checks if a passphrase is the duress passphrase for a given database.
+         * Call this BEFORE constructing FlareNode to decide which database to open.
+         * Returns false if the database doesn't exist or has no duress config.
+         */ fun `checkDuressPassphrase`(`dbPath`: kotlin.String, `passphrase`: kotlin.String, `checkPassphrase`: kotlin.String): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_func_check_duress_passphrase(
+        FfiConverterString.lower(`dbPath`),FfiConverterString.lower(`passphrase`),FfiConverterString.lower(`checkPassphrase`),_status)
+}
+    )
+    }
+    
+ fun `getProtocolVersion`(): kotlin.String {
             return FfiConverterString.lift(
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_flare_core_fn_func_get_protocol_version(

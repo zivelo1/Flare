@@ -251,21 +251,41 @@ class MeshService : LifecycleService() {
                         _incomingDelivered.tryEmit(
                             DeliveredMessage(result.senderId, result.plaintext)
                         )
+
+                        // Send delivery ACK back through the mesh
+                        if (result.messageId != null) {
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                try {
+                                    val ackBytes = repo.createDeliveryAck(
+                                        result.messageId, result.senderId
+                                    )
+                                    sendToMesh(OutboundMessage(result.senderId, ackBytes))
+                                } catch (e: Exception) {
+                                    Timber.w(e, "Failed to send delivery ACK")
+                                }
+                            }
+                        }
                     }
                 }
 
                 RouteDecisionType.FORWARD -> {
-                    // Forward to all connected peers except sender
-                    val connectedAddresses = gattClient.connectedAddresses() +
-                        gattServer.connectedDeviceAddresses()
-                    connectedAddresses
-                        .filter { it != message.fromAddress }
-                        .forEach { address ->
-                            gattServer.sendToPeer(address, message.data)
-                            gattClient.writeMessage(address, message.data)
-                        }
-                    Timber.d("Forwarded message to %d peers",
-                        connectedAddresses.size - 1)
+                    // Prepare for relay (increment hop count)
+                    val relayData = repo.prepareForRelay(message.data)
+                    if (relayData != null) {
+                        // Forward to all connected peers except sender
+                        val connectedAddresses = gattClient.connectedAddresses() +
+                            gattServer.connectedDeviceAddresses()
+                        connectedAddresses
+                            .filter { it != message.fromAddress }
+                            .forEach { address ->
+                                gattServer.sendToPeer(address, relayData)
+                                gattClient.writeMessage(address, relayData)
+                            }
+                        Timber.d("Forwarded message to %d peers",
+                            connectedAddresses.size - 1)
+                    } else {
+                        Timber.d("Message reached hop limit, not relaying")
+                    }
                 }
 
                 RouteDecisionType.STORE -> {
