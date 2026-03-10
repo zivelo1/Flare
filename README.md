@@ -95,7 +95,7 @@ The transfer is verified with Ed25519 developer signatures and SHA-256 hash to e
 
 ## Current Status
 
-**Rust Core** (161 tests passing):
+**Rust Core** (191 tests passing):
 - Ed25519/X25519 identity and key agreement
 - AES-256-GCM encryption, HKDF key derivation
 - Spray-and-Wait mesh routing with adaptive TTL (48h → 72h → 7d)
@@ -111,9 +111,14 @@ The transfer is verified with Ed25519 developer signatures and SHA-256 hash to e
 - **Ed25519 APK signing** — developer code signing with trusted key store and key rotation protocol
 - **Sender Keys group encryption** — O(1) group messaging via Signal Groups v2 approach with HKDF chain ratchet
 - **Route guard** — signature verification, TTL inflation cap, hop count monotonicity, per-sender rate limiting
+- **Adaptive spray count** — optimal L = ceil(sqrt(N) × 1.5), auto-adjusts broadcast copies based on network density
+- **Neighborhood-aware routing** — bridge peers prioritized in spray targets for faster cluster-crossing delivery
+- **Message size tiers** — small (mesh relay), medium (direct preferred), large (direct required) based on payload size and content type
+- **Wi-Fi Direct transfer queue** — queue manager for large payloads with retry logic, timeout, and connection state tracking
 
 **Android App** (Kotlin + Jetpack Compose):
 - BLE GATT server + client with full mesh routing
+- **Wi-Fi Direct transport** — Wi-Fi P2P peer discovery, group formation, TCP socket transfer with length-prefixed protocol
 - Material 3 UI: chat bubbles, contacts, network dashboard
 - Find Contact screen: shared phrase, QR code, phone number discovery
 - Full message pipeline: encrypt → send → relay → deliver → ACK
@@ -122,8 +127,9 @@ The transfer is verified with Ed25519 developer signatures and SHA-256 hash to e
 
 **iOS App** (Swift + SwiftUI):
 - CoreBluetooth BLE central + peripheral with state restoration
+- **MultipeerConnectivity transport** — Wi-Fi Direct via Apple's framework with automatic peer discovery, MCSession, deterministic connection deduplication
 - SwiftUI screens: chats, contacts, network, find contact, QR, discovery
-- Full mesh service: message routing, rendezvous broadcast, delivery ACK
+- Full mesh service: dual transport (BLE + MultipeerConnectivity), rendezvous broadcast, delivery ACK, Wi-Fi Direct queue processing
 - Awaiting Rust cross-compilation for iOS ARM and device testing
 
 See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for detailed progress.

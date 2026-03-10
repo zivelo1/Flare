@@ -1,11 +1,11 @@
 # Flare — Project Status
 
-## Current Phase: Phase 2-4 — Multi-Hop, Full Messaging, Security
-**Goal:** Complete Rust core for all features, Android integration, iOS prep
+## Current Phase: Phase 4B — Scaling & Dual Transport
+**Goal:** Optimize routing for dense networks, add Wi-Fi Direct transport for large payloads
 
 ## What's Done
 
-### Rust Core (161 tests passing)
+### Rust Core (191 tests passing)
 - [x] Identity generation (Ed25519 signing + X25519 key agreement)
 - [x] Diffie-Hellman key agreement between devices
 - [x] HKDF key derivation (per-message keys from shared secrets)
@@ -43,6 +43,10 @@
   - Identity encryption in replies: HKDF(ephemeral_key, salt=token) → AES-256-GCM
   - `RendezvousManager` with active search tracking, token registration, request/reply processing
   - 15 dedicated tests for rendezvous protocol
+- [x] **Adaptive spray count** — spray copies = ceil(sqrt(observed_peers) × density_factor), clamped to [3, 16]. Based on Spyropoulos et al. optimal L = O(sqrt(N)). Reduces broadcast amplification in dense networks (7 tests)
+- [x] **Neighborhood-aware routing** — bridge peers prioritized in spray target selection. `connected_peers_prioritized()` sorts by encounter type: Bridge > Unknown > Intermediate > Local. Reduces wasted hops by preferring cluster-crossing peers (4 tests)
+- [x] **Message size tiers** — `SizeTierConfig` with Small (≤15KB, mesh relay), Medium (≤64KB, direct preferred), Large (>64KB, direct required). Content-type-aware: voice/images always prefer direct. 8 tests
+- [x] **Wi-Fi Direct transfer queue** — `WifiDirectManager` with FIFO queue, 3-retry failure handling, 5-minute timeout, 50 max pending transfers, connection state tracking. 10 tests
 
 ### UniFFI Bridge (Rust → Kotlin/Swift)
 - [x] FFI types: `FfiPublicIdentity`, `FfiContact`, `FfiChatMessage`, `FfiMeshMessage`, `FfiMeshStatus`, `FfiStoreStats`, `FfiGroup`
@@ -50,30 +54,33 @@
 - [x] Kotlin bindings auto-generated from compiled Rust library
 - [x] Swift bindings auto-generated for iOS
 - [x] JNA dependency added for Android runtime FFI
-- [x] Neighborhood detection FFI: `recordNeighborhoodPeer`, `exportNeighborhoodBitmap`, `processRemoteNeighborhood`
+- [x] Neighborhood detection FFI: `recordNeighborhoodPeer`, `exportNeighborhoodBitmap`, `processRemoteNeighborhood`, `processRemoteNeighborhoodForPeer`
 - [x] Store stats FFI: `getStoreStats` returning priority store metrics
 - [x] Multi-hop: `prepareForRelay` — increment hop count, check limit
 - [x] Receipts: `createDeliveryAck`, `createReadReceipt`, `updateDeliveryStatus`
 - [x] Groups: `createGroup`, `addGroupMember`, `removeGroupMember`, `listGroups`, `getGroupMembers`, `buildGroupMessages`
 - [x] Duress: `setDuressPassphrase`, `hasDuressPassphrase`, `clearDuressPassphrase`, `checkDuressPassphrase`
 - [x] Rendezvous: `startPassphraseSearch`, `startPhoneSearch`, `registerMyPhone`, `importPhoneContacts`, `cancelSearch`, `buildRendezvousBroadcasts`, `processRendezvousMessage`, `processRendezvousRequest`, `activeSearchCount`
+- [x] Transfer strategy: `recommendTransferStrategy` → `FfiTransferRecommendation` with strategy, size tier, BLE chunk estimate
+- [x] Wi-Fi Direct queue: `wifiDirectEnqueue`, `wifiDirectNextTransfer`, `wifiDirectCompleteTransfer`, `wifiDirectFailTransfer`, `wifiDirectConnectionChanged`, `wifiDirectMostNeededPeer`, `wifiDirectHasPending`, `wifiDirectPruneExpired`, `wifiDirectStats`
 
 ### Android App
 - [x] Gradle project setup (AGP 8.7, Kotlin 2.1, Compose BOM 2024.12)
 - [x] AndroidManifest with BLE, Wi-Fi, foreground service permissions
 - [x] Material 3 theme with dynamic color support (Material You)
 - [x] Data models (DeviceIdentity, Contact, Conversation, ChatMessage, MeshPeer, MeshStatus)
-- [x] Constants centralized (UUIDs, scan params, message defaults — no hardcoding)
+- [x] Constants centralized (UUIDs, scan params, message defaults, Wi-Fi Direct config, size tiers — no hardcoding)
 - [x] BLE Scanner — discovers Flare devices, RSSI distance estimation, stale peer pruning
 - [x] GATT Server — advertises service, accepts connections, receives messages, sends notifications (status code checked)
 - [x] GATT Client — connects to peers, MTU negotiation, message write (status code checked), notification subscription
 - [x] MeshService — foreground service, message routing via Rust core, outbound queue, neighborhood bitmap exchange, incoming message delivery to UI
+- [x] **WiFiDirectManager** — Wi-Fi P2P manager with peer discovery, group formation, TCP socket data transfer (length-prefixed protocol), server socket for receiving, connection state tracking
 - [x] **Adaptive power management** — MeshService evaluates battery + network state every scan cycle, transitions BLE scan/advertise tiers (High/Balanced/LowPower/UltraLow), burst mode duty cycling for low-power tiers, battery-level-aware capping
 - [x] **BLE scanner power tiers** — `ScanPowerTier` enum maps to Android `SCAN_MODE_LOW_LATENCY`/`BALANCED`/`LOW_POWER`/`OPPORTUNISTIC`
 - [x] **GATT server power tiers** — `AdvertisePowerTier` enum maps to `ADVERTISE_MODE_*` with per-tier TX power levels
 - [x] **Multi-hop relay** — calls `prepareForRelay()` before forwarding, increments hop count
 - [x] **Delivery ACK** — automatically sends ACK back through mesh on local delivery
-- [x] FlareRepository — bridge layer between UniFFI bindings and Android app (incl. neighborhood + store stats + message persistence + relay + receipts)
+- [x] FlareRepository — bridge layer between UniFFI bindings and Android app (incl. neighborhood + store stats + message persistence + relay + receipts + transfer strategy + Wi-Fi Direct queue)
 - [x] FlareApplication — initializes FlareNode with device-bound passphrase (Android Keystore)
 - [x] ChatViewModel — conversation list, message sending via Rust encryption, incoming message delivery, persisted chat history
 - [x] ContactsViewModel — contact management, QR code data generation/parsing
@@ -100,9 +107,10 @@
 - [x] Xcode project via xcodegen (project.yml + .xcodeproj)
 - [x] Info.plist — BLE, camera, contacts permissions, background modes (bluetooth-central, bluetooth-peripheral)
 - [x] Data models (DeviceIdentity, Contact, Conversation, ChatMessage, MeshPeer, MeshStatus)
-- [x] FlareRepository — bridge to Rust FFI (Keychain passphrase, messaging, contacts, rendezvous, neighborhood, duress)
+- [x] FlareRepository — bridge to Rust FFI (Keychain passphrase, messaging, contacts, rendezvous, neighborhood, duress, transfer strategy, Wi-Fi Direct queue)
 - [x] BLEManager — CoreBluetooth CBCentralManager + CBPeripheralManager with state restoration
-- [x] MeshService — message routing, rendezvous broadcast, delivery ACK, peer connection handling
+- [x] **MultipeerManager** — MultipeerConnectivity framework for Wi-Fi Direct transport. MCSession with automatic peer discovery, deterministic tie-breaking for connection deduplication, reliable data send
+- [x] MeshService — message routing via dual transport (BLE + MultipeerConnectivity), rendezvous broadcast, delivery ACK, Wi-Fi Direct queue processing, peer connection handling
 - [x] ChatViewModel, ContactsViewModel, DiscoveryViewModel, NetworkViewModel
 - [x] ConversationListView — conversation list, mesh status indicator, empty state
 - [x] ChatView — message bubbles, delivery status icons, encrypted send
@@ -132,6 +140,14 @@
 - [x] Camera permission handling with runtime request
 - [x] QR format validation (device ID + 32-byte signing key + 32-byte agreement key)
 
+### Scaling Improvements (Phase 4B)
+- [x] **Adaptive spray count** — L = ceil(sqrt(N) × 1.5), clamped [3, 16]. Reduces broadcast amplification in dense networks while maintaining delivery in sparse ones
+- [x] **Neighborhood-aware routing** — peers tagged with encounter type from bloom filter comparison. Bridge peers prioritized in spray target selection. Messages cross cluster boundaries faster
+- [x] **Message size tiers** — small payloads (≤15KB) use BLE mesh; medium (≤64KB) prefer direct; large (>64KB) require direct. Content-type-aware: voice/images always prefer Wi-Fi Direct
+- [x] **Wi-Fi Direct transport (Rust core)** — `WifiDirectManager` with transfer queue, connection state machine, retry logic, expiration, statistics
+- [x] **Wi-Fi Direct transport (iOS)** — `MultipeerManager` using MultipeerConnectivity framework with automatic peer discovery, MCSession, deterministic connection deduplication
+- [x] **Wi-Fi Direct transport (Android)** — `WiFiDirectManager` using Wi-Fi P2P with peer discovery, group formation, TCP socket transfer with length-prefixed protocol
+
 ## What's Next
 
 ### Requires Android NDK (deferred)
@@ -145,29 +161,23 @@
 - [ ] Cross-platform test: Android ↔ iOS message exchange over BLE
 - [ ] Background execution tuning (CoreBluetooth state restoration is wired but untested)
 
+### UI/UX — Visual Design & Polish
+- [ ] App icon and splash screen design
+- [ ] Onboarding flow (identity creation, first contact exchange)
+- [ ] Chat bubble animations and transitions
+- [ ] Contact avatars (generated identicons from device ID)
+- [ ] Network visualization (animated mesh topology)
+- [ ] Dark mode theming refinement
+- [ ] Haptic feedback for message send/receive
+- [ ] Voice message recording UI (hold-to-record, waveform display)
+- [ ] Image capture and preview UI
+- [ ] Settings screen (duress PIN, power preferences, about)
+
 ### Android UI Enhancements
 - [ ] Group messaging UI (create group, add members, group chat)
 - [ ] Read receipt indicators in chat bubbles
 - [ ] Duress PIN setup screen in Settings
 - [ ] APK sharing UI (offer/request/progress)
-
-### Rust Core Integration (completed)
-- [x] Wire `compress_payload`/`decompress_payload` into message build/parse flow in `ffi.rs` — compress before encrypt, decompress after decrypt
-- [x] Wire `RouteGuard.validate()` into `Router::route_incoming()` — TTL inflation, hop count monotonicity enforced on every message
-- [x] Signature verification via FFI: `route_incoming()` looks up sender in contacts DB, verifies Ed25519 signature if known
-- [x] Expose `SenderKeyStore` via FFI — `create_sender_key`, `process_sender_key_distribution`, `encrypt_group_sender_key`, `decrypt_group_sender_key`, `invalidate_group_keys`
-- [x] Expose `TrustedDeveloperKeys` via FFI — `add_trusted_developer_key`, `verify_apk_signature`, `trusted_developer_key_count`
-- [x] Expose `PowerManager` via FFI — `power_evaluate`, `power_on_data_activity`, `power_on_peer_discovered`, `power_update_battery`, `power_set_battery_saver`, `power_update_connected_peers`, `power_set_has_pending_outbound`, `power_current_tier`
-- [x] Expose standalone compression via FFI — `compress`, `decompress`
-- [x] New `FfiRouteDecision` variants: `DropInvalidSignature`, `DropTtlInflation`, `DropHopCountDecrease`, `DropSenderRateLimit`
-- [x] New FFI types: `FfiPowerTierRecommendation`, `FfiApkVerifyResult`
-
-### iOS App — Completed Integration
-- [x] Adaptive power management in `BLEManager.swift` — `ScanPowerTier` and `AdvertisePowerTier` enums, burst mode duty cycling for LowPower/UltraLow tiers
-- [x] Power evaluation loop in `MeshService.swift` — battery-aware tier transitions, mirrors Rust/Android logic
-- [x] `FlareRepository.swift` updated to handle new route guard drop reasons
-
-### Remaining Work (Phase 5)
 
 ### Phase 5 — Launch
 - [ ] Security audit
@@ -181,5 +191,6 @@
 | 1 — Foundation | Rust core + Android BLE + UI + UniFFI bridge | **Complete** (awaiting device test with NDK) |
 | 2 — Multi-Hop & iOS | Relay routing + iOS app | **Rust core complete**, iOS app implemented (awaiting cross-compile + device test) |
 | 3 — Full Messaging | Groups, receipts, content types | **Rust core complete**, Android UI pending |
-| 4 — Security & Distribution | Duress PIN, APK signing, route guard, compression | **Complete** — Rust core, FFI wiring, Android + iOS power mgmt all integrated |
-| 5 — Launch | Optimization, audit, localization, release | Not started |
+| 4 — Security & Distribution | Duress PIN, APK signing, route guard, compression | **Complete** |
+| 4B — Scaling & Dual Transport | Adaptive spray, neighborhood routing, size tiers, Wi-Fi Direct | **Complete** |
+| 5 — Launch | UI polish, audit, localization, release | Not started |

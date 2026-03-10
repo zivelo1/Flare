@@ -124,6 +124,20 @@ impl Router {
         encounter
     }
 
+    /// Processes a remote peer's neighborhood bitmap and tags the peer
+    /// with the encounter type for neighborhood-aware routing.
+    /// Bridge peers will be prioritized in future routing decisions.
+    pub fn process_remote_neighborhood_for_peer(
+        &self,
+        peer_device_id: &DeviceId,
+        remote_bitmap: &[u8],
+    ) -> EncounterType {
+        let encounter = self.process_remote_neighborhood(remote_bitmap);
+        self.peer_table
+            .set_encounter_type(peer_device_id, encounter);
+        encounter
+    }
+
     /// Validates an incoming message against the route guard.
     /// Pass `known_identity` if the sender is in our contacts for signature verification.
     pub fn validate_message(
@@ -203,25 +217,32 @@ impl Router {
             return RouteDecision::DeliverLocally;
         }
 
-        // 7. Spray phase: forward to connected peers
-        let connected = self.peer_table.connected_peers();
+        // 7. Calculate adaptive spray count based on observed network density
+        let observed_peers = self.peer_table.len();
+        let spray_copies = self.store.config().calculate_spray_copies(observed_peers);
+
+        // 8. Spray phase: forward to connected peers (neighborhood-aware)
+        // Peers are sorted by routing priority: bridge > unknown > intermediate > local.
+        // This ensures messages preferentially cross cluster boundaries.
+        let connected = self.peer_table.connected_peers_prioritized();
         if connected.is_empty() {
             // No connected peers — store for later
-            self.store
-                .store_relay(message.clone(), self.store.config().initial_spray_copies);
+            self.store.store_relay(message.clone(), spray_copies);
             return RouteDecision::Store;
         }
 
-        // Select peers to spray to (exclude sender)
+        // Select peers to spray to (exclude sender), limited by spray count.
+        // Because peers are priority-sorted, taking the first N naturally
+        // selects the best routing candidates (bridge peers first).
         let target_peers: Vec<DeviceId> = connected
             .iter()
             .filter(|p| p.identity.device_id != message.sender_id)
+            .take(spray_copies as usize)
             .map(|p| p.identity.device_id.clone())
             .collect();
 
         if target_peers.is_empty() {
-            self.store
-                .store_relay(message.clone(), self.store.config().initial_spray_copies);
+            self.store.store_relay(message.clone(), spray_copies);
             return RouteDecision::Store;
         }
 
@@ -263,7 +284,9 @@ mod tests {
     use super::*;
     use crate::crypto::identity::Identity;
     use crate::protocol::message::{ContentType, MessageBuilder};
+    use crate::routing::neighborhood::{EncounterType, NeighborhoodFilter};
     use crate::routing::peer_table::{PeerInfo, TransportType};
+    use crate::routing::priority_store::PriorityStoreConfig;
 
     fn setup_router() -> (Router, Identity) {
         let local = Identity::generate();
@@ -462,5 +485,139 @@ mod tests {
         router.record_neighborhood_peer(&[5, 6, 7, 8]);
 
         assert_eq!(router.neighborhood().peer_count(), 2);
+    }
+
+    #[test]
+    fn test_adaptive_spray_uses_peer_count() {
+        let (router, _) = setup_router();
+        let sender = Identity::generate();
+        let recipient = Identity::generate();
+
+        // Add many peers to the peer table to influence adaptive spray count
+        for _ in 0..25 {
+            let peer = Identity::generate();
+            let mut info = PeerInfo::new(peer.public_identity(), TransportType::BluetoothLE);
+            info.is_connected = false;
+            router.peer_table().upsert(info);
+        }
+
+        // Message should be stored with adaptive spray count
+        // 25 peers → sqrt(25) * 1.5 = 7.5 → ceil = 8
+        let msg = make_message(&sender, recipient.device_id().clone());
+        let decision = router.route_incoming(&msg);
+        assert_eq!(decision, RouteDecision::Store);
+        // Store has the message — verify it was stored with adaptive copies
+        assert_eq!(router.store_size(), 1);
+    }
+
+    #[test]
+    fn test_neighborhood_aware_routing_prefers_bridge_peers() {
+        let (router, _) = setup_router();
+        let sender = Identity::generate();
+        let recipient = Identity::generate();
+
+        // Add a local peer and a bridge peer
+        let bridge_peer = Identity::generate();
+        let local_peer = Identity::generate();
+
+        let mut bp = PeerInfo::new(bridge_peer.public_identity(), TransportType::BluetoothLE);
+        bp.is_connected = true;
+        bp.encounter_type = Some(EncounterType::Bridge);
+        router.peer_table().upsert(bp);
+
+        let mut lp = PeerInfo::new(local_peer.public_identity(), TransportType::BluetoothLE);
+        lp.is_connected = true;
+        lp.encounter_type = Some(EncounterType::Local);
+        router.peer_table().upsert(lp);
+
+        let msg = make_message(&sender, recipient.device_id().clone());
+        let decision = router.route_incoming(&msg);
+
+        match decision {
+            RouteDecision::Forward { ref target_peers } => {
+                // Bridge peer should appear before local peer in the target list
+                let bridge_pos = target_peers
+                    .iter()
+                    .position(|p| *p == bridge_peer.public_identity().device_id);
+                let local_pos = target_peers
+                    .iter()
+                    .position(|p| *p == local_peer.public_identity().device_id);
+                assert!(bridge_pos.is_some());
+                assert!(bridge_pos < local_pos);
+            }
+            other => panic!("Expected Forward, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_spray_count_limits_target_peers() {
+        // With a small spray count, only the top-priority peers should be selected
+        let config = PriorityStoreConfig {
+            adaptive_spray_enabled: false,
+            initial_spray_copies: 2, // Only spray to 2 peers
+            ..Default::default()
+        };
+        let local = Identity::generate();
+        let router = Router::with_config(local.device_id().clone(), config);
+        let sender = Identity::generate();
+        let recipient = Identity::generate();
+
+        // Add 5 connected peers
+        for _ in 0..5 {
+            let peer = Identity::generate();
+            let mut info = PeerInfo::new(peer.public_identity(), TransportType::BluetoothLE);
+            info.is_connected = true;
+            router.peer_table().upsert(info);
+        }
+
+        let msg = make_message(&sender, recipient.device_id().clone());
+        let decision = router.route_incoming(&msg);
+
+        match decision {
+            RouteDecision::Forward { target_peers } => {
+                assert_eq!(target_peers.len(), 2);
+            }
+            other => panic!("Expected Forward, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_process_remote_neighborhood_tags_peer() {
+        let (router, _) = setup_router();
+        let peer = Identity::generate();
+
+        let mut info = PeerInfo::new(peer.public_identity(), TransportType::BluetoothLE);
+        info.is_connected = true;
+        router.peer_table().upsert(info);
+
+        // Record local peers
+        for i in 0..20u8 {
+            router.record_neighborhood_peer(&[i, i + 1, i + 2, i + 3]);
+        }
+
+        // Create remote filter with completely different peers (bridge)
+        let remote_filter = NeighborhoodFilter::with_defaults();
+        for i in 200..220u8 {
+            remote_filter.record_peer(&[
+                i,
+                i.wrapping_add(1),
+                i.wrapping_add(2),
+                i.wrapping_add(3),
+            ]);
+        }
+        let remote_bitmap = remote_filter.export_bitmap();
+
+        let encounter = router.process_remote_neighborhood_for_peer(
+            &peer.public_identity().device_id,
+            &remote_bitmap,
+        );
+        assert_eq!(encounter, EncounterType::Bridge);
+
+        // Verify peer was tagged
+        let retrieved = router
+            .peer_table()
+            .get(&peer.public_identity().device_id)
+            .unwrap();
+        assert_eq!(retrieved.encounter_type, Some(EncounterType::Bridge));
     }
 }

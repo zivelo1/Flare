@@ -46,4 +46,21 @@ enum Constants {
     // Notifications
     static let rendezvousBroadcastInterval: TimeInterval = 30.0
     static let pruneInterval: TimeInterval = 150.0
+
+    // Wi-Fi Direct / MultipeerConnectivity
+    /// Service type for MultipeerConnectivity discovery.
+    /// Must be 1-15 characters, lowercase ASCII letters, numbers, and hyphens.
+    static let multipeerServiceType = "flare-mesh"
+    /// How long a Wi-Fi Direct transfer can wait before being dropped (seconds).
+    static let wifiDirectTransferTimeoutSeconds: TimeInterval = 300.0
+    /// Interval for checking Wi-Fi Direct transfer queue (seconds).
+    static let wifiDirectQueueCheckInterval: TimeInterval = 5.0
+
+    // Message Size Tiers (mirrors Rust SizeTierConfig defaults)
+    /// Maximum payload size for BLE mesh relay (bytes).
+    static let meshRelayMaxBytes: Int = 15 * 1024
+    /// Maximum payload size for direct-preferred tier (bytes).
+    static let directPreferredMaxBytes: Int = 64 * 1024
+    /// Absolute maximum payload size (bytes).
+    static let absoluteMaxPayloadBytes: Int = 10 * 1024 * 1024
 }

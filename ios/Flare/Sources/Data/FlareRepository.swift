@@ -258,6 +258,12 @@ final class FlareRepository: @unchecked Sendable {
         safeNode.processRemoteNeighborhood(remoteBitmap: remoteBitmap)
     }
 
+    /// Processes a remote peer's neighborhood bitmap and tags the peer
+    /// for neighborhood-aware routing. Bridge peers are prioritized in routing.
+    func processRemoteNeighborhoodForPeer(_ peerDeviceId: String, remoteBitmap: Data) -> String {
+        safeNode.processRemoteNeighborhoodForPeer(peerDeviceId: peerDeviceId, remoteBitmap: remoteBitmap)
+    }
+
     // MARK: - Rendezvous
 
     func startPassphraseSearch(_ passphrase: String) throws -> Data {
@@ -322,6 +328,77 @@ final class FlareRepository: @unchecked Sendable {
 
     func pruneExpiredMessages() -> Int {
         Int(safeNode.pruneExpiredMessages())
+    }
+
+    // MARK: - Transfer Strategy
+
+    struct TransferRecommendation {
+        let strategy: String  // "mesh_relay", "direct_preferred", "direct_required"
+        let sizeTier: String  // "small", "medium", "large"
+        let estimatedBleChunks: Int
+        let isOversized: Bool
+    }
+
+    func recommendTransferStrategy(contentType: UInt8, payloadBytes: UInt32) -> TransferRecommendation {
+        let ffi = safeNode.recommendTransferStrategy(contentType: contentType, payloadBytes: payloadBytes)
+        let strategyStr: String
+        switch ffi.strategy {
+        case .meshRelay: strategyStr = "mesh_relay"
+        case .directPreferred: strategyStr = "direct_preferred"
+        case .directRequired: strategyStr = "direct_required"
+        }
+        return TransferRecommendation(
+            strategy: strategyStr,
+            sizeTier: ffi.sizeTier,
+            estimatedBleChunks: Int(ffi.estimatedBleChunks),
+            isOversized: ffi.isOversized
+        )
+    }
+
+    // MARK: - Wi-Fi Direct Transfer Queue
+
+    func wifiDirectEnqueue(
+        transferIdHex: String,
+        recipientDeviceId: String,
+        payload: Data,
+        contentType: UInt8,
+        nowSecs: UInt64
+    ) -> Bool {
+        (try? safeNode.wifiDirectEnqueue(
+            transferIdHex: transferIdHex,
+            recipientDeviceId: recipientDeviceId,
+            payload: payload,
+            contentType: contentType,
+            nowSecs: nowSecs
+        )) ?? false
+    }
+
+    func wifiDirectNextTransfer(peerDeviceId: String) -> Data? {
+        try? safeNode.wifiDirectNextTransfer(peerDeviceId: peerDeviceId)
+    }
+
+    func wifiDirectCompleteTransfer(transferIdHex: String) -> Bool {
+        (try? safeNode.wifiDirectCompleteTransfer(transferIdHex: transferIdHex)) ?? false
+    }
+
+    func wifiDirectFailTransfer(transferIdHex: String) -> Bool {
+        (try? safeNode.wifiDirectFailTransfer(transferIdHex: transferIdHex)) ?? false
+    }
+
+    func wifiDirectConnectionChanged(state: String, peerDeviceId: String?) {
+        try? safeNode.wifiDirectConnectionChanged(state: state, peerDeviceId: peerDeviceId)
+    }
+
+    func wifiDirectMostNeededPeer() -> String? {
+        safeNode.wifiDirectMostNeededPeer()
+    }
+
+    func wifiDirectHasPending() -> Bool {
+        safeNode.wifiDirectHasPending()
+    }
+
+    func wifiDirectPruneExpired(nowSecs: UInt64) -> Int {
+        Int(safeNode.wifiDirectPruneExpired(nowSecs: nowSecs))
     }
 
     // MARK: - Duress

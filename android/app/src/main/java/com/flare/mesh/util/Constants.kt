@@ -126,4 +126,32 @@ object Constants {
 
     /** Length of Ed25519 signatures in bytes. */
     const val SIGNATURE_LENGTH: Int = 64
+
+    // ── Wi-Fi Direct ──────────────────────────────────────────────────
+
+    /** TCP port for Wi-Fi Direct data exchange. */
+    const val WIFI_DIRECT_TRANSFER_PORT: Int = 8778
+
+    /** Socket connection timeout (milliseconds). */
+    const val WIFI_DIRECT_CONNECT_TIMEOUT_MS: Int = 10_000
+
+    /** Maximum receive buffer size for Wi-Fi Direct (10 MB). */
+    const val WIFI_DIRECT_MAX_RECEIVE_BYTES: Int = 10 * 1024 * 1024
+
+    /** Interval for checking Wi-Fi Direct transfer queue (milliseconds). */
+    const val WIFI_DIRECT_QUEUE_CHECK_INTERVAL_MS: Long = 5000L
+
+    /** How long a Wi-Fi Direct transfer can wait before being dropped (seconds). */
+    const val WIFI_DIRECT_TRANSFER_TIMEOUT_SECS: Long = 300L
+
+    // ── Message Size Tiers ────────────────────────────────────────────
+
+    /** Maximum payload size for BLE mesh relay (bytes). Mirrors Rust SizeTierConfig. */
+    const val MESH_RELAY_MAX_BYTES: Int = 15 * 1024
+
+    /** Maximum payload size for direct-preferred tier (bytes). */
+    const val DIRECT_PREFERRED_MAX_BYTES: Int = 64 * 1024
+
+    /** Absolute maximum payload size (bytes). */
+    const val ABSOLUTE_MAX_PAYLOAD_BYTES: Int = 10 * 1024 * 1024
 }

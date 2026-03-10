@@ -6,6 +6,8 @@
 //! interact with platform-specific Bluetooth/Wi-Fi APIs directly.
 
 pub mod compression;
+pub mod size_tiers;
+pub mod wifi_direct;
 
 use crate::crypto::identity::DeviceId;
 use crate::routing::peer_table::TransportType;

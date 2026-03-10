@@ -302,6 +302,77 @@ class FlareRepository private constructor(private val node: FlareNode) {
     fun processRemoteNeighborhood(remoteBitmap: ByteArray): String =
         node.processRemoteNeighborhood(remoteBitmap)
 
+    /**
+     * Processes a remote peer's neighborhood bitmap and tags the peer
+     * for neighborhood-aware routing. Bridge peers are prioritized in routing.
+     */
+    fun processRemoteNeighborhoodForPeer(peerDeviceId: String, remoteBitmap: ByteArray): String =
+        node.processRemoteNeighborhoodForPeer(peerDeviceId, remoteBitmap)
+
+    // ── Transfer Strategy ──────────────────────────────────────────────
+
+    /**
+     * Returns the recommended transfer strategy for a message.
+     * Used by the service layer to decide BLE mesh vs Wi-Fi Direct.
+     */
+    fun recommendTransferStrategy(contentType: UByte, payloadBytes: UInt): TransferRecommendation {
+        val ffi = node.recommendTransferStrategy(contentType, payloadBytes)
+        return TransferRecommendation(
+            strategy = ffi.strategy.toString().lowercase(),
+            sizeTier = ffi.sizeTier,
+            estimatedBleChunks = ffi.estimatedBleChunks.toInt(),
+            isOversized = ffi.isOversized,
+        )
+    }
+
+    // ── Wi-Fi Direct Transfer Queue ────────────────────────────────────
+
+    fun wifiDirectEnqueue(
+        transferIdHex: String,
+        recipientDeviceId: String,
+        payload: ByteArray,
+        contentType: UByte,
+        nowSecs: ULong,
+    ): Boolean = try {
+        node.wifiDirectEnqueue(transferIdHex, recipientDeviceId, payload, contentType, nowSecs)
+    } catch (e: Exception) {
+        Timber.w(e, "Wi-Fi Direct enqueue failed")
+        false
+    }
+
+    fun wifiDirectNextTransfer(peerDeviceId: String): ByteArray? = try {
+        node.wifiDirectNextTransfer(peerDeviceId)
+    } catch (e: Exception) {
+        Timber.w(e, "Wi-Fi Direct next transfer failed")
+        null
+    }
+
+    fun wifiDirectCompleteTransfer(transferIdHex: String): Boolean = try {
+        node.wifiDirectCompleteTransfer(transferIdHex)
+    } catch (e: Exception) {
+        false
+    }
+
+    fun wifiDirectFailTransfer(transferIdHex: String): Boolean = try {
+        node.wifiDirectFailTransfer(transferIdHex)
+    } catch (e: Exception) {
+        false
+    }
+
+    fun wifiDirectConnectionChanged(state: String, peerDeviceId: String?) {
+        try {
+            node.wifiDirectConnectionChanged(state, peerDeviceId)
+        } catch (e: Exception) {
+            Timber.w(e, "Wi-Fi Direct connection state update failed")
+        }
+    }
+
+    fun wifiDirectMostNeededPeer(): String? = node.wifiDirectMostNeededPeer()
+
+    fun wifiDirectHasPending(): Boolean = node.wifiDirectHasPending()
+
+    fun wifiDirectPruneExpired(nowSecs: ULong): Int = node.wifiDirectPruneExpired(nowSecs).toInt()
+
     // ── Store Stats ────────────────────────────────────────────────────
 
     /**
@@ -429,4 +500,11 @@ data class IncomingMessageResult(
     val senderId: String? = null,
     val plaintext: String? = null,
     val messageId: String? = null,
+)
+
+data class TransferRecommendation(
+    val strategy: String,   // "meshrelay", "directpreferred", "directrequired"
+    val sizeTier: String,   // "small", "medium", "large"
+    val estimatedBleChunks: Int,
+    val isOversized: Boolean,
 )

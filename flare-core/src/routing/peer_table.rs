@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 
 use crate::crypto::identity::{DeviceId, PublicIdentity};
+use crate::routing::neighborhood::EncounterType;
 
 /// How long before a peer is considered stale and removed from the table.
 const PEER_STALE_TIMEOUT_SECONDS: i64 = 300; // 5 minutes
@@ -46,6 +47,11 @@ pub struct PeerInfo {
 
     /// Number of messages that failed to relay through this peer.
     pub relay_failure_count: u32,
+
+    /// Neighborhood encounter type — indicates whether this peer bridges
+    /// to a different cluster (based on bloom filter comparison).
+    /// `None` means not yet determined (no bitmap exchange occurred).
+    pub encounter_type: Option<EncounterType>,
 }
 
 /// Type of transport used to communicate with a peer.
@@ -75,6 +81,7 @@ impl PeerInfo {
             is_connected: false,
             relay_success_count: 0,
             relay_failure_count: 0,
+            encounter_type: None,
         }
     }
 
@@ -144,6 +151,10 @@ impl PeerTable {
                 existing.update_seen(peer.rssi);
                 existing.transport = peer.transport;
                 existing.is_connected = peer.is_connected;
+                // Preserve encounter_type — only overwrite if new peer has a value
+                if peer.encounter_type.is_some() {
+                    existing.encounter_type = peer.encounter_type;
+                }
             })
             .or_insert(peer);
     }
@@ -186,6 +197,38 @@ impl PeerTable {
         }
     }
 
+    /// Sets the neighborhood encounter type for a peer (from bloom filter comparison).
+    pub fn set_encounter_type(&self, device_id: &DeviceId, encounter: EncounterType) {
+        let mut peers = self.peers.lock().expect("Peer table lock poisoned");
+        if let Some(peer) = peers.get_mut(device_id) {
+            peer.encounter_type = Some(encounter);
+        }
+    }
+
+    /// Returns connected peers sorted for optimal routing:
+    /// 1. Bridge peers first (reach different clusters — highest routing value)
+    /// 2. Unknown encounter type second (may be bridges)
+    /// 3. Local/Intermediate peers last (same cluster — lower routing value)
+    ///
+    /// Within each group, peers are sorted by relay success rate (descending).
+    pub fn connected_peers_prioritized(&self) -> Vec<PeerInfo> {
+        let mut peers = self.connected_peers();
+
+        peers.sort_by(|a, b| {
+            let priority_a = encounter_routing_priority(&a.encounter_type);
+            let priority_b = encounter_routing_priority(&b.encounter_type);
+
+            priority_a.cmp(&priority_b).then_with(|| {
+                // Within same priority: prefer higher relay success rate
+                b.relay_success_rate()
+                    .partial_cmp(&a.relay_success_rate())
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+        });
+
+        peers
+    }
+
     /// Records a relay outcome for a peer (used for routing quality scoring).
     pub fn record_relay_outcome(&self, device_id: &DeviceId, success: bool) {
         let mut peers = self.peers.lock().expect("Peer table lock poisoned");
@@ -214,6 +257,17 @@ impl PeerTable {
             .iter()
             .min_by_key(|(_, p)| p.last_seen)
             .map(|(id, _)| id.clone())
+    }
+}
+
+/// Maps encounter type to routing priority (lower = higher priority).
+/// Bridge peers are most valuable for routing across clusters.
+fn encounter_routing_priority(encounter: &Option<EncounterType>) -> u8 {
+    match encounter {
+        Some(EncounterType::Bridge) => 0, // Highest priority — different cluster
+        None => 1,                        // Unknown — might be a bridge
+        Some(EncounterType::Intermediate) => 2, // Moderate overlap
+        Some(EncounterType::Local) => 3,  // Same cluster — lowest priority
     }
 }
 

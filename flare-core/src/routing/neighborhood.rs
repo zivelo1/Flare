@@ -47,7 +47,7 @@ impl Default for NeighborhoodConfig {
 }
 
 /// Result of comparing two neighborhood filters.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum EncounterType {
     /// High overlap — same neighborhood. No TTL extension needed.
     Local,

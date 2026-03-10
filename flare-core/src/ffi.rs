@@ -18,6 +18,8 @@ use crate::protocol::rendezvous::{
 use crate::routing::router::{RouteDecision, Router};
 use crate::storage::database::FlareDatabase;
 use crate::transport::compression::{compress_payload, decompress_payload};
+use crate::transport::size_tiers::{SizeTierConfig, TransferStrategy};
+use crate::transport::wifi_direct::{WifiDirectConnectionState, WifiDirectManager};
 use crate::{PROTOCOL_VERSION, SERVICE_IDENTIFIER};
 use base64::Engine as _;
 use sha2::Digest;
@@ -167,6 +169,41 @@ pub struct FfiStoreStats {
     pub budget_bytes: u64,
 }
 
+/// Transfer strategy recommendation for a message.
+#[derive(uniffi::Enum)]
+pub enum FfiTransferStrategy {
+    /// Use BLE mesh relay (Spray-and-Wait).
+    MeshRelay,
+    /// Prefer direct peer-to-peer (Wi-Fi Direct), fall back to mesh if unavailable.
+    DirectPreferred,
+    /// Require direct peer-to-peer. Too large for mesh relay.
+    DirectRequired,
+}
+
+/// Wi-Fi Direct transfer queue statistics.
+#[derive(uniffi::Record)]
+pub struct FfiWifiDirectStats {
+    pub pending_transfers: u32,
+    pub total_pending_bytes: u64,
+    pub completed_transfers: u64,
+    pub failed_transfers: u64,
+    /// "disconnected", "connecting", "connected", "failed"
+    pub connection_state: String,
+}
+
+/// Transfer strategy recommendation with details.
+#[derive(uniffi::Record)]
+pub struct FfiTransferRecommendation {
+    /// The recommended strategy.
+    pub strategy: FfiTransferStrategy,
+    /// Size tier: "small", "medium", "large".
+    pub size_tier: String,
+    /// Estimated BLE chunks needed (at 247 byte MTU).
+    pub estimated_ble_chunks: u32,
+    /// Whether the payload exceeds the absolute maximum size.
+    pub is_oversized: bool,
+}
+
 // ── Namespace Functions ──────────────────────────────────────────────
 
 #[uniffi::export]
@@ -210,6 +247,8 @@ pub struct FlareNode {
     power_manager: PowerManager,
     sender_key_store: Mutex<SenderKeyStore>,
     trusted_developer_keys: Mutex<TrustedDeveloperKeys>,
+    size_tier_config: SizeTierConfig,
+    wifi_direct: WifiDirectManager,
 }
 
 #[uniffi::export]
@@ -246,6 +285,8 @@ impl FlareNode {
             power_manager: PowerManager::with_defaults(),
             sender_key_store: Mutex::new(SenderKeyStore::new()),
             trusted_developer_keys: Mutex::new(TrustedDeveloperKeys::empty()),
+            size_tier_config: SizeTierConfig::default(),
+            wifi_direct: WifiDirectManager::with_defaults(),
         })
     }
 
@@ -1351,5 +1392,250 @@ impl FlareNode {
         decompress_payload(&data).map_err(|e| FlareError::SerializationError {
             msg: format!("Decompression failed: {}", e),
         })
+    }
+
+    // ── Transfer Strategy ──────────────────────────────────────────
+
+    /// Returns the recommended transfer strategy for a message based on
+    /// content type and payload size. The platform layer uses this to decide
+    /// whether to send via BLE mesh relay or queue for Wi-Fi Direct.
+    ///
+    /// `content_type`: same codes as build_mesh_message (0x01=Text, 0x02=Voice, etc.)
+    /// `payload_bytes`: size of the encrypted payload in bytes.
+    pub fn recommend_transfer_strategy(
+        &self,
+        content_type: u8,
+        payload_bytes: u32,
+    ) -> FfiTransferRecommendation {
+        let ct = match content_type {
+            0x01 => ContentType::Text,
+            0x02 => ContentType::VoiceMessage,
+            0x03 => ContentType::Image,
+            0x04 => ContentType::KeyExchange,
+            0x05 => ContentType::Acknowledgment,
+            0x06 => ContentType::ReadReceipt,
+            0x07 => ContentType::GroupMessage,
+            0x10 => ContentType::RouteRequest,
+            0x11 => ContentType::RouteReply,
+            0x20 => ContentType::PeerAnnounce,
+            0x40 => ContentType::ApkOffer,
+            0x41 => ContentType::ApkRequest,
+            _ => ContentType::Text,
+        };
+
+        let size = payload_bytes as usize;
+        let strategy = self.size_tier_config.recommend_strategy(ct, size);
+        let size_tier = self.size_tier_config.classify_size(size);
+        let estimated_chunks = self.size_tier_config.estimated_ble_chunks(size, 247);
+
+        FfiTransferRecommendation {
+            strategy: match strategy {
+                TransferStrategy::MeshRelay => FfiTransferStrategy::MeshRelay,
+                TransferStrategy::DirectPreferred => FfiTransferStrategy::DirectPreferred,
+                TransferStrategy::DirectRequired => FfiTransferStrategy::DirectRequired,
+            },
+            size_tier: match size_tier {
+                crate::transport::size_tiers::SizeTier::Small => "small".to_string(),
+                crate::transport::size_tiers::SizeTier::Medium => "medium".to_string(),
+                crate::transport::size_tiers::SizeTier::Large => "large".to_string(),
+            },
+            estimated_ble_chunks: estimated_chunks as u32,
+            is_oversized: self.size_tier_config.is_oversized(size),
+        }
+    }
+
+    /// Processes a remote peer's neighborhood bitmap and tags the peer
+    /// for neighborhood-aware routing. Bridge peers will be prioritized
+    /// in future routing decisions.
+    pub fn process_remote_neighborhood_for_peer(
+        &self,
+        peer_device_id: String,
+        remote_bitmap: Vec<u8>,
+    ) -> String {
+        let bytes = match hex_to_bytes(&peer_device_id) {
+            Ok(b) => b,
+            Err(_) => return "unknown".to_string(),
+        };
+        if bytes.len() < 16 {
+            return "unknown".to_string();
+        }
+        let mut id_bytes = [0u8; 16];
+        id_bytes.copy_from_slice(&bytes[..16]);
+        let device_id = DeviceId(id_bytes);
+
+        let encounter = self
+            .router
+            .process_remote_neighborhood_for_peer(&device_id, &remote_bitmap);
+
+        match encounter {
+            crate::routing::neighborhood::EncounterType::Local => "local".to_string(),
+            crate::routing::neighborhood::EncounterType::Bridge => "bridge".to_string(),
+            crate::routing::neighborhood::EncounterType::Intermediate => "intermediate".to_string(),
+        }
+    }
+
+    // ── Wi-Fi Direct Transfer Queue ──────────────────────────────────
+
+    /// Queues a payload for Wi-Fi Direct transfer to a peer.
+    /// Returns false if the queue is full or payload exceeds max size.
+    /// `transfer_id_hex`: 32-byte message ID as hex string.
+    /// `recipient_device_id`: peer's device ID as hex string.
+    pub fn wifi_direct_enqueue(
+        &self,
+        transfer_id_hex: String,
+        recipient_device_id: String,
+        payload: Vec<u8>,
+        content_type: u8,
+        now_secs: u64,
+    ) -> Result<bool, FlareError> {
+        let id_bytes = hex_to_bytes(&transfer_id_hex)?;
+        if id_bytes.len() < 32 {
+            return Err(FlareError::InvalidInput {
+                msg: "Transfer ID must be 32 bytes".to_string(),
+            });
+        }
+        let mut transfer_id = [0u8; 32];
+        transfer_id.copy_from_slice(&id_bytes[..32]);
+
+        let recipient_bytes = hex_to_bytes(&recipient_device_id)?;
+        if recipient_bytes.len() < 16 {
+            return Err(FlareError::InvalidInput {
+                msg: "Device ID must be 16 bytes".to_string(),
+            });
+        }
+        let mut device_bytes = [0u8; 16];
+        device_bytes.copy_from_slice(&recipient_bytes[..16]);
+        let recipient = DeviceId(device_bytes);
+
+        Ok(self.wifi_direct.enqueue_transfer(
+            transfer_id,
+            recipient,
+            payload,
+            content_type,
+            now_secs,
+        ))
+    }
+
+    /// Returns the next pending transfer for a connected Wi-Fi Direct peer.
+    /// Returns None if no transfers are pending for this peer.
+    pub fn wifi_direct_next_transfer(
+        &self,
+        peer_device_id: String,
+    ) -> Result<Option<Vec<u8>>, FlareError> {
+        let bytes = hex_to_bytes(&peer_device_id)?;
+        if bytes.len() < 16 {
+            return Err(FlareError::InvalidInput {
+                msg: "Device ID must be 16 bytes".to_string(),
+            });
+        }
+        let mut id_bytes = [0u8; 16];
+        id_bytes.copy_from_slice(&bytes[..16]);
+        let device_id = DeviceId(id_bytes);
+
+        Ok(self
+            .wifi_direct
+            .next_transfer_for_peer(&device_id)
+            .map(|t| t.payload))
+    }
+
+    /// Marks a Wi-Fi Direct transfer as completed.
+    pub fn wifi_direct_complete_transfer(
+        &self,
+        transfer_id_hex: String,
+    ) -> Result<bool, FlareError> {
+        let id_bytes = hex_to_bytes(&transfer_id_hex)?;
+        if id_bytes.len() < 32 {
+            return Err(FlareError::InvalidInput {
+                msg: "Transfer ID must be 32 bytes".to_string(),
+            });
+        }
+        let mut transfer_id = [0u8; 32];
+        transfer_id.copy_from_slice(&id_bytes[..32]);
+        Ok(self.wifi_direct.complete_transfer(&transfer_id))
+    }
+
+    /// Marks a Wi-Fi Direct transfer as failed. Retries up to 3 times before dropping.
+    pub fn wifi_direct_fail_transfer(&self, transfer_id_hex: String) -> Result<bool, FlareError> {
+        let id_bytes = hex_to_bytes(&transfer_id_hex)?;
+        if id_bytes.len() < 32 {
+            return Err(FlareError::InvalidInput {
+                msg: "Transfer ID must be 32 bytes".to_string(),
+            });
+        }
+        let mut transfer_id = [0u8; 32];
+        transfer_id.copy_from_slice(&id_bytes[..32]);
+        Ok(self.wifi_direct.fail_transfer(&transfer_id))
+    }
+
+    /// Notifies the Rust core that Wi-Fi Direct connection state changed.
+    /// `state`: "disconnected", "connecting", "connected", "failed"
+    pub fn wifi_direct_connection_changed(
+        &self,
+        state: String,
+        peer_device_id: Option<String>,
+    ) -> Result<(), FlareError> {
+        let conn_state = match state.as_str() {
+            "disconnected" => WifiDirectConnectionState::Disconnected,
+            "connecting" => WifiDirectConnectionState::Connecting,
+            "connected" => WifiDirectConnectionState::Connected,
+            "failed" => WifiDirectConnectionState::Failed,
+            other => {
+                return Err(FlareError::InvalidInput {
+                    msg: format!("Unknown connection state: {}", other),
+                })
+            }
+        };
+
+        let peer_id = match peer_device_id {
+            Some(hex) => {
+                let bytes = hex_to_bytes(&hex)?;
+                if bytes.len() < 16 {
+                    return Err(FlareError::InvalidInput {
+                        msg: "Device ID must be 16 bytes".to_string(),
+                    });
+                }
+                let mut id_bytes = [0u8; 16];
+                id_bytes.copy_from_slice(&bytes[..16]);
+                Some(DeviceId(id_bytes))
+            }
+            None => None,
+        };
+
+        self.wifi_direct
+            .on_connection_state_changed(conn_state, peer_id);
+        Ok(())
+    }
+
+    /// Returns the device ID of the peer with the most pending transfers.
+    /// The platform layer uses this to know which peer to initiate Wi-Fi Direct with.
+    pub fn wifi_direct_most_needed_peer(&self) -> Option<String> {
+        self.wifi_direct.most_needed_peer().map(|id| id.to_hex())
+    }
+
+    /// Returns true if there are pending Wi-Fi Direct transfers.
+    pub fn wifi_direct_has_pending(&self) -> bool {
+        self.wifi_direct.has_pending_transfers()
+    }
+
+    /// Prunes expired Wi-Fi Direct transfers. Returns count removed.
+    pub fn wifi_direct_prune_expired(&self, now_secs: u64) -> u32 {
+        self.wifi_direct.prune_expired(now_secs) as u32
+    }
+
+    /// Returns Wi-Fi Direct transfer queue statistics.
+    pub fn wifi_direct_stats(&self) -> FfiWifiDirectStats {
+        let stats = self.wifi_direct.stats();
+        FfiWifiDirectStats {
+            pending_transfers: stats.pending_transfers as u32,
+            total_pending_bytes: stats.total_pending_bytes as u64,
+            completed_transfers: stats.completed_transfers,
+            failed_transfers: stats.failed_transfers,
+            connection_state: match stats.connection_state {
+                WifiDirectConnectionState::Disconnected => "disconnected".to_string(),
+                WifiDirectConnectionState::Connecting => "connecting".to_string(),
+                WifiDirectConnectionState::Connected => "connected".to_string(),
+                WifiDirectConnectionState::Failed => "failed".to_string(),
+            },
+        }
     }
 }

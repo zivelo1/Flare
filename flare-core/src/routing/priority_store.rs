@@ -30,10 +30,23 @@ pub struct PriorityStoreConfig {
     /// Absolute maximum TTL — never extended beyond this (seconds). Default: 7 days.
     pub absolute_max_ttl_seconds: u32,
 
-    /// Initial spray copies for new messages.
+    /// Initial spray copies for new messages (used when adaptive spray is disabled).
     pub initial_spray_copies: u8,
     /// Spray copies refreshed on bridge encounter.
     pub bridge_spray_copies: u8,
+
+    /// Enable adaptive spray count based on local peer density.
+    /// When enabled, spray copies = clamp(ceil(sqrt(observed_peers) * spray_density_factor),
+    ///   min_spray_copies, max_spray_copies).
+    /// Based on Spyropoulos et al. "Spray and Wait" optimal L = O(sqrt(N)).
+    pub adaptive_spray_enabled: bool,
+    /// Minimum spray copies even in sparse networks.
+    pub min_spray_copies: u8,
+    /// Maximum spray copies even in dense networks.
+    pub max_spray_copies: u8,
+    /// Multiplier applied to sqrt(observed_peers). Default: 1.5
+    /// Higher values increase delivery probability at the cost of more traffic.
+    pub spray_density_factor: f32,
 }
 
 impl Default for PriorityStoreConfig {
@@ -49,7 +62,27 @@ impl Default for PriorityStoreConfig {
 
             initial_spray_copies: 8,
             bridge_spray_copies: 8,
+
+            adaptive_spray_enabled: true,
+            min_spray_copies: 3,
+            max_spray_copies: 16,
+            spray_density_factor: 1.5,
         }
+    }
+}
+
+impl PriorityStoreConfig {
+    /// Calculates optimal spray copies based on observed peer count.
+    /// Uses L = ceil(sqrt(N) * density_factor), clamped to [min, max].
+    /// When adaptive spray is disabled, returns `initial_spray_copies`.
+    pub fn calculate_spray_copies(&self, observed_peer_count: usize) -> u8 {
+        if !self.adaptive_spray_enabled || observed_peer_count == 0 {
+            return self.initial_spray_copies;
+        }
+
+        let sqrt_n = (observed_peer_count as f32).sqrt();
+        let raw = (sqrt_n * self.spray_density_factor).ceil() as u8;
+        raw.clamp(self.min_spray_copies, self.max_spray_copies)
     }
 }
 
@@ -646,5 +679,61 @@ mod tests {
         let stored = messages.values().next().unwrap();
         // TTL should be capped at absolute_max_ttl_seconds
         assert!(stored.message.ttl_seconds <= 100);
+    }
+
+    #[test]
+    fn test_adaptive_spray_zero_peers_uses_default() {
+        let config = PriorityStoreConfig::default();
+        assert_eq!(
+            config.calculate_spray_copies(0),
+            config.initial_spray_copies
+        );
+    }
+
+    #[test]
+    fn test_adaptive_spray_disabled_uses_default() {
+        let config = PriorityStoreConfig {
+            adaptive_spray_enabled: false,
+            ..Default::default()
+        };
+        assert_eq!(
+            config.calculate_spray_copies(100),
+            config.initial_spray_copies
+        );
+    }
+
+    #[test]
+    fn test_adaptive_spray_small_network() {
+        let config = PriorityStoreConfig::default();
+        // 4 peers → sqrt(4) * 1.5 = 3.0 → ceil = 3
+        assert_eq!(config.calculate_spray_copies(4), 3);
+    }
+
+    #[test]
+    fn test_adaptive_spray_medium_network() {
+        let config = PriorityStoreConfig::default();
+        // 25 peers → sqrt(25) * 1.5 = 7.5 → ceil = 8
+        assert_eq!(config.calculate_spray_copies(25), 8);
+    }
+
+    #[test]
+    fn test_adaptive_spray_large_network() {
+        let config = PriorityStoreConfig::default();
+        // 100 peers → sqrt(100) * 1.5 = 15.0 → ceil = 15
+        assert_eq!(config.calculate_spray_copies(100), 15);
+    }
+
+    #[test]
+    fn test_adaptive_spray_clamped_to_max() {
+        let config = PriorityStoreConfig::default();
+        // 256 peers → sqrt(256) * 1.5 = 24.0 → ceil = 24, clamped to max_spray_copies (16)
+        assert_eq!(config.calculate_spray_copies(256), config.max_spray_copies);
+    }
+
+    #[test]
+    fn test_adaptive_spray_clamped_to_min() {
+        let config = PriorityStoreConfig::default();
+        // 1 peer → sqrt(1) * 1.5 = 1.5 → ceil = 2, clamped to min_spray_copies (3)
+        assert_eq!(config.calculate_spray_copies(1), config.min_spray_copies);
     }
 }

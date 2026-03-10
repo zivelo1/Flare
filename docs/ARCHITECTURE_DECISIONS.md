@@ -174,3 +174,30 @@
 - **Hop count monotonicity:** Per-message hop tracking via `HopTracker` LRU cache; hop count must never decrease
 - **Signature verification:** Ed25519 signature checked on `signable_bytes()` (immutable fields)
 - **Sender rate limiting:** Max 100 active messages per sender to prevent flooding
+
+## ADR-020: Adaptive Spray Count
+**Date:** 2026-03-10
+**Decision:** Spray copy count adapts dynamically to observed network density instead of using a fixed value.
+**Formula:** `L = ceil(sqrt(N) × density_factor)`, clamped to [min_spray_copies, max_spray_copies].
+**Rationale:** Based on Spyropoulos, Psounis & Raghavendra (2005) "Spray and Wait" paper, which proves optimal L scales as O(sqrt(N)). Fixed L=8 wastes bandwidth in dense networks (100+ peers) and may be insufficient in very sparse ones. The density_factor (default 1.5) allows tuning delivery probability vs. traffic.
+**Configuration:** `PriorityStoreConfig` — `adaptive_spray_enabled`, `min_spray_copies=3`, `max_spray_copies=16`, `spray_density_factor=1.5`.
+**Fallback:** When disabled or with 0 observed peers, uses `initial_spray_copies` (static value).
+
+## ADR-021: Neighborhood-Aware Routing
+**Date:** 2026-03-10
+**Decision:** Peers are tagged with their neighborhood encounter type (Bridge/Intermediate/Local) from bloom filter comparison. When selecting spray targets, bridge peers are prioritized over local peers.
+**Rationale:** Bridge peers connect different clusters — they are the most valuable relays for cross-cluster message delivery. Spraying to local peers wastes copies since those peers likely see the same neighbors we do. Prioritizing bridge peers ensures messages cross cluster boundaries faster with fewer wasted copies.
+**Implementation:** `PeerInfo.encounter_type` tracks each peer's encounter classification. `PeerTable.connected_peers_prioritized()` sorts by: Bridge > Unknown > Intermediate > Local. Router uses `take(spray_copies)` on the prioritized list, naturally selecting the best routing candidates.
+
+## ADR-022: Message Size Tiers and Transfer Strategy
+**Date:** 2026-03-10
+**Decision:** Messages are classified into size tiers (Small/Medium/Large) with recommended transfer strategies (MeshRelay/DirectPreferred/DirectRequired).
+**Rationale:** BLE mesh relay is optimal for small payloads (text, ACKs, key exchanges) but unsuitable for large payloads (images, long voice clips) that would consume hundreds of relay chunks and flood the mesh. Wi-Fi Direct provides orders-of-magnitude more bandwidth but consumes more power and requires explicit connection setup.
+**Thresholds:** Small ≤ 15KB (BLE mesh), Medium ≤ 64KB (prefer direct), Large > 64KB (require direct). Content-type overrides: voice/images always prefer direct; control messages (ACK, key exchange) always use mesh.
+
+## ADR-023: Dual Transport Architecture (BLE + Wi-Fi Direct)
+**Date:** 2026-03-10
+**Decision:** BLE remains always-on for discovery and signaling. Wi-Fi Direct (Android: Wi-Fi P2P, iOS: MultipeerConnectivity) activates on demand for large payload transfers.
+**Rationale:** BLE has universal device support, low power consumption, and sufficient bandwidth for text messaging (~100 KB/s). Wi-Fi Direct provides ~50 Mbps throughput and ~250m range but consumes significantly more power and requires connection negotiation. Using both together provides the best of both worlds.
+**Protocol:** Both transports produce the same `TransportEvent` types. The router doesn't care which transport delivered a message — identical message format, same routing logic. The platform layer decides which transport to use based on the `recommendTransferStrategy()` FFI method.
+**Connection deduplication:** iOS MultipeerManager uses deterministic tie-breaking (lower displayName accepts invitations, higher invites) to prevent duplicate connections when both peers discover each other simultaneously.
