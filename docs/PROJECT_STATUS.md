@@ -151,15 +151,23 @@
 - [ ] Duress PIN setup screen in Settings
 - [ ] APK sharing UI (offer/request/progress)
 
-### Rust Core Integration (pending wiring)
-- [ ] Wire `compress_payload`/`decompress_payload` into message build/parse flow in `ffi.rs`
-- [ ] Wire `RouteGuard.validate()` into `Router::route_incoming()`
-- [ ] Expose `SenderKeyStore` via FFI for group messaging
-- [ ] Expose `TrustedDeveloperKeys` via FFI for APK verification
-- [ ] Expose `PowerManager` via FFI (alternative to Kotlin-native reimplementation)
+### Rust Core Integration (completed)
+- [x] Wire `compress_payload`/`decompress_payload` into message build/parse flow in `ffi.rs` — compress before encrypt, decompress after decrypt
+- [x] Wire `RouteGuard.validate()` into `Router::route_incoming()` — TTL inflation, hop count monotonicity enforced on every message
+- [x] Signature verification via FFI: `route_incoming()` looks up sender in contacts DB, verifies Ed25519 signature if known
+- [x] Expose `SenderKeyStore` via FFI — `create_sender_key`, `process_sender_key_distribution`, `encrypt_group_sender_key`, `decrypt_group_sender_key`, `invalidate_group_keys`
+- [x] Expose `TrustedDeveloperKeys` via FFI — `add_trusted_developer_key`, `verify_apk_signature`, `trusted_developer_key_count`
+- [x] Expose `PowerManager` via FFI — `power_evaluate`, `power_on_data_activity`, `power_on_peer_discovered`, `power_update_battery`, `power_set_battery_saver`, `power_update_connected_peers`, `power_set_has_pending_outbound`, `power_current_tier`
+- [x] Expose standalone compression via FFI — `compress`, `decompress`
+- [x] New `FfiRouteDecision` variants: `DropInvalidSignature`, `DropTtlInflation`, `DropHopCountDecrease`, `DropSenderRateLimit`
+- [x] New FFI types: `FfiPowerTierRecommendation`, `FfiApkVerifyResult`
 
-### iOS App — Remaining Work
-- [ ] Adaptive power management in `BLEManager.swift` (power tier enums, burst mode)
+### iOS App — Completed Integration
+- [x] Adaptive power management in `BLEManager.swift` — `ScanPowerTier` and `AdvertisePowerTier` enums, burst mode duty cycling for LowPower/UltraLow tiers
+- [x] Power evaluation loop in `MeshService.swift` — battery-aware tier transitions, mirrors Rust/Android logic
+- [x] `FlareRepository.swift` updated to handle new route guard drop reasons
+
+### Remaining Work (Phase 5)
 
 ### Phase 5 — Launch
 - [ ] Security audit
@@ -173,5 +181,5 @@
 | 1 — Foundation | Rust core + Android BLE + UI + UniFFI bridge | **Complete** (awaiting device test with NDK) |
 | 2 — Multi-Hop & iOS | Relay routing + iOS app | **Rust core complete**, iOS app implemented (awaiting cross-compile + device test) |
 | 3 — Full Messaging | Groups, receipts, content types | **Rust core complete**, Android UI pending |
-| 4 — Security & Distribution | Duress PIN, APK signing, route guard, compression | **Rust core complete**, Android power mgmt integrated, FFI wiring pending |
+| 4 — Security & Distribution | Duress PIN, APK signing, route guard, compression | **Complete** — Rust core, FFI wiring, Android + iOS power mgmt all integrated |
 | 5 — Launch | Optimization, audit, localization, release | Not started |

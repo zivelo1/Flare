@@ -30,6 +30,29 @@ final class BLEManager: NSObject, ObservableObject {
     private var peerInfoChar: CBMutableCharacteristic?
     private var subscribedCentrals: [CBCentral] = []
 
+    /// BLE scan power tiers for adaptive power management.
+    /// Maps to CoreBluetooth scan strategies since iOS doesn't expose
+    /// direct scan mode control like Android.
+    enum ScanPowerTier: String {
+        /// Near-continuous scanning for active data exchange (max 30s).
+        case high
+        /// Standard scanning with duplicate reporting.
+        case balanced
+        /// Reduced scanning: periodic bursts with sleep intervals.
+        case lowPower
+        /// Minimal scanning: short bursts with long sleep.
+        case ultraLow
+    }
+
+    /// BLE advertise power tiers.
+    /// iOS advertising is less configurable than Android, but we can
+    /// start/stop advertising to achieve duty cycling.
+    enum AdvertisePowerTier: String {
+        case high
+        case balanced
+        case lowPower
+    }
+
     @Published var discoveredPeers: [String: MeshPeer] = [:]
     @Published var isScanning = false
     @Published var isAdvertising = false
@@ -41,6 +64,10 @@ final class BLEManager: NSObject, ObservableObject {
 
     private var scanTimer: Timer?
     private var pruneTimer: Timer?
+    private var burstTimer: Timer?
+    private var currentScanTier: ScanPowerTier = .balanced
+    private var currentAdvertiseTier: AdvertisePowerTier = .balanced
+    private var burstSleeping = false
     private let logger = Logger(subsystem: "com.flare.mesh", category: "BLE")
 
     override private init() {
@@ -57,10 +84,10 @@ final class BLEManager: NSObject, ObservableObject {
 
     func start() {
         if centralManager.state == .poweredOn {
-            startScanning()
+            startScanning(tier: .balanced)
         }
         if peripheralManager.state == .poweredOn {
-            startAdvertising()
+            startAdvertising(tier: .balanced)
         }
     }
 
@@ -111,30 +138,143 @@ final class BLEManager: NSObject, ObservableObject {
 
     // MARK: - Scanning
 
-    private func startScanning() {
+    /// Starts BLE scanning at the specified power tier.
+    /// Higher tiers scan more aggressively; lower tiers use burst mode.
+    func startScanning(tier: ScanPowerTier = .balanced) {
         guard centralManager.state == .poweredOn else { return }
+
+        // If already scanning at same tier, skip
+        if isScanning && tier == currentScanTier && !burstSleeping { return }
+
+        // Stop current scanning if changing tier
+        if isScanning {
+            stopScanning()
+        }
+
+        currentScanTier = tier
+
+        // All tiers use the same CoreBluetooth scan call (iOS doesn't expose scan modes).
+        // Power management is achieved through burst mode duty cycling.
+        let allowDuplicates: Bool
+        switch tier {
+        case .high:
+            allowDuplicates = true   // Report every advertisement
+        case .balanced:
+            allowDuplicates = true   // Report duplicates for RSSI updates
+        case .lowPower, .ultraLow:
+            allowDuplicates = false  // Reduce callback frequency
+        }
+
         centralManager.scanForPeripherals(
             withServices: [Constants.serviceUUID],
-            options: [CBCentralManagerScanOptionAllowDuplicatesKey: true]
+            options: [CBCentralManagerScanOptionAllowDuplicatesKey: allowDuplicates]
         )
-        DispatchQueue.main.async { self.isScanning = true }
-        logger.info("BLE scanning started")
+        DispatchQueue.main.async {
+            self.isScanning = true
+            self.burstSleeping = false
+        }
+        logger.info("BLE scanning started at tier \(tier.rawValue)")
 
         DispatchQueue.main.async {
+            self.pruneTimer?.invalidate()
             self.pruneTimer = Timer.scheduledTimer(withTimeInterval: Constants.peerStaleTimeoutSeconds / 2, repeats: true) { [weak self] _ in
                 self?.pruneStale()
             }
         }
+
+        // Start burst mode for low-power tiers
+        startBurstMode(tier: tier)
     }
 
-    private func stopScanning() {
+    func stopScanning() {
         centralManager.stopScan()
         DispatchQueue.main.async {
             self.isScanning = false
+            self.burstSleeping = false
             self.pruneTimer?.invalidate()
             self.pruneTimer = nil
+            self.burstTimer?.invalidate()
+            self.burstTimer = nil
         }
         logger.info("BLE scanning stopped")
+    }
+
+    /// Manages burst-mode scanning for LowPower and UltraLow tiers.
+    /// Scans for a short window, then pauses to save battery.
+    private func startBurstMode(tier: ScanPowerTier) {
+        // Cancel existing burst timer
+        DispatchQueue.main.async {
+            self.burstTimer?.invalidate()
+            self.burstTimer = nil
+        }
+
+        let burstScanSeconds: TimeInterval
+        let burstSleepSeconds: TimeInterval
+
+        switch tier {
+        case .lowPower:
+            burstScanSeconds = Constants.powerLowBurstScanSeconds
+            burstSleepSeconds = Constants.powerLowBurstSleepSeconds
+        case .ultraLow:
+            burstScanSeconds = Constants.powerUltraLowBurstScanSeconds
+            burstSleepSeconds = Constants.powerUltraLowBurstSleepSeconds
+        case .high, .balanced:
+            return // No burst mode for high/balanced — continuous scanning
+        }
+
+        // Schedule the first sleep after the scan window
+        DispatchQueue.main.async { [weak self] in
+            self?.scheduleBurstCycle(
+                tier: tier,
+                scanSeconds: burstScanSeconds,
+                sleepSeconds: burstSleepSeconds,
+                startWithSleep: false
+            )
+        }
+    }
+
+    private func scheduleBurstCycle(
+        tier: ScanPowerTier,
+        scanSeconds: TimeInterval,
+        sleepSeconds: TimeInterval,
+        startWithSleep: Bool
+    ) {
+        guard currentScanTier == tier else { return }
+
+        if startWithSleep {
+            // Sleep phase: stop scanning
+            centralManager.stopScan()
+            burstSleeping = true
+            logger.debug("Burst sleep for \(sleepSeconds)s")
+
+            burstTimer = Timer.scheduledTimer(withTimeInterval: sleepSeconds, repeats: false) { [weak self] _ in
+                self?.scheduleBurstCycle(
+                    tier: tier,
+                    scanSeconds: scanSeconds,
+                    sleepSeconds: sleepSeconds,
+                    startWithSleep: false
+                )
+            }
+        } else {
+            // Scan phase: resume scanning
+            guard centralManager.state == .poweredOn else { return }
+            let allowDuplicates = (tier == .lowPower)
+            centralManager.scanForPeripherals(
+                withServices: [Constants.serviceUUID],
+                options: [CBCentralManagerScanOptionAllowDuplicatesKey: allowDuplicates]
+            )
+            burstSleeping = false
+            logger.debug("Burst scan for \(scanSeconds)s")
+
+            burstTimer = Timer.scheduledTimer(withTimeInterval: scanSeconds, repeats: false) { [weak self] _ in
+                self?.scheduleBurstCycle(
+                    tier: tier,
+                    scanSeconds: scanSeconds,
+                    sleepSeconds: sleepSeconds,
+                    startWithSleep: true
+                )
+            }
+        }
     }
 
     private func pruneStale() {
@@ -146,8 +286,21 @@ final class BLEManager: NSObject, ObservableObject {
 
     // MARK: - Advertising
 
-    private func startAdvertising() {
+    /// Starts BLE advertising at the specified power tier.
+    /// iOS doesn't allow direct advertising interval control, but we can
+    /// start/stop advertising to achieve duty cycling in lower tiers.
+    func startAdvertising(tier: AdvertisePowerTier = .balanced) {
         guard peripheralManager.state == .poweredOn else { return }
+
+        // If already advertising at same tier, skip
+        if isAdvertising && tier == currentAdvertiseTier { return }
+
+        // Stop if changing tier
+        if isAdvertising {
+            stopAdvertising()
+        }
+
+        currentAdvertiseTier = tier
 
         let service = CBMutableService(type: Constants.serviceUUID, primary: true)
 
@@ -185,10 +338,10 @@ final class BLEManager: NSObject, ObservableObject {
         ])
 
         DispatchQueue.main.async { self.isAdvertising = true }
-        logger.info("BLE advertising started")
+        logger.info("BLE advertising started at tier \(tier.rawValue)")
     }
 
-    private func stopAdvertising() {
+    func stopAdvertising() {
         peripheralManager.stopAdvertising()
         peripheralManager.removeAllServices()
         DispatchQueue.main.async { self.isAdvertising = false }
@@ -229,7 +382,7 @@ extension BLEManager: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         logger.info("Central state: \(central.state.rawValue)")
         if central.state == .poweredOn {
-            startScanning()
+            startScanning(tier: currentScanTier)
         }
     }
 
@@ -364,7 +517,7 @@ extension BLEManager: CBPeripheralManagerDelegate {
     func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
         logger.info("Peripheral state: \(peripheral.state.rawValue)")
         if peripheral.state == .poweredOn {
-            startAdvertising()
+            startAdvertising(tier: currentAdvertiseTier)
         }
     }
 

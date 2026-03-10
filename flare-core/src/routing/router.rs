@@ -15,6 +15,7 @@ use crate::routing::dedup::DeduplicationFilter;
 use crate::routing::neighborhood::{EncounterType, NeighborhoodFilter};
 use crate::routing::peer_table::PeerTable;
 use crate::routing::priority_store::{PriorityStore, PriorityStoreConfig};
+use crate::routing::route_guard::{GuardResult, RouteGuard};
 
 /// Decision made by the router for an incoming message.
 #[derive(Debug, PartialEq)]
@@ -37,13 +38,15 @@ pub enum DropReason {
     InvalidSignature,
 }
 
-/// The Spray-and-Wait mesh router with adaptive TTL and priority storage.
+/// The Spray-and-Wait mesh router with adaptive TTL, priority storage,
+/// and route guard for mutable field protection.
 pub struct Router {
     local_device_id: DeviceId,
     dedup: DeduplicationFilter,
     peer_table: PeerTable,
     store: PriorityStore,
     neighborhood: NeighborhoodFilter,
+    route_guard: RouteGuard,
 }
 
 impl Router {
@@ -55,6 +58,7 @@ impl Router {
             peer_table: PeerTable::new(),
             store: PriorityStore::with_defaults(),
             neighborhood: NeighborhoodFilter::with_defaults(),
+            route_guard: RouteGuard::with_defaults(),
         }
     }
 
@@ -66,7 +70,13 @@ impl Router {
             peer_table: PeerTable::new(),
             store: PriorityStore::new(store_config),
             neighborhood: NeighborhoodFilter::with_defaults(),
+            route_guard: RouteGuard::with_defaults(),
         }
+    }
+
+    /// Returns a reference to the route guard.
+    pub fn route_guard(&self) -> &RouteGuard {
+        &self.route_guard
     }
 
     /// Returns a reference to the peer table.
@@ -114,7 +124,20 @@ impl Router {
         encounter
     }
 
+    /// Validates an incoming message against the route guard.
+    /// Pass `known_identity` if the sender is in our contacts for signature verification.
+    pub fn validate_message(
+        &self,
+        message: &MeshMessage,
+        known_identity: Option<&crate::crypto::identity::PublicIdentity>,
+    ) -> GuardResult {
+        self.route_guard.validate(message, known_identity)
+    }
+
     /// Processes an incoming message and returns a routing decision.
+    /// Route guard validation (TTL inflation, hop count monotonicity) is applied
+    /// automatically. For signature verification, call `validate_message()` first
+    /// with the sender's known identity.
     pub fn route_incoming(&self, message: &MeshMessage) -> RouteDecision {
         // 1. Check for duplicate
         if self.dedup.check_and_mark(&message.message_id) {
@@ -123,7 +146,27 @@ impl Router {
             };
         }
 
-        // 2. Check TTL
+        // 2. Route guard: TTL inflation and hop count monotonicity checks
+        // Signature check is skipped here (done by caller with known identity),
+        // but TTL and hop tracking are enforced unconditionally.
+        let guard_result = self.route_guard.validate(message, None);
+        match guard_result {
+            GuardResult::Accept => {}
+            GuardResult::RejectTtlInflation { .. }
+            | GuardResult::RejectHopCountDecrease { .. }
+            | GuardResult::RejectSenderRateLimit { .. } => {
+                return RouteDecision::Drop {
+                    reason: DropReason::InvalidSignature,
+                };
+            }
+            GuardResult::RejectInvalidSignature => {
+                return RouteDecision::Drop {
+                    reason: DropReason::InvalidSignature,
+                };
+            }
+        }
+
+        // 3. Check TTL
         if message.is_expired() {
             return RouteDecision::Drop {
                 reason: DropReason::Expired,

@@ -7,13 +7,17 @@ use std::sync::Mutex;
 
 use crate::crypto::identity::{DeviceId, Identity, PublicIdentity};
 use crate::crypto::keys::derive_message_key;
+use crate::crypto::sender_keys::{SenderKeyDistribution, SenderKeyMessage, SenderKeyStore};
 use crate::crypto::{decrypt_message, encrypt_message};
+use crate::power::{PowerManager, PowerTier};
+use crate::protocol::apk_signing::{ApkSignature, ApkVerifyResult, TrustedDeveloperKeys};
 use crate::protocol::message::{ContentType, MeshMessage, MessageBuilder};
 use crate::protocol::rendezvous::{
     self, RendezvousManager, RendezvousMode, RendezvousPayload, RendezvousReply,
 };
 use crate::routing::router::{RouteDecision, Router};
 use crate::storage::database::FlareDatabase;
+use crate::transport::compression::{compress_payload, decompress_payload};
 use crate::{PROTOCOL_VERSION, SERVICE_IDENTIFIER};
 use base64::Engine as _;
 use sha2::Digest;
@@ -102,6 +106,31 @@ pub enum FfiRouteDecision {
     DropDuplicate,
     DropExpired,
     DropHopLimit,
+    DropInvalidSignature,
+    DropTtlInflation,
+    DropHopCountDecrease,
+    DropSenderRateLimit,
+}
+
+/// Power tier recommendation from the adaptive power manager.
+#[derive(uniffi::Record)]
+pub struct FfiPowerTierRecommendation {
+    /// Tier name: "high", "balanced", "low_power", "ultra_low"
+    pub tier: String,
+    pub scan_window_ms: u32,
+    pub scan_interval_ms: u32,
+    pub advertise_interval_ms: u32,
+    pub burst_scan_duration_ms: u32,
+    pub burst_sleep_duration_ms: u32,
+    pub use_burst_mode: bool,
+}
+
+/// APK verification result.
+#[derive(uniffi::Enum)]
+pub enum FfiApkVerifyResult {
+    Valid,
+    InvalidSignature,
+    UntrustedDeveloper,
 }
 
 #[derive(uniffi::Record)]
@@ -178,6 +207,9 @@ pub struct FlareNode {
     db: Mutex<FlareDatabase>,
     messages_relayed: Mutex<u64>,
     rendezvous: Mutex<RendezvousManager>,
+    power_manager: PowerManager,
+    sender_key_store: Mutex<SenderKeyStore>,
+    trusted_developer_keys: Mutex<TrustedDeveloperKeys>,
 }
 
 #[uniffi::export]
@@ -211,6 +243,9 @@ impl FlareNode {
             db: Mutex::new(db),
             messages_relayed: Mutex::new(0),
             rendezvous: Mutex::new(RendezvousManager::new()),
+            power_manager: PowerManager::with_defaults(),
+            sender_key_store: Mutex::new(SenderKeyStore::new()),
+            trusted_developer_keys: Mutex::new(TrustedDeveloperKeys::empty()),
         })
     }
 
@@ -260,8 +295,11 @@ impl FlareNode {
         // Derive per-message key using recipient device ID as salt
         let key_material = derive_message_key(&shared_secret, recipient_device_id.as_bytes());
 
-        // Encrypt the plaintext
-        let encrypted = encrypt_message(&key_material, plaintext.as_bytes())
+        // Compress plaintext before encryption (compressed data doesn't compress)
+        let compressed = compress_payload(plaintext.as_bytes());
+
+        // Encrypt the compressed plaintext
+        let encrypted = encrypt_message(&key_material, &compressed)
             .map_err(|e| FlareError::CryptoError { msg: e.to_string() })?;
 
         // Serialize the encrypted payload
@@ -302,8 +340,14 @@ impl FlareNode {
             .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
 
         match decrypt_message(&key_material, &encrypted) {
-            Ok(plaintext) => {
-                let text = String::from_utf8(plaintext)
+            Ok(compressed_plaintext) => {
+                // Decompress after decryption
+                let decompressed = decompress_payload(&compressed_plaintext).map_err(|e| {
+                    FlareError::SerializationError {
+                        msg: format!("Decompression failed: {}", e),
+                    }
+                })?;
+                let text = String::from_utf8(decompressed)
                     .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
                 Ok(Some(text))
             }
@@ -397,11 +441,37 @@ impl FlareNode {
     }
 
     /// Routes an incoming mesh message and returns the routing decision.
+    /// Route guard validation (TTL inflation, hop count monotonicity) is applied
+    /// automatically by the router.
     pub fn route_incoming(&self, raw_message: Vec<u8>) -> FfiRouteDecision {
         let msg = match MeshMessage::from_bytes(&raw_message) {
             Ok(m) => m,
-            Err(_) => return FfiRouteDecision::DropDuplicate,
+            Err(_) => return FfiRouteDecision::DropInvalidSignature,
         };
+
+        // Attempt signature verification if we know the sender
+        let db = self.db.lock().expect("db lock");
+        let known_identity = db.load_contact(&msg.sender_id).ok().flatten();
+        drop(db);
+
+        if let Some(ref identity) = known_identity {
+            let guard_result = self.router.validate_message(&msg, Some(identity));
+            match guard_result {
+                crate::routing::route_guard::GuardResult::Accept => {}
+                crate::routing::route_guard::GuardResult::RejectInvalidSignature => {
+                    return FfiRouteDecision::DropInvalidSignature;
+                }
+                crate::routing::route_guard::GuardResult::RejectTtlInflation { .. } => {
+                    return FfiRouteDecision::DropTtlInflation;
+                }
+                crate::routing::route_guard::GuardResult::RejectHopCountDecrease { .. } => {
+                    return FfiRouteDecision::DropHopCountDecrease;
+                }
+                crate::routing::route_guard::GuardResult::RejectSenderRateLimit { .. } => {
+                    return FfiRouteDecision::DropSenderRateLimit;
+                }
+            }
+        }
 
         match self.router.route_incoming(&msg) {
             RouteDecision::DeliverLocally => FfiRouteDecision::DeliverLocally,
@@ -417,7 +487,7 @@ impl FlareNode {
                     DropReason::Duplicate => FfiRouteDecision::DropDuplicate,
                     DropReason::Expired => FfiRouteDecision::DropExpired,
                     DropReason::HopLimitReached => FfiRouteDecision::DropHopLimit,
-                    DropReason::InvalidSignature => FfiRouteDecision::DropDuplicate,
+                    DropReason::InvalidSignature => FfiRouteDecision::DropInvalidSignature,
                 }
             }
         }
@@ -1075,5 +1145,211 @@ impl FlareNode {
             total_bytes: stats.total_bytes as u64,
             budget_bytes: stats.budget_bytes as u64,
         }
+    }
+
+    // ── Adaptive Power Management ──────────────────────────────────
+
+    /// Notifies the power manager that data was sent or received.
+    /// Call this on every incoming/outgoing message to trigger High tier promotion.
+    pub fn power_on_data_activity(&self, now_secs: i64) {
+        self.power_manager.on_data_activity(now_secs);
+    }
+
+    /// Notifies the power manager that a peer was discovered via BLE scan.
+    pub fn power_on_peer_discovered(&self, now_secs: i64) {
+        self.power_manager.on_peer_discovered(now_secs);
+    }
+
+    /// Updates the battery percentage in the power manager.
+    pub fn power_update_battery(&self, percent: u8) {
+        self.power_manager.update_battery(percent);
+    }
+
+    /// Sets whether the user has enabled battery saver mode.
+    pub fn power_set_battery_saver(&self, enabled: bool) {
+        self.power_manager.set_user_battery_saver(enabled);
+    }
+
+    /// Updates the connected peer count in the power manager.
+    pub fn power_update_connected_peers(&self, count: u32) {
+        self.power_manager.update_connected_peers(count);
+    }
+
+    /// Updates whether there are pending outbound messages.
+    pub fn power_set_has_pending_outbound(&self, has_pending: bool) {
+        self.power_manager.set_has_pending_outbound(has_pending);
+    }
+
+    /// Evaluates the current state and returns the recommended power tier.
+    /// Call this periodically (e.g., every scan cycle) from the mobile layer.
+    pub fn power_evaluate(&self, now_secs: i64) -> FfiPowerTierRecommendation {
+        let rec = self.power_manager.evaluate(now_secs);
+        FfiPowerTierRecommendation {
+            tier: match rec.tier {
+                PowerTier::High => "high".to_string(),
+                PowerTier::Balanced => "balanced".to_string(),
+                PowerTier::LowPower => "low_power".to_string(),
+                PowerTier::UltraLow => "ultra_low".to_string(),
+            },
+            scan_window_ms: rec.scan_window_ms,
+            scan_interval_ms: rec.scan_interval_ms,
+            advertise_interval_ms: rec.advertise_interval_ms,
+            burst_scan_duration_ms: rec.burst_scan_duration_ms,
+            burst_sleep_duration_ms: rec.burst_sleep_duration_ms,
+            use_burst_mode: rec.use_burst_mode,
+        }
+    }
+
+    /// Returns the current power tier without re-evaluating.
+    pub fn power_current_tier(&self) -> String {
+        match self.power_manager.current_tier() {
+            PowerTier::High => "high".to_string(),
+            PowerTier::Balanced => "balanced".to_string(),
+            PowerTier::LowPower => "low_power".to_string(),
+            PowerTier::UltraLow => "ultra_low".to_string(),
+        }
+    }
+
+    // ── Sender Keys (Group Encryption) ─────────────────────────────
+
+    /// Creates a sender key for a group and returns the distribution bytes.
+    /// The distribution bytes should be sent to each group member via
+    /// their existing pairwise DH channel (one-time per member).
+    pub fn create_sender_key(&self, group_id: String) -> Result<Vec<u8>, FlareError> {
+        let my_device_id = self.identity.device_id().to_hex();
+        let mut store = self.sender_key_store.lock().expect("sender key lock");
+        let distribution = store.create_sender_key(&group_id, &my_device_id);
+        distribution
+            .to_bytes()
+            .map_err(|e| FlareError::SerializationError { msg: e.to_string() })
+    }
+
+    /// Processes a received sender key distribution from another group member.
+    /// Call this when receiving a key distribution via pairwise DH channel.
+    pub fn process_sender_key_distribution(
+        &self,
+        distribution_bytes: Vec<u8>,
+    ) -> Result<(), FlareError> {
+        let distribution = SenderKeyDistribution::from_bytes(&distribution_bytes)
+            .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
+        let mut store = self.sender_key_store.lock().expect("sender key lock");
+        store.process_distribution(&distribution);
+        Ok(())
+    }
+
+    /// Encrypts a plaintext message for a group using sender keys.
+    /// Returns serialized SenderKeyMessage bytes.
+    /// The group must have been set up via `create_sender_key` first.
+    pub fn encrypt_group_sender_key(
+        &self,
+        group_id: String,
+        plaintext: String,
+    ) -> Result<Vec<u8>, FlareError> {
+        let compressed = compress_payload(plaintext.as_bytes());
+        let mut store = self.sender_key_store.lock().expect("sender key lock");
+        let message = store
+            .encrypt_group_message(&group_id, &compressed)
+            .map_err(|e| FlareError::CryptoError { msg: e.to_string() })?;
+        message
+            .to_bytes()
+            .map_err(|e| FlareError::SerializationError { msg: e.to_string() })
+    }
+
+    /// Decrypts a group message using the sender's key.
+    /// Returns the plaintext string, or None if decryption fails.
+    pub fn decrypt_group_sender_key(
+        &self,
+        group_id: String,
+        sender_device_id: String,
+        encrypted_bytes: Vec<u8>,
+    ) -> Result<Option<String>, FlareError> {
+        let message = SenderKeyMessage::from_bytes(&encrypted_bytes)
+            .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
+        let mut store = self.sender_key_store.lock().expect("sender key lock");
+        match store.decrypt_group_message(&group_id, &sender_device_id, &message) {
+            Ok(compressed) => {
+                let decompressed = decompress_payload(&compressed).map_err(|e| {
+                    FlareError::SerializationError {
+                        msg: format!("Decompression failed: {}", e),
+                    }
+                })?;
+                let text = String::from_utf8(decompressed)
+                    .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
+                Ok(Some(text))
+            }
+            Err(_) => Ok(None),
+        }
+    }
+
+    /// Invalidates all sender keys for a group (call on membership change).
+    pub fn invalidate_group_keys(&self, group_id: String) {
+        let mut store = self.sender_key_store.lock().expect("sender key lock");
+        store.invalidate_group(&group_id);
+    }
+
+    // ── APK Signing Verification ────────────────────────────────────
+
+    /// Adds a trusted developer public key (32 bytes).
+    /// On first install, the installing APK's developer key is trusted (TOFU).
+    pub fn add_trusted_developer_key(&self, public_key: Vec<u8>) -> Result<(), FlareError> {
+        if public_key.len() != 32 {
+            return Err(FlareError::InvalidInput {
+                msg: format!("Developer key must be 32 bytes, got {}", public_key.len()),
+            });
+        }
+        let mut key = [0u8; 32];
+        key.copy_from_slice(&public_key);
+        let mut store = self.trusted_developer_keys.lock().expect("dev keys lock");
+        store.add_key(key);
+        Ok(())
+    }
+
+    /// Verifies an APK against its signature using the trusted developer key store.
+    /// `apk_hash`: SHA-256 hash of the APK file (32 bytes).
+    /// `signature_bytes`: Serialized ApkSignature.
+    pub fn verify_apk_signature(
+        &self,
+        apk_hash: Vec<u8>,
+        signature_bytes: Vec<u8>,
+    ) -> Result<FfiApkVerifyResult, FlareError> {
+        if apk_hash.len() != 32 {
+            return Err(FlareError::InvalidInput {
+                msg: format!("APK hash must be 32 bytes, got {}", apk_hash.len()),
+            });
+        }
+        let mut hash = [0u8; 32];
+        hash.copy_from_slice(&apk_hash);
+
+        let signature = ApkSignature::from_bytes(&signature_bytes)
+            .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
+
+        let store = self.trusted_developer_keys.lock().expect("dev keys lock");
+        Ok(match store.verify_apk_with_hash(&hash, &signature) {
+            ApkVerifyResult::Valid => FfiApkVerifyResult::Valid,
+            ApkVerifyResult::InvalidSignature => FfiApkVerifyResult::InvalidSignature,
+            ApkVerifyResult::UntrustedDeveloper => FfiApkVerifyResult::UntrustedDeveloper,
+        })
+    }
+
+    /// Returns the number of trusted developer keys.
+    pub fn trusted_developer_key_count(&self) -> u32 {
+        let store = self.trusted_developer_keys.lock().expect("dev keys lock");
+        store.key_count() as u32
+    }
+
+    // ── Compression (standalone) ─────────────────────────────────────
+
+    /// Compresses a payload for efficient BLE transmission.
+    /// Compression is already integrated into encrypt/decrypt, but this
+    /// is exposed for direct use (e.g., compressing non-encrypted data).
+    pub fn compress(&self, data: Vec<u8>) -> Vec<u8> {
+        compress_payload(&data)
+    }
+
+    /// Decompresses a payload that was compressed with `compress`.
+    pub fn decompress(&self, data: Vec<u8>) -> Result<Vec<u8>, FlareError> {
+        decompress_payload(&data).map_err(|e| FlareError::SerializationError {
+            msg: format!("Decompression failed: {}", e),
+        })
     }
 }

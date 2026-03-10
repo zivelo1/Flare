@@ -161,7 +161,9 @@ final class FlareRepository: @unchecked Sendable {
             return IncomingMessageResult(decision: .forward, senderId: nil, plaintext: nil, messageId: nil)
         case .store:
             return IncomingMessageResult(decision: .store, senderId: nil, plaintext: nil, messageId: nil)
-        case .dropDuplicate, .dropExpired, .dropHopLimit:
+        case .dropDuplicate, .dropExpired, .dropHopLimit,
+             .dropInvalidSignature, .dropTtlInflation,
+             .dropHopCountDecrease, .dropSenderRateLimit:
             return IncomingMessageResult(decision: .drop, senderId: nil, plaintext: nil, messageId: nil)
         }
     }
