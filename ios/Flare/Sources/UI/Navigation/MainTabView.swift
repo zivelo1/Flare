@@ -5,6 +5,8 @@ struct MainTabView: View {
     @StateObject private var contactsVM = ContactsViewModel()
     @StateObject private var networkVM = NetworkViewModel()
     @StateObject private var discoveryVM = DiscoveryViewModel()
+    @StateObject private var settingsVM = SettingsViewModel()
+    @StateObject private var groupVM = GroupViewModel()
 
     init() {
         MeshService.shared.start()
@@ -13,7 +15,11 @@ struct MainTabView: View {
     var body: some View {
         TabView {
             NavigationStack {
-                ConversationListView(viewModel: chatVM)
+                ConversationListView(
+                    viewModel: chatVM,
+                    settingsVM: settingsVM,
+                    groupVM: groupVM
+                )
             }
             .tabItem {
                 Label("Chats", systemImage: "bubble.left.and.bubble.right")

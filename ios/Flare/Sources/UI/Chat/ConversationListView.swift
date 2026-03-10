@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ConversationListView: View {
     @ObservedObject var viewModel: ChatViewModel
+    @ObservedObject var settingsVM: SettingsViewModel
+    @ObservedObject var groupVM: GroupViewModel
 
     var body: some View {
         Group {
@@ -18,12 +20,33 @@ struct ConversationListView: View {
         }
         .navigationTitle("Flare")
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                NavigationLink(value: "groups") {
+                    Image(systemName: "person.3")
+                }
+                NavigationLink(value: "settings") {
+                    Image(systemName: "gearshape")
+                }
+            }
+            ToolbarItem(placement: .topBarLeading) {
                 MeshStatusIndicator(status: viewModel.meshStatus, isRunning: viewModel.isServiceRunning)
             }
         }
-        .navigationDestination(for: String.self) { conversationId in
-            ChatView(conversationId: conversationId, viewModel: viewModel)
+        .navigationDestination(for: String.self) { route in
+            switch route {
+            case "settings":
+                SettingsView(viewModel: settingsVM)
+            case "settings-duress":
+                DuressSettingsView(viewModel: settingsVM)
+            case "settings-power":
+                PowerSettingsView(viewModel: settingsVM)
+            case "groups":
+                GroupListView(viewModel: groupVM)
+            case "create-group":
+                CreateGroupView(viewModel: groupVM)
+            default:
+                ChatView(conversationId: route, viewModel: viewModel)
+            }
         }
     }
 
@@ -62,9 +85,9 @@ struct ConversationRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            AvatarView(
-                initials: conversation.contact.initials,
-                isVerified: conversation.contact.isVerified,
+            IdenticonAvatarView(
+                deviceId: conversation.contact.identity.deviceId,
+                displayName: conversation.contact.displayName,
                 size: 48
             )
 
@@ -141,6 +164,30 @@ struct MeshStatusIndicator: View {
     }
 }
 
+/// Identicon-based avatar view using deterministic colors from device ID.
+struct IdenticonAvatarView: View {
+    let deviceId: String
+    let displayName: String?
+    var isVerified: Bool = false
+    var size: CGFloat = 48
+
+    var body: some View {
+        let colors = IdenticonGenerator.getColors(deviceId: deviceId)
+        let initials = IdenticonGenerator.getInitials(displayName: displayName, deviceId: deviceId)
+
+        ZStack {
+            Circle()
+                .fill(colors.background.opacity(0.25))
+                .frame(width: size, height: size)
+
+            Text(initials)
+                .font(.system(size: size * 0.4, weight: .medium))
+                .foregroundStyle(colors.background)
+        }
+    }
+}
+
+/// Legacy avatar view kept for backwards compatibility — delegates to IdenticonAvatarView.
 struct AvatarView: View {
     let initials: String
     var isVerified: Bool = false
@@ -154,7 +201,7 @@ struct AvatarView: View {
 
             Text(initials)
                 .font(.system(size: size * 0.4, weight: .medium))
-                .foregroundStyle(isVerified ? .accentColor : .secondary)
+                .foregroundStyle(isVerified ? Color.accentColor : Color.secondary)
         }
     }
 }

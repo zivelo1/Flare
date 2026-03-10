@@ -35,4 +35,21 @@
     <string name="qr_share_code">Share QR Code</string>
     <string name="action_close">Close</string>
     <string name="action_done">Done</string>
+
+    <!-- Settings -->
+    <string name="settings_duress_title">Duress PIN</string>
+    <string name="settings_power_title">Power Management</string>
+    <string name="settings_about_title">About Flare</string>
+
+    <!-- Groups -->
+    <string name="groups_title">Groups</string>
+    <string name="groups_create">Create Group</string>
+    <string name="groups_empty">No groups yet</string>
+    <string name="groups_empty_hint">Create a group to message multiple contacts at once.</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_get_started">Get Started</string>
 </resources>

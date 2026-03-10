@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FiberManualRecord
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flare.mesh.R
 import com.flare.mesh.data.model.Conversation
 import com.flare.mesh.data.model.MeshStatus
+import com.flare.mesh.util.IdenticonGenerator
 import com.flare.mesh.viewmodel.ChatViewModel
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -30,6 +32,8 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun ConversationListScreen(
     onConversationClick: (String) -> Unit,
+    onNavigateToSettings: () -> Unit = {},
+    onNavigateToGroups: () -> Unit = {},
     chatViewModel: ChatViewModel = viewModel(),
 ) {
     val meshStatus by chatViewModel.meshStatus.collectAsState()
@@ -49,7 +53,10 @@ fun ConversationListScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Settings */ }) {
+                    IconButton(onClick = onNavigateToGroups) {
+                        Icon(Icons.Default.Group, contentDescription = "Groups")
+                    }
+                    IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings_title))
                     }
                 },
@@ -171,16 +178,21 @@ private fun ConversationItem(
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         leadingContent = {
+            val (bgColor, fgColor) = IdenticonGenerator.getColors(conversation.contact.identity.deviceId)
+            val initials = IdenticonGenerator.getInitials(
+                conversation.contact.displayName,
+                conversation.contact.identity.deviceId,
+            )
             Surface(
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer,
+                color = bgColor.copy(alpha = 0.25f),
                 modifier = Modifier.size(48.dp),
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
-                        text = (conversation.contact.displayName?.firstOrNull() ?: '?').uppercase(),
+                        text = initials,
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = bgColor,
                     )
                 }
             }

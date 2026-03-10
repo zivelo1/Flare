@@ -568,6 +568,12 @@ public protocol FlareNodeProtocol : AnyObject {
     func addGroupMember(groupId: String, deviceId: String) throws 
     
     /**
+     * Adds a trusted developer public key (32 bytes).
+     * On first install, the installing APK's developer key is trusted (TOFU).
+     */
+    func addTrustedDeveloperKey(publicKey: Data) throws 
+    
+    /**
      * Sends a group message by encrypting it individually for each member.
      * Returns the serialized mesh messages (one per member, excluding self).
      */
@@ -603,6 +609,13 @@ public protocol FlareNodeProtocol : AnyObject {
     func clearDuressPassphrase() throws 
     
     /**
+     * Compresses a payload for efficient BLE transmission.
+     * Compression is already integrated into encrypt/decrypt, but this
+     * is exposed for direct use (e.g., compressing non-encrypted data).
+     */
+    func compress(data: Data)  -> Data
+    
+    /**
      * Creates a delivery acknowledgment for a received message.
      * Returns serialized mesh message bytes ready for BLE transmission.
      */
@@ -626,10 +639,35 @@ public protocol FlareNodeProtocol : AnyObject {
     func createReadReceipt(originalMessageId: String, senderDeviceId: String) throws  -> Data
     
     /**
+     * Creates a sender key for a group and returns the distribution bytes.
+     * The distribution bytes should be sent to each group member via
+     * their existing pairwise DH channel (one-time per member).
+     */
+    func createSenderKey(groupId: String) throws  -> Data
+    
+    /**
+     * Decompresses a payload that was compressed with `compress`.
+     */
+    func decompress(data: Data) throws  -> Data
+    
+    /**
+     * Decrypts a group message using the sender's key.
+     * Returns the plaintext string, or None if decryption fails.
+     */
+    func decryptGroupSenderKey(groupId: String, senderDeviceId: String, encryptedBytes: Data) throws  -> String?
+    
+    /**
      * Decrypts an incoming encrypted message from a sender.
      * Returns the plaintext string, or None if decryption fails.
      */
     func decryptIncomingMessage(senderDeviceId: String, senderAgreementKey: Data, encryptedData: Data) throws  -> String?
+    
+    /**
+     * Encrypts a plaintext message for a group using sender keys.
+     * Returns serialized SenderKeyMessage bytes.
+     * The group must have been set up via `create_sender_key` first.
+     */
+    func encryptGroupSenderKey(groupId: String, plaintext: String) throws  -> Data
     
     /**
      * Exports the neighborhood filter bitmap for exchange with a remote peer.
@@ -700,6 +738,11 @@ public protocol FlareNodeProtocol : AnyObject {
     func importPhoneContacts(myPhone: String, contacts: [String]) throws  -> UInt32
     
     /**
+     * Invalidates all sender keys for a group (call on membership change).
+     */
+    func invalidateGroupKeys(groupId: String) 
+    
+    /**
      * Lists all contacts.
      */
     func listContacts() throws  -> [FfiContact]
@@ -720,6 +763,48 @@ public protocol FlareNodeProtocol : AnyObject {
     func parseMeshMessage(rawData: Data) throws  -> FfiMeshMessage?
     
     /**
+     * Returns the current power tier without re-evaluating.
+     */
+    func powerCurrentTier()  -> String
+    
+    /**
+     * Evaluates the current state and returns the recommended power tier.
+     * Call this periodically (e.g., every scan cycle) from the mobile layer.
+     */
+    func powerEvaluate(nowSecs: Int64)  -> FfiPowerTierRecommendation
+    
+    /**
+     * Notifies the power manager that data was sent or received.
+     * Call this on every incoming/outgoing message to trigger High tier promotion.
+     */
+    func powerOnDataActivity(nowSecs: Int64) 
+    
+    /**
+     * Notifies the power manager that a peer was discovered via BLE scan.
+     */
+    func powerOnPeerDiscovered(nowSecs: Int64) 
+    
+    /**
+     * Sets whether the user has enabled battery saver mode.
+     */
+    func powerSetBatterySaver(enabled: Bool) 
+    
+    /**
+     * Updates whether there are pending outbound messages.
+     */
+    func powerSetHasPendingOutbound(hasPending: Bool) 
+    
+    /**
+     * Updates the battery percentage in the power manager.
+     */
+    func powerUpdateBattery(percent: UInt8) 
+    
+    /**
+     * Updates the connected peer count in the power manager.
+     */
+    func powerUpdateConnectedPeers(count: UInt32) 
+    
+    /**
      * Prepares a raw mesh message for relay by incrementing its hop count.
      * Returns the updated serialized message, or an error if hop limit is reached.
      */
@@ -731,6 +816,13 @@ public protocol FlareNodeProtocol : AnyObject {
      * If "bridge", stored messages have their TTL automatically extended.
      */
     func processRemoteNeighborhood(remoteBitmap: Data)  -> String
+    
+    /**
+     * Processes a remote peer's neighborhood bitmap and tags the peer
+     * for neighborhood-aware routing. Bridge peers will be prioritized
+     * in future routing decisions.
+     */
+    func processRemoteNeighborhoodForPeer(peerDeviceId: String, remoteBitmap: Data)  -> String
     
     /**
      * Processes an incoming RouteRequest or RouteReply message.
@@ -746,6 +838,12 @@ public protocol FlareNodeProtocol : AnyObject {
     func processRendezvousRequest(rawPayload: Data, senderDeviceId: String) throws  -> Data?
     
     /**
+     * Processes a received sender key distribution from another group member.
+     * Call this when receiving a key distribution via pairwise DH channel.
+     */
+    func processSenderKeyDistribution(distributionBytes: Data) throws 
+    
+    /**
      * Prunes expired messages from the routing store.
      */
     func pruneExpiredMessages()  -> UInt32
@@ -754,6 +852,16 @@ public protocol FlareNodeProtocol : AnyObject {
      * Queues an outbound message for delivery.
      */
     func queueOutboundMessage(messageId: String, recipientDeviceId: String, encryptedPayload: Data) throws 
+    
+    /**
+     * Returns the recommended transfer strategy for a message based on
+     * content type and payload size. The platform layer uses this to decide
+     * whether to send via BLE mesh relay or queue for Wi-Fi Direct.
+     *
+     * `content_type`: same codes as build_mesh_message (0x01=Text, 0x02=Voice, etc.)
+     * `payload_bytes`: size of the encrypted payload in bytes.
+     */
+    func recommendTransferStrategy(contentType: UInt8, payloadBytes: UInt32)  -> FfiTransferRecommendation
     
     /**
      * Records a peer's short ID (4 bytes) in the neighborhood filter.
@@ -779,6 +887,8 @@ public protocol FlareNodeProtocol : AnyObject {
     
     /**
      * Routes an incoming mesh message and returns the routing decision.
+     * Route guard validation (TTL inflation, hop count monotonicity) is applied
+     * automatically by the router.
      */
     func routeIncoming(rawMessage: Data)  -> FfiRouteDecision
     
@@ -806,9 +916,72 @@ public protocol FlareNodeProtocol : AnyObject {
     func storeChatMessage(message: FfiChatMessage) throws 
     
     /**
+     * Returns the number of trusted developer keys.
+     */
+    func trustedDeveloperKeyCount()  -> UInt32
+    
+    /**
      * Updates the delivery status of a stored message.
      */
     func updateDeliveryStatus(messageId: String, status: UInt8) throws 
+    
+    /**
+     * Verifies an APK against its signature using the trusted developer key store.
+     * `apk_hash`: SHA-256 hash of the APK file (32 bytes).
+     * `signature_bytes`: Serialized ApkSignature.
+     */
+    func verifyApkSignature(apkHash: Data, signatureBytes: Data) throws  -> FfiApkVerifyResult
+    
+    /**
+     * Marks a Wi-Fi Direct transfer as completed.
+     */
+    func wifiDirectCompleteTransfer(transferIdHex: String) throws  -> Bool
+    
+    /**
+     * Notifies the Rust core that Wi-Fi Direct connection state changed.
+     * `state`: "disconnected", "connecting", "connected", "failed"
+     */
+    func wifiDirectConnectionChanged(state: String, peerDeviceId: String?) throws 
+    
+    /**
+     * Queues a payload for Wi-Fi Direct transfer to a peer.
+     * Returns false if the queue is full or payload exceeds max size.
+     * `transfer_id_hex`: 32-byte message ID as hex string.
+     * `recipient_device_id`: peer's device ID as hex string.
+     */
+    func wifiDirectEnqueue(transferIdHex: String, recipientDeviceId: String, payload: Data, contentType: UInt8, nowSecs: UInt64) throws  -> Bool
+    
+    /**
+     * Marks a Wi-Fi Direct transfer as failed. Retries up to 3 times before dropping.
+     */
+    func wifiDirectFailTransfer(transferIdHex: String) throws  -> Bool
+    
+    /**
+     * Returns true if there are pending Wi-Fi Direct transfers.
+     */
+    func wifiDirectHasPending()  -> Bool
+    
+    /**
+     * Returns the device ID of the peer with the most pending transfers.
+     * The platform layer uses this to know which peer to initiate Wi-Fi Direct with.
+     */
+    func wifiDirectMostNeededPeer()  -> String?
+    
+    /**
+     * Returns the next pending transfer for a connected Wi-Fi Direct peer.
+     * Returns None if no transfers are pending for this peer.
+     */
+    func wifiDirectNextTransfer(peerDeviceId: String) throws  -> Data?
+    
+    /**
+     * Prunes expired Wi-Fi Direct transfers. Returns count removed.
+     */
+    func wifiDirectPruneExpired(nowSecs: UInt64)  -> UInt32
+    
+    /**
+     * Returns Wi-Fi Direct transfer queue statistics.
+     */
+    func wifiDirectStats()  -> FfiWifiDirectStats
     
 }
 
@@ -911,6 +1084,17 @@ open func addGroupMember(groupId: String, deviceId: String)throws  {try rustCall
 }
     
     /**
+     * Adds a trusted developer public key (32 bytes).
+     * On first install, the installing APK's developer key is trusted (TOFU).
+     */
+open func addTrustedDeveloperKey(publicKey: Data)throws  {try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_add_trusted_developer_key(self.uniffiClonePointer(),
+        FfiConverterData.lower(publicKey),$0
+    )
+}
+}
+    
+    /**
      * Sends a group message by encrypting it individually for each member.
      * Returns the serialized mesh messages (one per member, excluding self).
      */
@@ -982,6 +1166,19 @@ open func clearDuressPassphrase()throws  {try rustCallWithError(FfiConverterType
 }
     
     /**
+     * Compresses a payload for efficient BLE transmission.
+     * Compression is already integrated into encrypt/decrypt, but this
+     * is exposed for direct use (e.g., compressing non-encrypted data).
+     */
+open func compress(data: Data) -> Data {
+    return try!  FfiConverterData.lift(try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_compress(self.uniffiClonePointer(),
+        FfiConverterData.lower(data),$0
+    )
+})
+}
+    
+    /**
      * Creates a delivery acknowledgment for a received message.
      * Returns serialized mesh message bytes ready for BLE transmission.
      */
@@ -1033,6 +1230,44 @@ open func createReadReceipt(originalMessageId: String, senderDeviceId: String)th
 }
     
     /**
+     * Creates a sender key for a group and returns the distribution bytes.
+     * The distribution bytes should be sent to each group member via
+     * their existing pairwise DH channel (one-time per member).
+     */
+open func createSenderKey(groupId: String)throws  -> Data {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_create_sender_key(self.uniffiClonePointer(),
+        FfiConverterString.lower(groupId),$0
+    )
+})
+}
+    
+    /**
+     * Decompresses a payload that was compressed with `compress`.
+     */
+open func decompress(data: Data)throws  -> Data {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_decompress(self.uniffiClonePointer(),
+        FfiConverterData.lower(data),$0
+    )
+})
+}
+    
+    /**
+     * Decrypts a group message using the sender's key.
+     * Returns the plaintext string, or None if decryption fails.
+     */
+open func decryptGroupSenderKey(groupId: String, senderDeviceId: String, encryptedBytes: Data)throws  -> String? {
+    return try  FfiConverterOptionString.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_decrypt_group_sender_key(self.uniffiClonePointer(),
+        FfiConverterString.lower(groupId),
+        FfiConverterString.lower(senderDeviceId),
+        FfiConverterData.lower(encryptedBytes),$0
+    )
+})
+}
+    
+    /**
      * Decrypts an incoming encrypted message from a sender.
      * Returns the plaintext string, or None if decryption fails.
      */
@@ -1042,6 +1277,20 @@ open func decryptIncomingMessage(senderDeviceId: String, senderAgreementKey: Dat
         FfiConverterString.lower(senderDeviceId),
         FfiConverterData.lower(senderAgreementKey),
         FfiConverterData.lower(encryptedData),$0
+    )
+})
+}
+    
+    /**
+     * Encrypts a plaintext message for a group using sender keys.
+     * Returns serialized SenderKeyMessage bytes.
+     * The group must have been set up via `create_sender_key` first.
+     */
+open func encryptGroupSenderKey(groupId: String, plaintext: String)throws  -> Data {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_encrypt_group_sender_key(self.uniffiClonePointer(),
+        FfiConverterString.lower(groupId),
+        FfiConverterString.lower(plaintext),$0
     )
 })
 }
@@ -1185,6 +1434,16 @@ open func importPhoneContacts(myPhone: String, contacts: [String])throws  -> UIn
 }
     
     /**
+     * Invalidates all sender keys for a group (call on membership change).
+     */
+open func invalidateGroupKeys(groupId: String) {try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_invalidate_group_keys(self.uniffiClonePointer(),
+        FfiConverterString.lower(groupId),$0
+    )
+}
+}
+    
+    /**
      * Lists all contacts.
      */
 open func listContacts()throws  -> [FfiContact] {
@@ -1226,6 +1485,89 @@ open func parseMeshMessage(rawData: Data)throws  -> FfiMeshMessage? {
 }
     
     /**
+     * Returns the current power tier without re-evaluating.
+     */
+open func powerCurrentTier() -> String {
+    return try!  FfiConverterString.lift(try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_power_current_tier(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+    /**
+     * Evaluates the current state and returns the recommended power tier.
+     * Call this periodically (e.g., every scan cycle) from the mobile layer.
+     */
+open func powerEvaluate(nowSecs: Int64) -> FfiPowerTierRecommendation {
+    return try!  FfiConverterTypeFfiPowerTierRecommendation.lift(try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_power_evaluate(self.uniffiClonePointer(),
+        FfiConverterInt64.lower(nowSecs),$0
+    )
+})
+}
+    
+    /**
+     * Notifies the power manager that data was sent or received.
+     * Call this on every incoming/outgoing message to trigger High tier promotion.
+     */
+open func powerOnDataActivity(nowSecs: Int64) {try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_power_on_data_activity(self.uniffiClonePointer(),
+        FfiConverterInt64.lower(nowSecs),$0
+    )
+}
+}
+    
+    /**
+     * Notifies the power manager that a peer was discovered via BLE scan.
+     */
+open func powerOnPeerDiscovered(nowSecs: Int64) {try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_power_on_peer_discovered(self.uniffiClonePointer(),
+        FfiConverterInt64.lower(nowSecs),$0
+    )
+}
+}
+    
+    /**
+     * Sets whether the user has enabled battery saver mode.
+     */
+open func powerSetBatterySaver(enabled: Bool) {try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_power_set_battery_saver(self.uniffiClonePointer(),
+        FfiConverterBool.lower(enabled),$0
+    )
+}
+}
+    
+    /**
+     * Updates whether there are pending outbound messages.
+     */
+open func powerSetHasPendingOutbound(hasPending: Bool) {try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_power_set_has_pending_outbound(self.uniffiClonePointer(),
+        FfiConverterBool.lower(hasPending),$0
+    )
+}
+}
+    
+    /**
+     * Updates the battery percentage in the power manager.
+     */
+open func powerUpdateBattery(percent: UInt8) {try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_power_update_battery(self.uniffiClonePointer(),
+        FfiConverterUInt8.lower(percent),$0
+    )
+}
+}
+    
+    /**
+     * Updates the connected peer count in the power manager.
+     */
+open func powerUpdateConnectedPeers(count: UInt32) {try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_power_update_connected_peers(self.uniffiClonePointer(),
+        FfiConverterUInt32.lower(count),$0
+    )
+}
+}
+    
+    /**
      * Prepares a raw mesh message for relay by incrementing its hop count.
      * Returns the updated serialized message, or an error if hop limit is reached.
      */
@@ -1245,6 +1587,20 @@ open func prepareForRelay(rawMessage: Data)throws  -> Data {
 open func processRemoteNeighborhood(remoteBitmap: Data) -> String {
     return try!  FfiConverterString.lift(try! rustCall() {
     uniffi_flare_core_fn_method_flarenode_process_remote_neighborhood(self.uniffiClonePointer(),
+        FfiConverterData.lower(remoteBitmap),$0
+    )
+})
+}
+    
+    /**
+     * Processes a remote peer's neighborhood bitmap and tags the peer
+     * for neighborhood-aware routing. Bridge peers will be prioritized
+     * in future routing decisions.
+     */
+open func processRemoteNeighborhoodForPeer(peerDeviceId: String, remoteBitmap: Data) -> String {
+    return try!  FfiConverterString.lift(try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_process_remote_neighborhood_for_peer(self.uniffiClonePointer(),
+        FfiConverterString.lower(peerDeviceId),
         FfiConverterData.lower(remoteBitmap),$0
     )
 })
@@ -1278,6 +1634,17 @@ open func processRendezvousRequest(rawPayload: Data, senderDeviceId: String)thro
 }
     
     /**
+     * Processes a received sender key distribution from another group member.
+     * Call this when receiving a key distribution via pairwise DH channel.
+     */
+open func processSenderKeyDistribution(distributionBytes: Data)throws  {try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_process_sender_key_distribution(self.uniffiClonePointer(),
+        FfiConverterData.lower(distributionBytes),$0
+    )
+}
+}
+    
+    /**
      * Prunes expired messages from the routing store.
      */
 open func pruneExpiredMessages() -> UInt32 {
@@ -1297,6 +1664,23 @@ open func queueOutboundMessage(messageId: String, recipientDeviceId: String, enc
         FfiConverterData.lower(encryptedPayload),$0
     )
 }
+}
+    
+    /**
+     * Returns the recommended transfer strategy for a message based on
+     * content type and payload size. The platform layer uses this to decide
+     * whether to send via BLE mesh relay or queue for Wi-Fi Direct.
+     *
+     * `content_type`: same codes as build_mesh_message (0x01=Text, 0x02=Voice, etc.)
+     * `payload_bytes`: size of the encrypted payload in bytes.
+     */
+open func recommendTransferStrategy(contentType: UInt8, payloadBytes: UInt32) -> FfiTransferRecommendation {
+    return try!  FfiConverterTypeFfiTransferRecommendation.lift(try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_recommend_transfer_strategy(self.uniffiClonePointer(),
+        FfiConverterUInt8.lower(contentType),
+        FfiConverterUInt32.lower(payloadBytes),$0
+    )
+})
 }
     
     /**
@@ -1344,6 +1728,8 @@ open func removeGroupMember(groupId: String, deviceId: String)throws  {try rustC
     
     /**
      * Routes an incoming mesh message and returns the routing decision.
+     * Route guard validation (TTL inflation, hop count monotonicity) is applied
+     * automatically by the router.
      */
 open func routeIncoming(rawMessage: Data) -> FfiRouteDecision {
     return try!  FfiConverterTypeFfiRouteDecision.lift(try! rustCall() {
@@ -1400,6 +1786,16 @@ open func storeChatMessage(message: FfiChatMessage)throws  {try rustCallWithErro
 }
     
     /**
+     * Returns the number of trusted developer keys.
+     */
+open func trustedDeveloperKeyCount() -> UInt32 {
+    return try!  FfiConverterUInt32.lift(try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_trusted_developer_key_count(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+    /**
      * Updates the delivery status of a stored message.
      */
 open func updateDeliveryStatus(messageId: String, status: UInt8)throws  {try rustCallWithError(FfiConverterTypeFlareError.lift) {
@@ -1408,6 +1804,126 @@ open func updateDeliveryStatus(messageId: String, status: UInt8)throws  {try rus
         FfiConverterUInt8.lower(status),$0
     )
 }
+}
+    
+    /**
+     * Verifies an APK against its signature using the trusted developer key store.
+     * `apk_hash`: SHA-256 hash of the APK file (32 bytes).
+     * `signature_bytes`: Serialized ApkSignature.
+     */
+open func verifyApkSignature(apkHash: Data, signatureBytes: Data)throws  -> FfiApkVerifyResult {
+    return try  FfiConverterTypeFfiApkVerifyResult.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_verify_apk_signature(self.uniffiClonePointer(),
+        FfiConverterData.lower(apkHash),
+        FfiConverterData.lower(signatureBytes),$0
+    )
+})
+}
+    
+    /**
+     * Marks a Wi-Fi Direct transfer as completed.
+     */
+open func wifiDirectCompleteTransfer(transferIdHex: String)throws  -> Bool {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_wifi_direct_complete_transfer(self.uniffiClonePointer(),
+        FfiConverterString.lower(transferIdHex),$0
+    )
+})
+}
+    
+    /**
+     * Notifies the Rust core that Wi-Fi Direct connection state changed.
+     * `state`: "disconnected", "connecting", "connected", "failed"
+     */
+open func wifiDirectConnectionChanged(state: String, peerDeviceId: String?)throws  {try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_wifi_direct_connection_changed(self.uniffiClonePointer(),
+        FfiConverterString.lower(state),
+        FfiConverterOptionString.lower(peerDeviceId),$0
+    )
+}
+}
+    
+    /**
+     * Queues a payload for Wi-Fi Direct transfer to a peer.
+     * Returns false if the queue is full or payload exceeds max size.
+     * `transfer_id_hex`: 32-byte message ID as hex string.
+     * `recipient_device_id`: peer's device ID as hex string.
+     */
+open func wifiDirectEnqueue(transferIdHex: String, recipientDeviceId: String, payload: Data, contentType: UInt8, nowSecs: UInt64)throws  -> Bool {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_wifi_direct_enqueue(self.uniffiClonePointer(),
+        FfiConverterString.lower(transferIdHex),
+        FfiConverterString.lower(recipientDeviceId),
+        FfiConverterData.lower(payload),
+        FfiConverterUInt8.lower(contentType),
+        FfiConverterUInt64.lower(nowSecs),$0
+    )
+})
+}
+    
+    /**
+     * Marks a Wi-Fi Direct transfer as failed. Retries up to 3 times before dropping.
+     */
+open func wifiDirectFailTransfer(transferIdHex: String)throws  -> Bool {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_wifi_direct_fail_transfer(self.uniffiClonePointer(),
+        FfiConverterString.lower(transferIdHex),$0
+    )
+})
+}
+    
+    /**
+     * Returns true if there are pending Wi-Fi Direct transfers.
+     */
+open func wifiDirectHasPending() -> Bool {
+    return try!  FfiConverterBool.lift(try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_wifi_direct_has_pending(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+    /**
+     * Returns the device ID of the peer with the most pending transfers.
+     * The platform layer uses this to know which peer to initiate Wi-Fi Direct with.
+     */
+open func wifiDirectMostNeededPeer() -> String? {
+    return try!  FfiConverterOptionString.lift(try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_wifi_direct_most_needed_peer(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+    /**
+     * Returns the next pending transfer for a connected Wi-Fi Direct peer.
+     * Returns None if no transfers are pending for this peer.
+     */
+open func wifiDirectNextTransfer(peerDeviceId: String)throws  -> Data? {
+    return try  FfiConverterOptionData.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_wifi_direct_next_transfer(self.uniffiClonePointer(),
+        FfiConverterString.lower(peerDeviceId),$0
+    )
+})
+}
+    
+    /**
+     * Prunes expired Wi-Fi Direct transfers. Returns count removed.
+     */
+open func wifiDirectPruneExpired(nowSecs: UInt64) -> UInt32 {
+    return try!  FfiConverterUInt32.lift(try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_wifi_direct_prune_expired(self.uniffiClonePointer(),
+        FfiConverterUInt64.lower(nowSecs),$0
+    )
+})
+}
+    
+    /**
+     * Returns Wi-Fi Direct transfer queue statistics.
+     */
+open func wifiDirectStats() -> FfiWifiDirectStats {
+    return try!  FfiConverterTypeFfiWifiDirectStats.lift(try! rustCall() {
+    uniffi_flare_core_fn_method_flarenode_wifi_direct_stats(self.uniffiClonePointer(),$0
+    )
+})
 }
     
 
@@ -2021,6 +2537,121 @@ public func FfiConverterTypeFfiMeshStatus_lower(_ value: FfiMeshStatus) -> RustB
 }
 
 
+/**
+ * Power tier recommendation from the adaptive power manager.
+ */
+public struct FfiPowerTierRecommendation {
+    /**
+     * Tier name: "high", "balanced", "low_power", "ultra_low"
+     */
+    public var tier: String
+    public var scanWindowMs: UInt32
+    public var scanIntervalMs: UInt32
+    public var advertiseIntervalMs: UInt32
+    public var burstScanDurationMs: UInt32
+    public var burstSleepDurationMs: UInt32
+    public var useBurstMode: Bool
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(
+        /**
+         * Tier name: "high", "balanced", "low_power", "ultra_low"
+         */tier: String, scanWindowMs: UInt32, scanIntervalMs: UInt32, advertiseIntervalMs: UInt32, burstScanDurationMs: UInt32, burstSleepDurationMs: UInt32, useBurstMode: Bool) {
+        self.tier = tier
+        self.scanWindowMs = scanWindowMs
+        self.scanIntervalMs = scanIntervalMs
+        self.advertiseIntervalMs = advertiseIntervalMs
+        self.burstScanDurationMs = burstScanDurationMs
+        self.burstSleepDurationMs = burstSleepDurationMs
+        self.useBurstMode = useBurstMode
+    }
+}
+
+
+
+extension FfiPowerTierRecommendation: Equatable, Hashable {
+    public static func ==(lhs: FfiPowerTierRecommendation, rhs: FfiPowerTierRecommendation) -> Bool {
+        if lhs.tier != rhs.tier {
+            return false
+        }
+        if lhs.scanWindowMs != rhs.scanWindowMs {
+            return false
+        }
+        if lhs.scanIntervalMs != rhs.scanIntervalMs {
+            return false
+        }
+        if lhs.advertiseIntervalMs != rhs.advertiseIntervalMs {
+            return false
+        }
+        if lhs.burstScanDurationMs != rhs.burstScanDurationMs {
+            return false
+        }
+        if lhs.burstSleepDurationMs != rhs.burstSleepDurationMs {
+            return false
+        }
+        if lhs.useBurstMode != rhs.useBurstMode {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(tier)
+        hasher.combine(scanWindowMs)
+        hasher.combine(scanIntervalMs)
+        hasher.combine(advertiseIntervalMs)
+        hasher.combine(burstScanDurationMs)
+        hasher.combine(burstSleepDurationMs)
+        hasher.combine(useBurstMode)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeFfiPowerTierRecommendation: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FfiPowerTierRecommendation {
+        return
+            try FfiPowerTierRecommendation(
+                tier: FfiConverterString.read(from: &buf), 
+                scanWindowMs: FfiConverterUInt32.read(from: &buf), 
+                scanIntervalMs: FfiConverterUInt32.read(from: &buf), 
+                advertiseIntervalMs: FfiConverterUInt32.read(from: &buf), 
+                burstScanDurationMs: FfiConverterUInt32.read(from: &buf), 
+                burstSleepDurationMs: FfiConverterUInt32.read(from: &buf), 
+                useBurstMode: FfiConverterBool.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: FfiPowerTierRecommendation, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.tier, into: &buf)
+        FfiConverterUInt32.write(value.scanWindowMs, into: &buf)
+        FfiConverterUInt32.write(value.scanIntervalMs, into: &buf)
+        FfiConverterUInt32.write(value.advertiseIntervalMs, into: &buf)
+        FfiConverterUInt32.write(value.burstScanDurationMs, into: &buf)
+        FfiConverterUInt32.write(value.burstSleepDurationMs, into: &buf)
+        FfiConverterBool.write(value.useBurstMode, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFfiPowerTierRecommendation_lift(_ buf: RustBuffer) throws -> FfiPowerTierRecommendation {
+    return try FfiConverterTypeFfiPowerTierRecommendation.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFfiPowerTierRecommendation_lower(_ value: FfiPowerTierRecommendation) -> RustBuffer {
+    return FfiConverterTypeFfiPowerTierRecommendation.lower(value)
+}
+
+
 public struct FfiPublicIdentity {
     public var deviceId: String
     public var signingPublicKey: Data
@@ -2192,6 +2823,288 @@ public func FfiConverterTypeFfiStoreStats_lower(_ value: FfiStoreStats) -> RustB
     return FfiConverterTypeFfiStoreStats.lower(value)
 }
 
+
+/**
+ * Transfer strategy recommendation with details.
+ */
+public struct FfiTransferRecommendation {
+    /**
+     * The recommended strategy.
+     */
+    public var strategy: FfiTransferStrategy
+    /**
+     * Size tier: "small", "medium", "large".
+     */
+    public var sizeTier: String
+    /**
+     * Estimated BLE chunks needed (at 247 byte MTU).
+     */
+    public var estimatedBleChunks: UInt32
+    /**
+     * Whether the payload exceeds the absolute maximum size.
+     */
+    public var isOversized: Bool
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(
+        /**
+         * The recommended strategy.
+         */strategy: FfiTransferStrategy, 
+        /**
+         * Size tier: "small", "medium", "large".
+         */sizeTier: String, 
+        /**
+         * Estimated BLE chunks needed (at 247 byte MTU).
+         */estimatedBleChunks: UInt32, 
+        /**
+         * Whether the payload exceeds the absolute maximum size.
+         */isOversized: Bool) {
+        self.strategy = strategy
+        self.sizeTier = sizeTier
+        self.estimatedBleChunks = estimatedBleChunks
+        self.isOversized = isOversized
+    }
+}
+
+
+
+extension FfiTransferRecommendation: Equatable, Hashable {
+    public static func ==(lhs: FfiTransferRecommendation, rhs: FfiTransferRecommendation) -> Bool {
+        if lhs.strategy != rhs.strategy {
+            return false
+        }
+        if lhs.sizeTier != rhs.sizeTier {
+            return false
+        }
+        if lhs.estimatedBleChunks != rhs.estimatedBleChunks {
+            return false
+        }
+        if lhs.isOversized != rhs.isOversized {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(strategy)
+        hasher.combine(sizeTier)
+        hasher.combine(estimatedBleChunks)
+        hasher.combine(isOversized)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeFfiTransferRecommendation: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FfiTransferRecommendation {
+        return
+            try FfiTransferRecommendation(
+                strategy: FfiConverterTypeFfiTransferStrategy.read(from: &buf), 
+                sizeTier: FfiConverterString.read(from: &buf), 
+                estimatedBleChunks: FfiConverterUInt32.read(from: &buf), 
+                isOversized: FfiConverterBool.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: FfiTransferRecommendation, into buf: inout [UInt8]) {
+        FfiConverterTypeFfiTransferStrategy.write(value.strategy, into: &buf)
+        FfiConverterString.write(value.sizeTier, into: &buf)
+        FfiConverterUInt32.write(value.estimatedBleChunks, into: &buf)
+        FfiConverterBool.write(value.isOversized, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFfiTransferRecommendation_lift(_ buf: RustBuffer) throws -> FfiTransferRecommendation {
+    return try FfiConverterTypeFfiTransferRecommendation.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFfiTransferRecommendation_lower(_ value: FfiTransferRecommendation) -> RustBuffer {
+    return FfiConverterTypeFfiTransferRecommendation.lower(value)
+}
+
+
+/**
+ * Wi-Fi Direct transfer queue statistics.
+ */
+public struct FfiWifiDirectStats {
+    public var pendingTransfers: UInt32
+    public var totalPendingBytes: UInt64
+    public var completedTransfers: UInt64
+    public var failedTransfers: UInt64
+    /**
+     * "disconnected", "connecting", "connected", "failed"
+     */
+    public var connectionState: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(pendingTransfers: UInt32, totalPendingBytes: UInt64, completedTransfers: UInt64, failedTransfers: UInt64, 
+        /**
+         * "disconnected", "connecting", "connected", "failed"
+         */connectionState: String) {
+        self.pendingTransfers = pendingTransfers
+        self.totalPendingBytes = totalPendingBytes
+        self.completedTransfers = completedTransfers
+        self.failedTransfers = failedTransfers
+        self.connectionState = connectionState
+    }
+}
+
+
+
+extension FfiWifiDirectStats: Equatable, Hashable {
+    public static func ==(lhs: FfiWifiDirectStats, rhs: FfiWifiDirectStats) -> Bool {
+        if lhs.pendingTransfers != rhs.pendingTransfers {
+            return false
+        }
+        if lhs.totalPendingBytes != rhs.totalPendingBytes {
+            return false
+        }
+        if lhs.completedTransfers != rhs.completedTransfers {
+            return false
+        }
+        if lhs.failedTransfers != rhs.failedTransfers {
+            return false
+        }
+        if lhs.connectionState != rhs.connectionState {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(pendingTransfers)
+        hasher.combine(totalPendingBytes)
+        hasher.combine(completedTransfers)
+        hasher.combine(failedTransfers)
+        hasher.combine(connectionState)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeFfiWifiDirectStats: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FfiWifiDirectStats {
+        return
+            try FfiWifiDirectStats(
+                pendingTransfers: FfiConverterUInt32.read(from: &buf), 
+                totalPendingBytes: FfiConverterUInt64.read(from: &buf), 
+                completedTransfers: FfiConverterUInt64.read(from: &buf), 
+                failedTransfers: FfiConverterUInt64.read(from: &buf), 
+                connectionState: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: FfiWifiDirectStats, into buf: inout [UInt8]) {
+        FfiConverterUInt32.write(value.pendingTransfers, into: &buf)
+        FfiConverterUInt64.write(value.totalPendingBytes, into: &buf)
+        FfiConverterUInt64.write(value.completedTransfers, into: &buf)
+        FfiConverterUInt64.write(value.failedTransfers, into: &buf)
+        FfiConverterString.write(value.connectionState, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFfiWifiDirectStats_lift(_ buf: RustBuffer) throws -> FfiWifiDirectStats {
+    return try FfiConverterTypeFfiWifiDirectStats.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFfiWifiDirectStats_lower(_ value: FfiWifiDirectStats) -> RustBuffer {
+    return FfiConverterTypeFfiWifiDirectStats.lower(value)
+}
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+/**
+ * APK verification result.
+ */
+
+public enum FfiApkVerifyResult {
+    
+    case valid
+    case invalidSignature
+    case untrustedDeveloper
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeFfiApkVerifyResult: FfiConverterRustBuffer {
+    typealias SwiftType = FfiApkVerifyResult
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FfiApkVerifyResult {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .valid
+        
+        case 2: return .invalidSignature
+        
+        case 3: return .untrustedDeveloper
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: FfiApkVerifyResult, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .valid:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .invalidSignature:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .untrustedDeveloper:
+            writeInt(&buf, Int32(3))
+        
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFfiApkVerifyResult_lift(_ buf: RustBuffer) throws -> FfiApkVerifyResult {
+    return try FfiConverterTypeFfiApkVerifyResult.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFfiApkVerifyResult_lower(_ value: FfiApkVerifyResult) -> RustBuffer {
+    return FfiConverterTypeFfiApkVerifyResult.lower(value)
+}
+
+
+
+extension FfiApkVerifyResult: Equatable, Hashable {}
+
+
+
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
@@ -2203,6 +3116,10 @@ public enum FfiRouteDecision {
     case dropDuplicate
     case dropExpired
     case dropHopLimit
+    case dropInvalidSignature
+    case dropTtlInflation
+    case dropHopCountDecrease
+    case dropSenderRateLimit
 }
 
 
@@ -2227,6 +3144,14 @@ public struct FfiConverterTypeFfiRouteDecision: FfiConverterRustBuffer {
         case 5: return .dropExpired
         
         case 6: return .dropHopLimit
+        
+        case 7: return .dropInvalidSignature
+        
+        case 8: return .dropTtlInflation
+        
+        case 9: return .dropHopCountDecrease
+        
+        case 10: return .dropSenderRateLimit
         
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -2259,6 +3184,22 @@ public struct FfiConverterTypeFfiRouteDecision: FfiConverterRustBuffer {
         case .dropHopLimit:
             writeInt(&buf, Int32(6))
         
+        
+        case .dropInvalidSignature:
+            writeInt(&buf, Int32(7))
+        
+        
+        case .dropTtlInflation:
+            writeInt(&buf, Int32(8))
+        
+        
+        case .dropHopCountDecrease:
+            writeInt(&buf, Int32(9))
+        
+        
+        case .dropSenderRateLimit:
+            writeInt(&buf, Int32(10))
+        
         }
     }
 }
@@ -2281,6 +3222,89 @@ public func FfiConverterTypeFfiRouteDecision_lower(_ value: FfiRouteDecision) ->
 
 
 extension FfiRouteDecision: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+/**
+ * Transfer strategy recommendation for a message.
+ */
+
+public enum FfiTransferStrategy {
+    
+    /**
+     * Use BLE mesh relay (Spray-and-Wait).
+     */
+    case meshRelay
+    /**
+     * Prefer direct peer-to-peer (Wi-Fi Direct), fall back to mesh if unavailable.
+     */
+    case directPreferred
+    /**
+     * Require direct peer-to-peer. Too large for mesh relay.
+     */
+    case directRequired
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeFfiTransferStrategy: FfiConverterRustBuffer {
+    typealias SwiftType = FfiTransferStrategy
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FfiTransferStrategy {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .meshRelay
+        
+        case 2: return .directPreferred
+        
+        case 3: return .directRequired
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: FfiTransferStrategy, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .meshRelay:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .directPreferred:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .directRequired:
+            writeInt(&buf, Int32(3))
+        
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFfiTransferStrategy_lift(_ buf: RustBuffer) throws -> FfiTransferStrategy {
+    return try FfiConverterTypeFfiTransferStrategy.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFfiTransferStrategy_lower(_ value: FfiTransferStrategy) -> RustBuffer {
+    return FfiConverterTypeFfiTransferStrategy.lower(value)
+}
+
+
+
+extension FfiTransferStrategy: Equatable, Hashable {}
 
 
 
@@ -2687,6 +3711,9 @@ private var initializationResult: InitializationResult = {
     if (uniffi_flare_core_checksum_method_flarenode_add_group_member() != 61468) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_flare_core_checksum_method_flarenode_add_trusted_developer_key() != 54447) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_flare_core_checksum_method_flarenode_build_group_messages() != 30329) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -2705,6 +3732,9 @@ private var initializationResult: InitializationResult = {
     if (uniffi_flare_core_checksum_method_flarenode_clear_duress_passphrase() != 25691) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_flare_core_checksum_method_flarenode_compress() != 29073) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_flare_core_checksum_method_flarenode_create_delivery_ack() != 63712) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -2717,7 +3747,19 @@ private var initializationResult: InitializationResult = {
     if (uniffi_flare_core_checksum_method_flarenode_create_read_receipt() != 53109) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_flare_core_checksum_method_flarenode_create_sender_key() != 12646) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_decompress() != 38164) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_decrypt_group_sender_key() != 53817) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_flare_core_checksum_method_flarenode_decrypt_incoming_message() != 50281) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_encrypt_group_sender_key() != 61848) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_export_neighborhood_bitmap() != 57134) {
@@ -2759,6 +3801,9 @@ private var initializationResult: InitializationResult = {
     if (uniffi_flare_core_checksum_method_flarenode_import_phone_contacts() != 9747) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_flare_core_checksum_method_flarenode_invalidate_group_keys() != 58497) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_flare_core_checksum_method_flarenode_list_contacts() != 45212) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -2771,10 +3816,37 @@ private var initializationResult: InitializationResult = {
     if (uniffi_flare_core_checksum_method_flarenode_parse_mesh_message() != 29282) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_flare_core_checksum_method_flarenode_power_current_tier() != 53456) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_power_evaluate() != 4834) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_power_on_data_activity() != 31190) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_power_on_peer_discovered() != 14625) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_power_set_battery_saver() != 26040) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_power_set_has_pending_outbound() != 7775) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_power_update_battery() != 60632) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_power_update_connected_peers() != 40960) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_flare_core_checksum_method_flarenode_prepare_for_relay() != 35136) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_process_remote_neighborhood() != 58979) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_process_remote_neighborhood_for_peer() != 2356) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_process_rendezvous_message() != 35635) {
@@ -2783,10 +3855,16 @@ private var initializationResult: InitializationResult = {
     if (uniffi_flare_core_checksum_method_flarenode_process_rendezvous_request() != 65192) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_flare_core_checksum_method_flarenode_process_sender_key_distribution() != 7780) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_flare_core_checksum_method_flarenode_prune_expired_messages() != 54958) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_queue_outbound_message() != 14460) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_recommend_transfer_strategy() != 27100) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_record_neighborhood_peer() != 61640) {
@@ -2801,7 +3879,7 @@ private var initializationResult: InitializationResult = {
     if (uniffi_flare_core_checksum_method_flarenode_remove_group_member() != 43399) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_flare_core_checksum_method_flarenode_route_incoming() != 42385) {
+    if (uniffi_flare_core_checksum_method_flarenode_route_incoming() != 54046) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_set_duress_passphrase() != 12496) {
@@ -2816,7 +3894,40 @@ private var initializationResult: InitializationResult = {
     if (uniffi_flare_core_checksum_method_flarenode_store_chat_message() != 48119) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_flare_core_checksum_method_flarenode_trusted_developer_key_count() != 38597) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_flare_core_checksum_method_flarenode_update_delivery_status() != 16495) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_verify_apk_signature() != 9893) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_wifi_direct_complete_transfer() != 53619) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_wifi_direct_connection_changed() != 12798) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_wifi_direct_enqueue() != 63306) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_wifi_direct_fail_transfer() != 55284) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_wifi_direct_has_pending() != 20788) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_wifi_direct_most_needed_peer() != 47634) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_wifi_direct_next_transfer() != 4215) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_wifi_direct_prune_expired() != 28914) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_wifi_direct_stats() != 42621) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_constructor_flarenode_new() != 12965) {

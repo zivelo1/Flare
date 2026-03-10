@@ -30,7 +30,13 @@ import com.flare.mesh.ui.contacts.PhoneSearchScreen
 import com.flare.mesh.ui.contacts.QrDisplayScreen
 import com.flare.mesh.ui.contacts.QrScannerScreen
 import com.flare.mesh.ui.contacts.SharedPhraseSearchScreen
+import com.flare.mesh.ui.groups.CreateGroupScreen
+import com.flare.mesh.ui.groups.GroupListScreen
+import com.flare.mesh.ui.onboarding.OnboardingScreen
+import com.flare.mesh.ui.settings.DuressSettingsScreen
 import com.flare.mesh.ui.settings.NetworkScreen
+import com.flare.mesh.ui.settings.PowerSettingsScreen
+import com.flare.mesh.ui.settings.SettingsScreen
 import com.flare.mesh.viewmodel.ContactsViewModel
 import com.flare.mesh.viewmodel.DiscoveryViewModel
 
@@ -50,6 +56,10 @@ sealed class Screen(
 
 private val bottomNavItems = listOf(Screen.Chats, Screen.Contacts, Screen.Network)
 
+/** Key for persisting onboarding completion in SharedPreferences. */
+private const val PREFS_NAME = "flare_prefs"
+private const val KEY_ONBOARDING_COMPLETE = "onboarding_complete"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FlareNavHost(
@@ -58,6 +68,12 @@ fun FlareNavHost(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val prefs = remember { context.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE) }
+    val onboardingComplete = remember { mutableStateOf(prefs.getBoolean(KEY_ONBOARDING_COMPLETE, false)) }
+
+    val startDest = if (onboardingComplete.value) Screen.Chats.route else "onboarding"
 
     // Show bottom nav only on top-level screens
     val showBottomBar = bottomNavItems.any { screen ->
@@ -101,13 +117,33 @@ fun FlareNavHost(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Chats.route,
+            startDestination = startDest,
             modifier = Modifier.padding(innerPadding),
         ) {
+            // ── Onboarding ──────────────────────────────────────────
+            composable("onboarding") {
+                OnboardingScreen(
+                    onComplete = {
+                        prefs.edit().putBoolean(KEY_ONBOARDING_COMPLETE, true).apply()
+                        onboardingComplete.value = true
+                        navController.navigate(Screen.Chats.route) {
+                            popUpTo("onboarding") { inclusive = true }
+                        }
+                    },
+                )
+            }
+
+            // ── Chats ───────────────────────────────────────────────
             composable(Screen.Chats.route) {
                 ConversationListScreen(
                     onConversationClick = { conversationId ->
                         navController.navigate("chat/$conversationId")
+                    },
+                    onNavigateToSettings = {
+                        navController.navigate("settings")
+                    },
+                    onNavigateToGroups = {
+                        navController.navigate("groups")
                     },
                 )
             }
@@ -120,6 +156,7 @@ fun FlareNavHost(
                 )
             }
 
+            // ── Contacts ────────────────────────────────────────────
             composable(Screen.Contacts.route) {
                 ContactsScreen(
                     onContactClick = { deviceId ->
@@ -185,8 +222,50 @@ fun FlareNavHost(
                 )
             }
 
+            // ── Network ─────────────────────────────────────────────
             composable(Screen.Network.route) {
                 NetworkScreen()
+            }
+
+            // ── Settings ────────────────────────────────────────────
+            composable("settings") {
+                SettingsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToDuress = { navController.navigate("settings-duress") },
+                    onNavigateToPower = { navController.navigate("settings-power") },
+                )
+            }
+
+            composable("settings-duress") {
+                DuressSettingsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                )
+            }
+
+            composable("settings-power") {
+                PowerSettingsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                )
+            }
+
+            // ── Groups ──────────────────────────────────────────────
+            composable("groups") {
+                GroupListScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onCreateGroup = { navController.navigate("create-group") },
+                    onGroupClick = { groupId ->
+                        navController.navigate("chat/$groupId")
+                    },
+                )
+            }
+
+            composable("create-group") {
+                CreateGroupScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onGroupCreated = { groupId ->
+                        navController.popBackStack("groups", false)
+                    },
+                )
             }
         }
     }

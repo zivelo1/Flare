@@ -480,6 +480,132 @@ class FlareRepository private constructor(private val node: FlareNode) {
     }
 
     fun pruneExpiredMessages(): Int = node.pruneExpiredMessages().toInt()
+
+    // ── Duress PIN ──────────────────────────────────────────────────────
+
+    /**
+     * Sets a duress passphrase. When entered at login, a decoy database opens.
+     */
+    suspend fun setDuressPassphrase(passphrase: String) =
+        withContext(Dispatchers.IO) {
+            node.setDuressPassphrase(passphrase)
+        }
+
+    /**
+     * Checks if a duress passphrase has been configured.
+     */
+    suspend fun hasDuressPassphrase(): Boolean =
+        withContext(Dispatchers.IO) {
+            node.hasDuressPassphrase()
+        }
+
+    /**
+     * Clears the duress passphrase configuration.
+     */
+    suspend fun clearDuressPassphrase() =
+        withContext(Dispatchers.IO) {
+            node.clearDuressPassphrase()
+        }
+
+    // ── Power Management ────────────────────────────────────────────────
+
+    /**
+     * Enables or disables battery saver mode in the power manager.
+     */
+    fun powerSetBatterySaver(enabled: Boolean) {
+        node.powerSetBatterySaver(enabled)
+    }
+
+    /**
+     * Updates the current battery level in the power manager.
+     */
+    fun powerUpdateBattery(percent: Int) {
+        node.powerUpdateBattery(percent.toUByte())
+    }
+
+    /**
+     * Returns the current power tier name.
+     */
+    fun powerCurrentTier(): String = node.powerCurrentTier()
+
+    /**
+     * Evaluates and returns the recommended power tier with parameters.
+     */
+    fun powerEvaluate(nowSecs: Long): PowerTierInfo {
+        val ffi = node.powerEvaluate(nowSecs)
+        return PowerTierInfo(
+            tier = ffi.tier,
+            scanWindowMs = ffi.scanWindowMs.toLong(),
+            scanIntervalMs = ffi.scanIntervalMs.toLong(),
+            advertiseIntervalMs = ffi.advertiseIntervalMs.toLong(),
+            burstScanDurationMs = ffi.burstScanDurationMs.toLong(),
+            burstSleepDurationMs = ffi.burstSleepDurationMs.toLong(),
+            useBurstMode = ffi.useBurstMode,
+        )
+    }
+
+    // ── Groups ──────────────────────────────────────────────────────────
+
+    /**
+     * Creates a new group and adds the creator as the first member.
+     */
+    suspend fun createGroup(groupId: String, groupName: String) =
+        withContext(Dispatchers.IO) {
+            node.createGroup(groupId, groupName)
+        }
+
+    /**
+     * Adds a member to a group.
+     */
+    suspend fun addGroupMember(groupId: String, deviceId: String) =
+        withContext(Dispatchers.IO) {
+            node.addGroupMember(groupId, deviceId)
+        }
+
+    /**
+     * Removes a member from a group.
+     */
+    suspend fun removeGroupMember(groupId: String, deviceId: String) =
+        withContext(Dispatchers.IO) {
+            node.removeGroupMember(groupId, deviceId)
+        }
+
+    /**
+     * Lists all groups.
+     */
+    suspend fun listGroups(): List<Group> =
+        withContext(Dispatchers.IO) {
+            node.listGroups().map { ffi ->
+                val members = node.getGroupMembers(ffi.groupId)
+                Group(
+                    groupId = ffi.groupId,
+                    groupName = ffi.groupName,
+                    createdAt = ffi.createdAt,
+                    creatorDeviceId = ffi.creatorDeviceId,
+                    memberCount = members.size,
+                )
+            }
+        }
+
+    /**
+     * Gets member device IDs for a group.
+     */
+    suspend fun getGroupMembers(groupId: String): List<String> =
+        withContext(Dispatchers.IO) {
+            node.getGroupMembers(groupId)
+        }
+
+    /**
+     * Builds encrypted mesh messages for all group members.
+     */
+    suspend fun buildGroupMessages(
+        groupId: String,
+        encryptedPayloads: List<ByteArray>,
+        memberDeviceIds: List<String>,
+    ): List<ByteArray> = withContext(Dispatchers.IO) {
+        node.buildGroupMessages(groupId, encryptedPayloads, memberDeviceIds)
+            .map { it.serialized }
+    }
 }
 
 data class StoreStats(

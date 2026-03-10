@@ -101,3 +101,27 @@ data class MeshStatus(
     val storedMessageCount: Int = 0,
     val messagesRelayed: Long = 0,
 )
+
+/**
+ * A group chat with multiple members.
+ */
+data class Group(
+    val groupId: String,
+    val groupName: String,
+    val createdAt: String,
+    val creatorDeviceId: String,
+    val memberCount: Int = 0,
+)
+
+/**
+ * Power management tier recommendation from the Rust core.
+ */
+data class PowerTierInfo(
+    val tier: String,
+    val scanWindowMs: Long,
+    val scanIntervalMs: Long,
+    val advertiseIntervalMs: Long,
+    val burstScanDurationMs: Long,
+    val burstSleepDurationMs: Long,
+    val useBurstMode: Boolean,
+)

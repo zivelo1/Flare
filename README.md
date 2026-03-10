@@ -119,18 +119,24 @@ The transfer is verified with Ed25519 developer signatures and SHA-256 hash to e
 **Android App** (Kotlin + Jetpack Compose):
 - BLE GATT server + client with full mesh routing
 - **Wi-Fi Direct transport** — Wi-Fi P2P peer discovery, group formation, TCP socket transfer with length-prefixed protocol
-- Material 3 UI: chat bubbles, contacts, network dashboard
+- Material 3 UI: chat bubbles with read receipts, identicon avatars, contacts, network dashboard
 - Find Contact screen: shared phrase, QR code, phone number discovery
 - Full message pipeline: encrypt → send → relay → deliver → ACK
 - Foreground service, neighborhood detection, ProGuard rules
 - **Adaptive power management** — MeshService evaluates battery + network state to dynamically adjust BLE scan/advertise tiers with burst mode scanning
+- **Settings** — duress PIN setup, power tier management, storage stats, device info
+- **Onboarding** — 4-page introduction flow with skip/next navigation
+- **Group messaging UI** — create groups, member selection, group list
 
 **iOS App** (Swift + SwiftUI):
 - CoreBluetooth BLE central + peripheral with state restoration
 - **MultipeerConnectivity transport** — Wi-Fi Direct via Apple's framework with automatic peer discovery, MCSession, deterministic connection deduplication
-- SwiftUI screens: chats, contacts, network, find contact, QR, discovery
+- SwiftUI screens: chats, contacts, network, find contact, QR, discovery, settings, groups, onboarding
 - Full mesh service: dual transport (BLE + MultipeerConnectivity), rendezvous broadcast, delivery ACK, Wi-Fi Direct queue processing
-- Awaiting Rust cross-compilation for iOS ARM and device testing
+- **Identicon avatars** — deterministic colors from SHA-256 hash of device ID
+- **Settings** — duress PIN, power management, storage stats
+- **Onboarding** — 4-page introduction with @AppStorage persistence
+- iOS ARM cross-compilation verified — awaiting device testing
 
 See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for detailed progress.
 

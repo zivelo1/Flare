@@ -137,7 +137,7 @@ struct PeerCard: View {
 
                 Image(systemName: "antenna.radiowaves.left.and.right")
                     .font(.body)
-                    .foregroundStyle(peer.isConnected ? .accentColor : .secondary)
+                    .foregroundStyle(peer.isConnected ? Color.accentColor : Color.secondary)
             }
 
             VStack(alignment: .leading, spacing: 2) {

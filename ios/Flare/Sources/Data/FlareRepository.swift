@@ -15,14 +15,6 @@ struct IncomingMessageResult {
     let messageId: String?
 }
 
-struct StoreStats {
-    let totalMessages: Int
-    let ownMessages: Int
-    let activeRelayMessages: Int
-    let totalBytes: Int
-    let budgetBytes: Int
-}
-
 final class FlareRepository: @unchecked Sendable {
     static let shared = FlareRepository()
 
@@ -106,7 +98,7 @@ final class FlareRepository: @unchecked Sendable {
             conversationId: recipientDeviceId,
             senderDeviceId: getDeviceId(),
             content: plaintext,
-            timestampMs: UInt64(Date().timeIntervalSince1970 * 1000),
+            timestampMs: Int64(Date().timeIntervalSince1970 * 1000),
             isOutgoing: true,
             deliveryStatus: 1 // SENT
         )
@@ -143,7 +135,7 @@ final class FlareRepository: @unchecked Sendable {
                     conversationId: senderId,
                     senderDeviceId: senderId,
                     content: plaintext,
-                    timestampMs: UInt64(Date().timeIntervalSince1970 * 1000),
+                    timestampMs: Int64(Date().timeIntervalSince1970 * 1000),
                     isOutgoing: false,
                     deliveryStatus: 2 // DELIVERED
                 )
@@ -310,6 +302,7 @@ final class FlareRepository: @unchecked Sendable {
             totalMessages: Int(ffi.totalMessages),
             ownMessages: Int(ffi.ownMessages),
             activeRelayMessages: Int(ffi.activeRelayMessages),
+            waitingRelayMessages: Int(ffi.waitingRelayMessages),
             totalBytes: Int(ffi.totalBytes),
             budgetBytes: Int(ffi.budgetBytes)
         )
@@ -401,6 +394,28 @@ final class FlareRepository: @unchecked Sendable {
         Int(safeNode.wifiDirectPruneExpired(nowSecs: nowSecs))
     }
 
+    // MARK: - Groups
+
+    func createGroup(groupId: String, groupName: String) throws {
+        try safeNode.createGroup(groupId: groupId, groupName: groupName)
+    }
+
+    func addGroupMember(groupId: String, deviceId: String) throws {
+        try safeNode.addGroupMember(groupId: groupId, deviceId: deviceId)
+    }
+
+    func removeGroupMember(groupId: String, deviceId: String) throws {
+        try safeNode.removeGroupMember(groupId: groupId, deviceId: deviceId)
+    }
+
+    func listGroups() throws -> [FfiGroup] {
+        try safeNode.listGroups()
+    }
+
+    func getGroupMembers(groupId: String) throws -> [String] {
+        try safeNode.getGroupMembers(groupId: groupId)
+    }
+
     // MARK: - Duress
 
     func setDuressPassphrase(_ passphrase: String) throws {
@@ -411,8 +426,26 @@ final class FlareRepository: @unchecked Sendable {
         try safeNode.hasDuressPassphrase()
     }
 
+    func clearDuressPassphrase() throws {
+        try safeNode.clearDuressPassphrase()
+    }
+
     func checkDuressPassphrase(_ passphrase: String) throws -> Bool {
         try safeNode.checkDuressPassphrase(passphrase: passphrase)
+    }
+
+    // MARK: - Power Management
+
+    func powerCurrentTier() -> String {
+        safeNode.powerCurrentTier()
+    }
+
+    func powerSetBatterySaver(enabled: Bool) {
+        safeNode.powerSetBatterySaver(enabled: enabled)
+    }
+
+    func powerEvaluate(nowSecs: Int64) -> FfiPowerTierRecommendation {
+        safeNode.powerEvaluate(nowSecs: nowSecs)
     }
 
     // MARK: - Private Helpers

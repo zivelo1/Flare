@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,6 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flare.mesh.R
 import com.flare.mesh.data.model.ChatMessage
 import com.flare.mesh.data.model.DeliveryStatus
+import com.flare.mesh.util.IdenticonGenerator
 import com.flare.mesh.viewmodel.ChatViewModel
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -56,16 +58,21 @@ fun ChatScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        val (avatarBg, _) = IdenticonGenerator.getColors(conversationId)
+                        val avatarInitials = IdenticonGenerator.getInitials(
+                            contact?.displayName,
+                            conversationId,
+                        )
                         Surface(
                             shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primaryContainer,
+                            color = avatarBg.copy(alpha = 0.25f),
                             modifier = Modifier.size(36.dp),
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Text(
-                                    text = contactName.first().uppercase(),
+                                    text = avatarInitials,
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    color = avatarBg,
                                 )
                             }
                         }
@@ -211,16 +218,23 @@ private fun DeliveryStatusIcon(status: DeliveryStatus, tint: Color) {
         DeliveryStatus.SENT -> Icons.Filled.Done
         DeliveryStatus.DELIVERED -> Icons.Filled.DoneAll
         DeliveryStatus.READ -> Icons.Filled.DoneAll
-        DeliveryStatus.FAILED -> Icons.Filled.Schedule
+        DeliveryStatus.FAILED -> Icons.Filled.ErrorOutline
     }
-    val iconTint = if (status == DeliveryStatus.READ)
-        MaterialTheme.colorScheme.inversePrimary
-    else
-        tint
+    val iconTint = when (status) {
+        DeliveryStatus.READ -> Color(0xFF4FC3F7) // Light blue for read
+        DeliveryStatus.FAILED -> MaterialTheme.colorScheme.error
+        else -> tint
+    }
 
     Icon(
         icon,
-        contentDescription = status.name,
+        contentDescription = when (status) {
+            DeliveryStatus.PENDING -> "Sending"
+            DeliveryStatus.SENT -> "Sent"
+            DeliveryStatus.DELIVERED -> "Delivered"
+            DeliveryStatus.READ -> "Read"
+            DeliveryStatus.FAILED -> "Failed"
+        },
         modifier = Modifier.size(14.dp),
         tint = iconTint,
     )

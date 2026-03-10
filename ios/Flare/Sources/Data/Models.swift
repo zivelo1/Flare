@@ -73,3 +73,22 @@ enum TransportType: String {
     case ble = "BLE"
     case multipeer = "Multipeer"
 }
+
+struct ChatGroup: Identifiable, Equatable {
+    let groupId: String
+    let groupName: String
+    let createdAt: String
+    let creatorDeviceId: String
+    var memberCount: Int = 0
+
+    var id: String { groupId }
+}
+
+struct StoreStats: Equatable {
+    let totalMessages: Int
+    let ownMessages: Int
+    let activeRelayMessages: Int
+    let waitingRelayMessages: Int
+    let totalBytes: Int
+    let budgetBytes: Int
+}

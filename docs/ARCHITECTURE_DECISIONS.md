@@ -201,3 +201,15 @@
 **Rationale:** BLE has universal device support, low power consumption, and sufficient bandwidth for text messaging (~100 KB/s). Wi-Fi Direct provides ~50 Mbps throughput and ~250m range but consumes significantly more power and requires connection negotiation. Using both together provides the best of both worlds.
 **Protocol:** Both transports produce the same `TransportEvent` types. The router doesn't care which transport delivered a message — identical message format, same routing logic. The platform layer decides which transport to use based on the `recommendTransferStrategy()` FFI method.
 **Connection deduplication:** iOS MultipeerManager uses deterministic tie-breaking (lower displayName accepts invitations, higher invites) to prevent duplicate connections when both peers discover each other simultaneously.
+
+## ADR-024: Deterministic Identicon Avatars
+**Date:** 2026-03-10
+**Decision:** Contact avatars are generated deterministically from device IDs using SHA-256 hashing into a curated 12-color palette. No user-uploaded images.
+**Rationale:** In an offline mesh network, there is no server to host profile pictures. Users need visual differentiation between contacts at a glance. A deterministic algorithm ensures the same device ID always produces the same avatar colors across all devices, providing consistent recognition without any data exchange.
+
+**Mechanism:**
+- SHA-256 hash of device ID string → first byte selects palette index
+- 12-color palette: perceptually distinct, accessible on light and dark backgrounds
+- 5x5 horizontally-symmetric boolean grid pattern from hash bytes
+- 1-2 character initials from display name (or device ID prefix as fallback)
+- Implemented identically on Android (`IdenticonGenerator.kt`) and iOS (`IdenticonGenerator.swift`)

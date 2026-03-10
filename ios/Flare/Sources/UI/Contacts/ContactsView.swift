@@ -90,8 +90,9 @@ struct ContactRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            AvatarView(
-                initials: contact.initials,
+            IdenticonAvatarView(
+                deviceId: contact.identity.deviceId,
+                displayName: contact.displayName,
                 isVerified: contact.isVerified,
                 size: 48
             )
@@ -105,7 +106,7 @@ struct ContactRow: View {
                     if contact.isVerified {
                         Image(systemName: "checkmark.seal.fill")
                             .font(.caption)
-                            .foregroundStyle(.accentColor)
+                            .foregroundStyle(Color.accentColor)
                     }
                 }
 

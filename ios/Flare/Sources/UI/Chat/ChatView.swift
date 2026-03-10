@@ -21,7 +21,7 @@ struct ChatView: View {
                     }
                     .padding()
                 }
-                .onChange(of: viewModel.currentMessages.count) {
+                .onChange(of: viewModel.currentMessages.count) { _ in
                     if let lastId = viewModel.currentMessages.last?.messageId {
                         withAnimation {
                             proxy.scrollTo(lastId, anchor: .bottom)
@@ -81,7 +81,7 @@ struct ChatView: View {
             } label: {
                 Image(systemName: "arrow.up.circle.fill")
                     .font(.system(size: 32))
-                    .foregroundStyle(.accent)
+                    .foregroundStyle(Color.accentColor)
             }
             .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
@@ -140,10 +140,14 @@ struct MessageBubble: View {
             Image(systemName: "checkmark")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
-        case .delivered, .read:
+        case .delivered:
             Image(systemName: "checkmark.circle")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+        case .read:
+            Image(systemName: "checkmark.circle.fill")
+                .font(.caption2)
+                .foregroundStyle(Color(red: 0.31, green: 0.76, blue: 0.97)) // Light blue
         case .failed:
             Image(systemName: "exclamationmark.triangle")
                 .font(.caption2)

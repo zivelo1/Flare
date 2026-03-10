@@ -1,7 +1,7 @@
 # Flare — Project Status
 
-## Current Phase: Phase 4B — Scaling & Dual Transport
-**Goal:** Optimize routing for dense networks, add Wi-Fi Direct transport for large payloads
+## Current Phase: Phase 5 — UI/UX Polish & Launch Prep
+**Goal:** Settings, onboarding, groups UI, identicons, read receipts across both platforms
 
 ## What's Done
 
@@ -68,8 +68,8 @@
 - [x] Gradle project setup (AGP 8.7, Kotlin 2.1, Compose BOM 2024.12)
 - [x] AndroidManifest with BLE, Wi-Fi, foreground service permissions
 - [x] Material 3 theme with dynamic color support (Material You)
-- [x] Data models (DeviceIdentity, Contact, Conversation, ChatMessage, MeshPeer, MeshStatus)
-- [x] Constants centralized (UUIDs, scan params, message defaults, Wi-Fi Direct config, size tiers — no hardcoding)
+- [x] Data models (DeviceIdentity, Contact, Conversation, ChatMessage, MeshPeer, MeshStatus, Group, PowerTierInfo)
+- [x] Constants centralized (UUIDs, scan params, message defaults, Wi-Fi Direct config, size tiers, power thresholds — no hardcoding)
 - [x] BLE Scanner — discovers Flare devices, RSSI distance estimation, stale peer pruning
 - [x] GATT Server — advertises service, accepts connections, receives messages, sends notifications (status code checked)
 - [x] GATT Client — connects to peers, MTU negotiation, message write (status code checked), notification subscription
@@ -86,14 +86,22 @@
 - [x] ContactsViewModel — contact management, QR code data generation/parsing
 - [x] DiscoveryViewModel — shared phrase search, phone number search, contact import with SearchState management
 - [x] NetworkViewModel — mesh status, nearby peers from BLE scanner
-- [x] Navigation — bottom tabs (Chats, Contacts, Network) with Compose Navigation
-- [x] ConversationListScreen — conversation list with mesh status, unread badges, avatars
-- [x] ChatScreen — message bubbles, delivery status icons, encrypted send via Rust core
+- [x] SettingsViewModel — duress PIN management, power tier state, store stats
+- [x] GroupViewModel — group CRUD, member selection, create group with members
+- [x] Navigation — bottom tabs (Chats, Contacts, Network) + settings/groups routes with Compose Navigation
+- [x] ConversationListScreen — conversation list with mesh status, unread badges, identicon avatars, settings/groups navigation
+- [x] ChatScreen — message bubbles, delivery status icons (pending/sent/delivered/read with blue/failed with error), identicon avatars, encrypted send via Rust core
 - [x] ContactsScreen — contact list, verified badges, QR code actions, last-seen formatting
 - [x] FindContactScreen — discovery hub with 4 methods (Shared Phrase, QR Code, Phone Number, Contact Import)
 - [x] SharedPhraseSearchScreen — passphrase entry, searching animation, contact found state
 - [x] PhoneSearchScreen — bilateral phone number entry, security warning, risk acceptance
 - [x] NetworkScreen — mesh status card, stats row, nearby peer list with signal strength
+- [x] **Onboarding flow** — 4-page HorizontalPager (No Internet Needed, E2E Encrypted, Find Friends, Designed for Safety), skip/next/back/get-started, persisted via SharedPreferences
+- [x] **Settings screen** — security (duress PIN), battery & performance (power tiers), storage stats card with progress bar, device info, about section
+- [x] **Duress PIN settings** — setup form (passphrase + confirm), active status card, remove with confirmation dialog
+- [x] **Power management settings** — current tier card with color coding, battery saver toggle, tier explanation cards with Constants values
+- [x] **Group messaging UI** — group list with empty state, create group with contact selection and checkboxes
+- [x] **Identicon avatars** — SHA-256 deterministic colors from 12-color curated palette (IdenticonGenerator)
 
 ### Blind Rendezvous Discovery (Android)
 - [x] Find Contact screen — discovery hub with 4 methods
@@ -106,15 +114,15 @@
 ### iOS App (Swift + SwiftUI)
 - [x] Xcode project via xcodegen (project.yml + .xcodeproj)
 - [x] Info.plist — BLE, camera, contacts permissions, background modes (bluetooth-central, bluetooth-peripheral)
-- [x] Data models (DeviceIdentity, Contact, Conversation, ChatMessage, MeshPeer, MeshStatus)
-- [x] FlareRepository — bridge to Rust FFI (Keychain passphrase, messaging, contacts, rendezvous, neighborhood, duress, transfer strategy, Wi-Fi Direct queue)
+- [x] Data models (DeviceIdentity, Contact, Conversation, ChatMessage, MeshPeer, MeshStatus, ChatGroup, StoreStats)
+- [x] FlareRepository — bridge to Rust FFI (Keychain passphrase, messaging, contacts, rendezvous, neighborhood, duress, power, groups, transfer strategy, Wi-Fi Direct queue)
 - [x] BLEManager — CoreBluetooth CBCentralManager + CBPeripheralManager with state restoration
 - [x] **MultipeerManager** — MultipeerConnectivity framework for Wi-Fi Direct transport. MCSession with automatic peer discovery, deterministic tie-breaking for connection deduplication, reliable data send
 - [x] MeshService — message routing via dual transport (BLE + MultipeerConnectivity), rendezvous broadcast, delivery ACK, Wi-Fi Direct queue processing, peer connection handling
-- [x] ChatViewModel, ContactsViewModel, DiscoveryViewModel, NetworkViewModel
-- [x] ConversationListView — conversation list, mesh status indicator, empty state
-- [x] ChatView — message bubbles, delivery status icons, encrypted send
-- [x] ContactsView — contact list, verified badges, last-seen formatting
+- [x] ChatViewModel, ContactsViewModel, DiscoveryViewModel, NetworkViewModel, SettingsViewModel, GroupViewModel
+- [x] ConversationListView — conversation list, mesh status indicator, identicon avatars, settings/groups navigation
+- [x] ChatView — message bubbles, delivery status icons (pending/sent/delivered/read/failed), encrypted send
+- [x] ContactsView — contact list, identicon avatars, verified badges, last-seen formatting
 - [x] FindContactView — discovery hub (Shared Phrase, QR Code, Phone Number)
 - [x] SharedPhraseSearchView — phrase input, searching animation, contact found
 - [x] PhoneSearchView — bilateral phone entry, security warning, risk acceptance
@@ -122,6 +130,12 @@
 - [x] QRScannerView — AVFoundation camera with QR detection and format validation
 - [x] NetworkView — mesh status card, stats row, nearby peer list with signal strength
 - [x] MainTabView — tab navigation (Chats, Contacts, Network)
+- [x] **Onboarding flow** — 4-page TabView pager (No Internet Needed, E2E Encrypted, Find Friends, Designed for Safety), persisted via @AppStorage
+- [x] **Settings screen** — security (duress PIN), battery & performance (power tiers), storage stats with progress bar, device info, about section
+- [x] **Duress PIN settings** — setup with passphrase/confirm, active status, remove with confirmation dialog
+- [x] **Power management settings** — current tier card, battery saver toggle, tier explanation cards with live Constants values
+- [x] **Group messaging UI** — group list, create group with contact selection, group chat placeholder
+- [x] **Identicon avatars** — SHA-256 deterministic colors from 12-color curated palette (IdenticonGenerator + IdenticonAvatarView)
 
 ### Infrastructure
 - [x] GitHub repo (github.com/zivelo1/Flare)
@@ -155,28 +169,19 @@
 - [ ] Integration test: Two physical Android devices, encrypted chat over BLE
 
 ### iOS App — Remaining Work
-- [ ] Cross-compile Rust core for iOS ARM (`aarch64-apple-ios`)
-- [ ] Link `libflare_core.a` into Xcode project and verify build
+- [x] Cross-compile Rust core for iOS ARM (`aarch64-apple-ios`) — build verified
 - [ ] Integration test: physical iOS device, BLE scanning + advertising
 - [ ] Cross-platform test: Android ↔ iOS message exchange over BLE
 - [ ] Background execution tuning (CoreBluetooth state restoration is wired but untested)
 
-### UI/UX — Visual Design & Polish
+### UI/UX — Remaining Visual Design & Polish
 - [ ] App icon and splash screen design
-- [ ] Onboarding flow (identity creation, first contact exchange)
 - [ ] Chat bubble animations and transitions
-- [ ] Contact avatars (generated identicons from device ID)
 - [ ] Network visualization (animated mesh topology)
 - [ ] Dark mode theming refinement
 - [ ] Haptic feedback for message send/receive
 - [ ] Voice message recording UI (hold-to-record, waveform display)
 - [ ] Image capture and preview UI
-- [ ] Settings screen (duress PIN, power preferences, about)
-
-### Android UI Enhancements
-- [ ] Group messaging UI (create group, add members, group chat)
-- [ ] Read receipt indicators in chat bubbles
-- [ ] Duress PIN setup screen in Settings
 - [ ] APK sharing UI (offer/request/progress)
 
 ### Phase 5 — Launch
@@ -189,8 +194,8 @@
 | Phase | Scope | Status |
 |---|---|---|
 | 1 — Foundation | Rust core + Android BLE + UI + UniFFI bridge | **Complete** (awaiting device test with NDK) |
-| 2 — Multi-Hop & iOS | Relay routing + iOS app | **Rust core complete**, iOS app implemented (awaiting cross-compile + device test) |
-| 3 — Full Messaging | Groups, receipts, content types | **Rust core complete**, Android UI pending |
+| 2 — Multi-Hop & iOS | Relay routing + iOS app | **Complete** (iOS cross-compiled and building, awaiting device test) |
+| 3 — Full Messaging | Groups, receipts, content types | **Complete** (Rust core + Android/iOS UI) |
 | 4 — Security & Distribution | Duress PIN, APK signing, route guard, compression | **Complete** |
 | 4B — Scaling & Dual Transport | Adaptive spray, neighborhood routing, size tiers, Wi-Fi Direct | **Complete** |
-| 5 — Launch | UI polish, audit, localization, release | Not started |
+| 5 — UI/UX & Launch Prep | Settings, onboarding, groups, identicons, read receipts | **In progress** — core UI done, visual polish remaining |

@@ -17,6 +17,9 @@ targets:
     sources:
       - path: Flare/Sources
       - path: FlareCore/Generated
+        excludes:
+          - "*.h"
+          - "*.modulemap"
     resources:
       - path: Flare/Resources
     settings:

@@ -11,28 +11,41 @@
 		0FD767B073E58D0AD98B71ED /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F86E5A5078E1EF3E00FB788F /* Constants.swift */; };
 		10DE3BFE91097C97A338E07F /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C992931A4F4DA0BCC3ADA61 /* ChatView.swift */; };
 		1733A79AAC9A86CAF69935A3 /* DiscoveryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53BD2AFD5C70654941168B4F /* DiscoveryViewModel.swift */; };
+		18103D007D46A5F4BE710FCC /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F068F9EE5B4CD3575EDE115B /* OnboardingView.swift */; };
 		183D0E1D3C087A6C3DE26F01 /* PhoneSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D564D76EE454C15190904672 /* PhoneSearchView.swift */; };
+		2AF0474EA749C0466453078E /* GroupViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4E900130729265D2D042333 /* GroupViewModel.swift */; };
 		4B5CCF728ECC50C4121AD7F5 /* SharedPhraseSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1907ACDE19F45D853BAC2F7C /* SharedPhraseSearchView.swift */; };
 		5B0143E36410183746421493 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7852FE632D15E0AE4D0143 /* Models.swift */; };
+		640D0534D651B377202AC431 /* CreateGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887D3320DC05E87277B8C623 /* CreateGroupView.swift */; };
 		67B9A71E0E0E12A5E50916CF /* ContactsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE59CAB64F7401A730F12B39 /* ContactsViewModel.swift */; };
 		7008520B6BADACA0FFC362F7 /* flare_core.swift in Sources */ = {isa = PBXBuildFile; fileRef = 081EF061D9801138AF8AEAC1 /* flare_core.swift */; };
 		71F92FDA231DDD9ECA1424D3 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 026D10CE504BF528A36A9C33 /* ChatViewModel.swift */; };
+		7CE6BEDAEDC5DF1850F5AF26 /* GroupListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9818E90CB715FD8F6B093B3 /* GroupListView.swift */; };
 		864F08FA91A6F34F8D28EEFA /* FlareRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F8416D775203AB9D89D29C /* FlareRepository.swift */; };
 		89F193544F5BC312B4B368BB /* NetworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDECFA004255B02C0215EBED /* NetworkView.swift */; };
+		8FE1B5588C4BED3026C90125 /* DuressSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0178DA1855BBB4D54732FD4D /* DuressSettingsView.swift */; };
+		A63A66400A6CF980D829BE0F /* PowerSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2AE244B7836CFF9F9B49DA0 /* PowerSettingsView.swift */; };
 		A95AED91D9D02BF008DB54B9 /* NetworkViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F253B04C2657DF9396722F55 /* NetworkViewModel.swift */; };
 		AEB741F8039DA173F9FCC675 /* FindContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739C2998A79C43807C6D8C16 /* FindContactView.swift */; };
+		B960D36BC7077D3629AE69A5 /* MultipeerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8FEA6B4C820781D9CA833C0 /* MultipeerManager.swift */; };
+		C38E2B1464EDA86B5F0C8FF3 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047E1DEA9A8310FDD0041076 /* SettingsView.swift */; };
 		C3C23F1C23627D53883C2BA5 /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6122EFFA4EE4A995F0AA825E /* QRScannerView.swift */; };
 		C5367C3A75D53C569AF440BC /* FlareApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42D8694C1CCC150643877B9E /* FlareApp.swift */; };
+		C62A499A9DE2AB3867817D33 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112D43261B7F63EEDDCF34C1 /* SettingsViewModel.swift */; };
 		D292B225D645C15059D19234 /* ConversationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C503BC8D1D391F06EBF1F9DA /* ConversationListView.swift */; };
 		DB20E00CCA4E5571719CAE80 /* QRDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFA583F6900013D7F9B47E76 /* QRDisplayView.swift */; };
 		EF84A739F7D99D534E90A758 /* ContactsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3806FD82CE3CEA905A0F36D0 /* ContactsView.swift */; };
 		F14BB15062BBE1D366F694AE /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54BBB921D126A7267F6EF703 /* MainTabView.swift */; };
+		F503584178FDB623567150DA /* IdenticonGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 430A39C7CAF5216BC66DDA3C /* IdenticonGenerator.swift */; };
 		F55F6FB3C6D70CB4D97704AF /* BLEManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14313A0DACD856023840054B /* BLEManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0178DA1855BBB4D54732FD4D /* DuressSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuressSettingsView.swift; sourceTree = "<group>"; };
 		026D10CE504BF528A36A9C33 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
+		047E1DEA9A8310FDD0041076 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		081EF061D9801138AF8AEAC1 /* flare_core.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = flare_core.swift; sourceTree = "<group>"; };
+		112D43261B7F63EEDDCF34C1 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		11F8416D775203AB9D89D29C /* FlareRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlareRepository.swift; sourceTree = "<group>"; };
 		14313A0DACD856023840054B /* BLEManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEManager.swift; sourceTree = "<group>"; };
 		1907ACDE19F45D853BAC2F7C /* SharedPhraseSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedPhraseSearchView.swift; sourceTree = "<group>"; };
@@ -40,21 +53,26 @@
 		1C7852FE632D15E0AE4D0143 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		3806FD82CE3CEA905A0F36D0 /* ContactsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsView.swift; sourceTree = "<group>"; };
 		42D8694C1CCC150643877B9E /* FlareApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlareApp.swift; sourceTree = "<group>"; };
+		430A39C7CAF5216BC66DDA3C /* IdenticonGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdenticonGenerator.swift; sourceTree = "<group>"; };
 		53BD2AFD5C70654941168B4F /* DiscoveryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryViewModel.swift; sourceTree = "<group>"; };
 		54BBB921D126A7267F6EF703 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		6122EFFA4EE4A995F0AA825E /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
 		739C2998A79C43807C6D8C16 /* FindContactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindContactView.swift; sourceTree = "<group>"; };
-		9A19D74DB36F74572DAD2829 /* flare_coreFFI.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = flare_coreFFI.modulemap; sourceTree = "<group>"; };
+		887D3320DC05E87277B8C623 /* CreateGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupView.swift; sourceTree = "<group>"; };
 		9C992931A4F4DA0BCC3ADA61 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		A54C4A6E1CC3B09770EE4B1A /* Flare.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Flare.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFA583F6900013D7F9B47E76 /* QRDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRDisplayView.swift; sourceTree = "<group>"; };
-		B060B630F3A8DA84C40EA298 /* flare_coreFFI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = flare_coreFFI.h; sourceTree = "<group>"; };
+		B2AE244B7836CFF9F9B49DA0 /* PowerSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerSettingsView.swift; sourceTree = "<group>"; };
 		BE59CAB64F7401A730F12B39 /* ContactsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsViewModel.swift; sourceTree = "<group>"; };
 		C503BC8D1D391F06EBF1F9DA /* ConversationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationListView.swift; sourceTree = "<group>"; };
 		D564D76EE454C15190904672 /* PhoneSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneSearchView.swift; sourceTree = "<group>"; };
 		DDECFA004255B02C0215EBED /* NetworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkView.swift; sourceTree = "<group>"; };
+		E9818E90CB715FD8F6B093B3 /* GroupListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupListView.swift; sourceTree = "<group>"; };
+		F068F9EE5B4CD3575EDE115B /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		F253B04C2657DF9396722F55 /* NetworkViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkViewModel.swift; sourceTree = "<group>"; };
+		F4E900130729265D2D042333 /* GroupViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupViewModel.swift; sourceTree = "<group>"; };
 		F86E5A5078E1EF3E00FB788F /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		F8FEA6B4C820781D9CA833C0 /* MultipeerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -63,10 +81,21 @@
 			children = (
 				D577D13257959E85CFAF9D9F /* Chat */,
 				BC986C50BC5DDA92D0B8FE60 /* Contacts */,
+				22A44CF999A595EBEF56FFE2 /* Groups */,
 				B2C3DBA81F335136FB0ED78B /* Navigation */,
+				62A3CB3248A7DA188527C387 /* Onboarding */,
 				E837E7A091E796B28DD9A96F /* Settings */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		22A44CF999A595EBEF56FFE2 /* Groups */ = {
+			isa = PBXGroup;
+			children = (
+				887D3320DC05E87277B8C623 /* CreateGroupView.swift */,
+				E9818E90CB715FD8F6B093B3 /* GroupListView.swift */,
+			);
+			path = Groups;
 			sourceTree = "<group>";
 		};
 		33B82DF2A86F95184CAFCFE3 = {
@@ -83,14 +112,24 @@
 			children = (
 				14313A0DACD856023840054B /* BLEManager.swift */,
 				19CC5CF3C860DEC64E3921F8 /* MeshService.swift */,
+				F8FEA6B4C820781D9CA833C0 /* MultipeerManager.swift */,
 			);
 			path = BLE;
+			sourceTree = "<group>";
+		};
+		62A3CB3248A7DA188527C387 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				F068F9EE5B4CD3575EDE115B /* OnboardingView.swift */,
+			);
+			path = Onboarding;
 			sourceTree = "<group>";
 		};
 		733B10A2071C0E898C979248 /* Util */ = {
 			isa = PBXGroup;
 			children = (
 				F86E5A5078E1EF3E00FB788F /* Constants.swift */,
+				430A39C7CAF5216BC66DDA3C /* IdenticonGenerator.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -107,8 +146,6 @@
 			isa = PBXGroup;
 			children = (
 				081EF061D9801138AF8AEAC1 /* flare_core.swift */,
-				B060B630F3A8DA84C40EA298 /* flare_coreFFI.h */,
-				9A19D74DB36F74572DAD2829 /* flare_coreFFI.modulemap */,
 			);
 			name = Generated;
 			path = FlareCore/Generated;
@@ -134,7 +171,9 @@
 				026D10CE504BF528A36A9C33 /* ChatViewModel.swift */,
 				BE59CAB64F7401A730F12B39 /* ContactsViewModel.swift */,
 				53BD2AFD5C70654941168B4F /* DiscoveryViewModel.swift */,
+				F4E900130729265D2D042333 /* GroupViewModel.swift */,
 				F253B04C2657DF9396722F55 /* NetworkViewModel.swift */,
+				112D43261B7F63EEDDCF34C1 /* SettingsViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -181,7 +220,10 @@
 		E837E7A091E796B28DD9A96F /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				0178DA1855BBB4D54732FD4D /* DuressSettingsView.swift */,
 				DDECFA004255B02C0215EBED /* NetworkView.swift */,
+				B2AE244B7836CFF9F9B49DA0 /* PowerSettingsView.swift */,
+				047E1DEA9A8310FDD0041076 /* SettingsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -251,18 +293,28 @@
 				EF84A739F7D99D534E90A758 /* ContactsView.swift in Sources */,
 				67B9A71E0E0E12A5E50916CF /* ContactsViewModel.swift in Sources */,
 				D292B225D645C15059D19234 /* ConversationListView.swift in Sources */,
+				640D0534D651B377202AC431 /* CreateGroupView.swift in Sources */,
 				1733A79AAC9A86CAF69935A3 /* DiscoveryViewModel.swift in Sources */,
+				8FE1B5588C4BED3026C90125 /* DuressSettingsView.swift in Sources */,
 				AEB741F8039DA173F9FCC675 /* FindContactView.swift in Sources */,
 				C5367C3A75D53C569AF440BC /* FlareApp.swift in Sources */,
 				864F08FA91A6F34F8D28EEFA /* FlareRepository.swift in Sources */,
+				7CE6BEDAEDC5DF1850F5AF26 /* GroupListView.swift in Sources */,
+				2AF0474EA749C0466453078E /* GroupViewModel.swift in Sources */,
+				F503584178FDB623567150DA /* IdenticonGenerator.swift in Sources */,
 				F14BB15062BBE1D366F694AE /* MainTabView.swift in Sources */,
 				0077806F0C68DB9E946B5817 /* MeshService.swift in Sources */,
 				5B0143E36410183746421493 /* Models.swift in Sources */,
+				B960D36BC7077D3629AE69A5 /* MultipeerManager.swift in Sources */,
 				89F193544F5BC312B4B368BB /* NetworkView.swift in Sources */,
 				A95AED91D9D02BF008DB54B9 /* NetworkViewModel.swift in Sources */,
+				18103D007D46A5F4BE710FCC /* OnboardingView.swift in Sources */,
 				183D0E1D3C087A6C3DE26F01 /* PhoneSearchView.swift in Sources */,
+				A63A66400A6CF980D829BE0F /* PowerSettingsView.swift in Sources */,
 				DB20E00CCA4E5571719CAE80 /* QRDisplayView.swift in Sources */,
 				C3C23F1C23627D53883C2BA5 /* QRScannerView.swift in Sources */,
+				C38E2B1464EDA86B5F0C8FF3 /* SettingsView.swift in Sources */,
+				C62A499A9DE2AB3867817D33 /* SettingsViewModel.swift in Sources */,
 				4B5CCF728ECC50C4121AD7F5 /* SharedPhraseSearchView.swift in Sources */,
 				7008520B6BADACA0FFC362F7 /* flare_core.swift in Sources */,
 			);
