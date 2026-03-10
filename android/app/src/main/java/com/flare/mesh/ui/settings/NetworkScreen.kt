@@ -19,6 +19,7 @@ import com.flare.mesh.R
 import com.flare.mesh.data.model.MeshPeer
 import com.flare.mesh.data.model.MeshStatus
 import com.flare.mesh.data.model.TransportType
+import com.flare.mesh.ui.network.MeshVisualizationView
 import com.flare.mesh.viewmodel.NetworkViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,9 +59,32 @@ fun NetworkScreen(
                 StatsRow(meshStatus)
             }
 
+            // Mesh Visualization
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = stringResource(R.string.mesh_visualization_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(bottom = 4.dp),
+                        )
+                        MeshVisualizationView(
+                            peers = nearbyPeers,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+            }
+
             item {
                 Text(
-                    text = "Nearby Devices",
+                    text = stringResource(R.string.network_nearby_devices),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(top = 8.dp),
@@ -85,7 +109,7 @@ fun NetworkScreen(
                             )
                             Spacer(Modifier.width(12.dp))
                             Text(
-                                text = "Scanning for Flare devices…",
+                                text = stringResource(R.string.network_scanning),
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                         }

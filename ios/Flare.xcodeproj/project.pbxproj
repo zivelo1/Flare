@@ -14,14 +14,21 @@
 		18103D007D46A5F4BE710FCC /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F068F9EE5B4CD3575EDE115B /* OnboardingView.swift */; };
 		183D0E1D3C087A6C3DE26F01 /* PhoneSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D564D76EE454C15190904672 /* PhoneSearchView.swift */; };
 		2AF0474EA749C0466453078E /* GroupViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4E900130729265D2D042333 /* GroupViewModel.swift */; };
+		348DB3166C963312EB654FE3 /* FlareIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C05D6D47C80857CC5402DC86 /* FlareIconView.swift */; };
+		4B2381555F07B2ADC08420ED /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B85FFDBE506848902779FB6 /* SplashView.swift */; };
 		4B5CCF728ECC50C4121AD7F5 /* SharedPhraseSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1907ACDE19F45D853BAC2F7C /* SharedPhraseSearchView.swift */; };
 		5B0143E36410183746421493 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7852FE632D15E0AE4D0143 /* Models.swift */; };
 		640D0534D651B377202AC431 /* CreateGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887D3320DC05E87277B8C623 /* CreateGroupView.swift */; };
 		67B9A71E0E0E12A5E50916CF /* ContactsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE59CAB64F7401A730F12B39 /* ContactsViewModel.swift */; };
+		6C715B212F474EE1C5C9CF4D /* ImageCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ADE4461016628454408F39F /* ImageCaptureView.swift */; };
+		6D1109D327739098E2253641 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5ABE301752E734796B2B57 /* HapticManager.swift */; };
 		7008520B6BADACA0FFC362F7 /* flare_core.swift in Sources */ = {isa = PBXBuildFile; fileRef = 081EF061D9801138AF8AEAC1 /* flare_core.swift */; };
 		71F92FDA231DDD9ECA1424D3 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 026D10CE504BF528A36A9C33 /* ChatViewModel.swift */; };
+		76446C41E7C2528537B713D0 /* AudioWaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2904FC41F1F664AFEBFBB66 /* AudioWaveformView.swift */; };
 		7CE6BEDAEDC5DF1850F5AF26 /* GroupListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9818E90CB715FD8F6B093B3 /* GroupListView.swift */; };
+		85B61EE2DAFFD9584B9FF1FE /* ImagePreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3BAC76D74524F8E98718D3 /* ImagePreviewSheet.swift */; };
 		864F08FA91A6F34F8D28EEFA /* FlareRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F8416D775203AB9D89D29C /* FlareRepository.swift */; };
+		8985A951F37BA4D2E8FA553E /* VoiceRecordButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA3A7D595F8211F54482B7C /* VoiceRecordButton.swift */; };
 		89F193544F5BC312B4B368BB /* NetworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDECFA004255B02C0215EBED /* NetworkView.swift */; };
 		8FE1B5588C4BED3026C90125 /* DuressSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0178DA1855BBB4D54732FD4D /* DuressSettingsView.swift */; };
 		A63A66400A6CF980D829BE0F /* PowerSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2AE244B7836CFF9F9B49DA0 /* PowerSettingsView.swift */; };
@@ -32,6 +39,7 @@
 		C3C23F1C23627D53883C2BA5 /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6122EFFA4EE4A995F0AA825E /* QRScannerView.swift */; };
 		C5367C3A75D53C569AF440BC /* FlareApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42D8694C1CCC150643877B9E /* FlareApp.swift */; };
 		C62A499A9DE2AB3867817D33 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112D43261B7F63EEDDCF34C1 /* SettingsViewModel.swift */; };
+		D20BA4C1D6D2A1E67D5AC5E7 /* MeshVisualizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39FF7D927403A8CBD70F274D /* MeshVisualizationView.swift */; };
 		D292B225D645C15059D19234 /* ConversationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C503BC8D1D391F06EBF1F9DA /* ConversationListView.swift */; };
 		DB20E00CCA4E5571719CAE80 /* QRDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFA583F6900013D7F9B47E76 /* QRDisplayView.swift */; };
 		EF84A739F7D99D534E90A758 /* ContactsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3806FD82CE3CEA905A0F36D0 /* ContactsView.swift */; };
@@ -50,20 +58,28 @@
 		14313A0DACD856023840054B /* BLEManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEManager.swift; sourceTree = "<group>"; };
 		1907ACDE19F45D853BAC2F7C /* SharedPhraseSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedPhraseSearchView.swift; sourceTree = "<group>"; };
 		19CC5CF3C860DEC64E3921F8 /* MeshService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshService.swift; sourceTree = "<group>"; };
+		1A3BAC76D74524F8E98718D3 /* ImagePreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePreviewSheet.swift; sourceTree = "<group>"; };
 		1C7852FE632D15E0AE4D0143 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		2AA3A7D595F8211F54482B7C /* VoiceRecordButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRecordButton.swift; sourceTree = "<group>"; };
 		3806FD82CE3CEA905A0F36D0 /* ContactsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsView.swift; sourceTree = "<group>"; };
+		39FF7D927403A8CBD70F274D /* MeshVisualizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshVisualizationView.swift; sourceTree = "<group>"; };
 		42D8694C1CCC150643877B9E /* FlareApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlareApp.swift; sourceTree = "<group>"; };
 		430A39C7CAF5216BC66DDA3C /* IdenticonGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdenticonGenerator.swift; sourceTree = "<group>"; };
+		4A5ABE301752E734796B2B57 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
 		53BD2AFD5C70654941168B4F /* DiscoveryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryViewModel.swift; sourceTree = "<group>"; };
 		54BBB921D126A7267F6EF703 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		6122EFFA4EE4A995F0AA825E /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
 		739C2998A79C43807C6D8C16 /* FindContactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindContactView.swift; sourceTree = "<group>"; };
+		7B85FFDBE506848902779FB6 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		887D3320DC05E87277B8C623 /* CreateGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupView.swift; sourceTree = "<group>"; };
+		9ADE4461016628454408F39F /* ImageCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCaptureView.swift; sourceTree = "<group>"; };
 		9C992931A4F4DA0BCC3ADA61 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		A54C4A6E1CC3B09770EE4B1A /* Flare.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Flare.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFA583F6900013D7F9B47E76 /* QRDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRDisplayView.swift; sourceTree = "<group>"; };
+		B2904FC41F1F664AFEBFBB66 /* AudioWaveformView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioWaveformView.swift; sourceTree = "<group>"; };
 		B2AE244B7836CFF9F9B49DA0 /* PowerSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerSettingsView.swift; sourceTree = "<group>"; };
 		BE59CAB64F7401A730F12B39 /* ContactsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsViewModel.swift; sourceTree = "<group>"; };
+		C05D6D47C80857CC5402DC86 /* FlareIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlareIconView.swift; sourceTree = "<group>"; };
 		C503BC8D1D391F06EBF1F9DA /* ConversationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationListView.swift; sourceTree = "<group>"; };
 		D564D76EE454C15190904672 /* PhoneSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneSearchView.swift; sourceTree = "<group>"; };
 		DDECFA004255B02C0215EBED /* NetworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkView.swift; sourceTree = "<group>"; };
@@ -80,13 +96,32 @@
 			isa = PBXGroup;
 			children = (
 				D577D13257959E85CFAF9D9F /* Chat */,
+				124311CEC9E33EC1B3B0B439 /* Components */,
 				BC986C50BC5DDA92D0B8FE60 /* Contacts */,
 				22A44CF999A595EBEF56FFE2 /* Groups */,
 				B2C3DBA81F335136FB0ED78B /* Navigation */,
+				53D78CED0AA297BA7E4CEAC8 /* Network */,
 				62A3CB3248A7DA188527C387 /* Onboarding */,
 				E837E7A091E796B28DD9A96F /* Settings */,
+				1EA24ACEF613A39B7E118ECB /* Splash */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		124311CEC9E33EC1B3B0B439 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				C05D6D47C80857CC5402DC86 /* FlareIconView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		1EA24ACEF613A39B7E118ECB /* Splash */ = {
+			isa = PBXGroup;
+			children = (
+				7B85FFDBE506848902779FB6 /* SplashView.swift */,
+			);
+			path = Splash;
 			sourceTree = "<group>";
 		};
 		22A44CF999A595EBEF56FFE2 /* Groups */ = {
@@ -117,6 +152,14 @@
 			path = BLE;
 			sourceTree = "<group>";
 		};
+		53D78CED0AA297BA7E4CEAC8 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				39FF7D927403A8CBD70F274D /* MeshVisualizationView.swift */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
 		62A3CB3248A7DA188527C387 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
@@ -129,6 +172,7 @@
 			isa = PBXGroup;
 			children = (
 				F86E5A5078E1EF3E00FB788F /* Constants.swift */,
+				4A5ABE301752E734796B2B57 /* HapticManager.swift */,
 				430A39C7CAF5216BC66DDA3C /* IdenticonGenerator.swift */,
 			);
 			path = Util;
@@ -211,8 +255,12 @@
 		D577D13257959E85CFAF9D9F /* Chat */ = {
 			isa = PBXGroup;
 			children = (
+				B2904FC41F1F664AFEBFBB66 /* AudioWaveformView.swift */,
 				9C992931A4F4DA0BCC3ADA61 /* ChatView.swift */,
 				C503BC8D1D391F06EBF1F9DA /* ConversationListView.swift */,
+				9ADE4461016628454408F39F /* ImageCaptureView.swift */,
+				1A3BAC76D74524F8E98718D3 /* ImagePreviewSheet.swift */,
+				2AA3A7D595F8211F54482B7C /* VoiceRecordButton.swift */,
 			);
 			path = Chat;
 			sourceTree = "<group>";
@@ -286,6 +334,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				76446C41E7C2528537B713D0 /* AudioWaveformView.swift in Sources */,
 				F55F6FB3C6D70CB4D97704AF /* BLEManager.swift in Sources */,
 				10DE3BFE91097C97A338E07F /* ChatView.swift in Sources */,
 				71F92FDA231DDD9ECA1424D3 /* ChatViewModel.swift in Sources */,
@@ -298,12 +347,17 @@
 				8FE1B5588C4BED3026C90125 /* DuressSettingsView.swift in Sources */,
 				AEB741F8039DA173F9FCC675 /* FindContactView.swift in Sources */,
 				C5367C3A75D53C569AF440BC /* FlareApp.swift in Sources */,
+				348DB3166C963312EB654FE3 /* FlareIconView.swift in Sources */,
 				864F08FA91A6F34F8D28EEFA /* FlareRepository.swift in Sources */,
 				7CE6BEDAEDC5DF1850F5AF26 /* GroupListView.swift in Sources */,
 				2AF0474EA749C0466453078E /* GroupViewModel.swift in Sources */,
+				6D1109D327739098E2253641 /* HapticManager.swift in Sources */,
 				F503584178FDB623567150DA /* IdenticonGenerator.swift in Sources */,
+				6C715B212F474EE1C5C9CF4D /* ImageCaptureView.swift in Sources */,
+				85B61EE2DAFFD9584B9FF1FE /* ImagePreviewSheet.swift in Sources */,
 				F14BB15062BBE1D366F694AE /* MainTabView.swift in Sources */,
 				0077806F0C68DB9E946B5817 /* MeshService.swift in Sources */,
+				D20BA4C1D6D2A1E67D5AC5E7 /* MeshVisualizationView.swift in Sources */,
 				5B0143E36410183746421493 /* Models.swift in Sources */,
 				B960D36BC7077D3629AE69A5 /* MultipeerManager.swift in Sources */,
 				89F193544F5BC312B4B368BB /* NetworkView.swift in Sources */,
@@ -316,6 +370,8 @@
 				C38E2B1464EDA86B5F0C8FF3 /* SettingsView.swift in Sources */,
 				C62A499A9DE2AB3867817D33 /* SettingsViewModel.swift in Sources */,
 				4B5CCF728ECC50C4121AD7F5 /* SharedPhraseSearchView.swift in Sources */,
+				4B2381555F07B2ADC08420ED /* SplashView.swift in Sources */,
+				8985A951F37BA4D2E8FA553E /* VoiceRecordButton.swift in Sources */,
 				7008520B6BADACA0FFC362F7 /* flare_core.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

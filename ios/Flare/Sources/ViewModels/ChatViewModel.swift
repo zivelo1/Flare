@@ -97,6 +97,8 @@ final class ChatViewModel: ObservableObject {
     }
 
     private func onIncomingMessage(senderId: String, plaintext: String) {
+        HapticManager.messageReceived()
+
         let msg = ChatMessage(
             messageId: UUID().uuidString,
             conversationId: senderId,

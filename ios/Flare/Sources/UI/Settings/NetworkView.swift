@@ -7,6 +7,13 @@ struct NetworkView: View {
         ScrollView {
             VStack(spacing: 16) {
                 meshStatusCard
+
+                if !viewModel.nearbyPeers.isEmpty {
+                    MeshVisualizationView(
+                        peers: Array(viewModel.nearbyPeers.values)
+                    )
+                }
+
                 statsRow
                 nearbyDevicesSection
             }

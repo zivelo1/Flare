@@ -154,4 +154,36 @@ object Constants {
 
     /** Absolute maximum payload size (bytes). */
     const val ABSOLUTE_MAX_PAYLOAD_BYTES: Int = 10 * 1024 * 1024
+
+    // ── UI ──────────────────────────────────────────────────────────
+
+    /** Duration the splash screen is displayed in milliseconds. */
+    const val SPLASH_DURATION_MS: Long = 1500L
+
+    /** Haptic vibration pattern for incoming messages [delay, vibrate, sleep, vibrate]. */
+    val HAPTIC_INCOMING_PATTERN: LongArray = longArrayOf(0L, 80L, 120L, 100L)
+
+    /** Amplitude values for incoming message haptic pattern. -1 = default. */
+    val HAPTIC_INCOMING_AMPLITUDES: IntArray = intArrayOf(0, 120, 0, 180)
+
+    /** Polling interval for voice waveform amplitude in milliseconds. */
+    const val VOICE_WAVEFORM_POLL_INTERVAL_MS: Long = 60L
+
+    /** Minimum recording duration in milliseconds to be considered valid. */
+    const val VOICE_MIN_RECORDING_DURATION_MS: Long = 500L
+
+    /** Number of waveform bars displayed during recording. */
+    const val VOICE_WAVEFORM_BAR_COUNT: Int = 32
+
+    /** Maximum number of nodes shown in mesh visualization. */
+    const val MESH_VIS_MAX_NODES: Int = 12
+
+    /** Animation duration for mesh node pulses in milliseconds. */
+    const val MESH_VIS_PULSE_DURATION_MS: Int = 2000
+
+    /** Minimum line width for weak signal in mesh visualization. */
+    const val MESH_VIS_MIN_LINE_WIDTH_DP: Float = 1f
+
+    /** Maximum line width for strong signal in mesh visualization. */
+    const val MESH_VIS_MAX_LINE_WIDTH_DP: Float = 4f
 }

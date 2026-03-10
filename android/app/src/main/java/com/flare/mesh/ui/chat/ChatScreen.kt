@@ -1,6 +1,8 @@
 package com.flare.mesh.ui.chat
 
-import androidx.compose.animation.animateColorAsState
+import android.net.Uri
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,6 +23,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -43,9 +47,13 @@ fun ChatScreen(
 ) {
     var messageText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
+    val hapticFeedback = LocalHapticFeedback.current
 
     val messages by chatViewModel.currentMessages.collectAsState()
     val contact by chatViewModel.currentContact.collectAsState()
+
+    // Image preview state
+    var capturedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     LaunchedEffect(conversationId) {
         chatViewModel.loadConversation(conversationId)
@@ -83,7 +91,7 @@ fun ChatScreen(
                                 style = MaterialTheme.typography.titleMedium,
                             )
                             Text(
-                                text = "via mesh",
+                                text = stringResource(R.string.chat_via_mesh),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -92,7 +100,10 @@ fun ChatScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.chat_back),
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -106,10 +117,20 @@ fun ChatScreen(
                 onTextChange = { messageText = it },
                 onSend = {
                     if (messageText.isNotBlank()) {
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                         chatViewModel.sendMessage(conversationId, messageText.trim())
                         messageText = ""
                     }
                 },
+                onVoiceRecordingComplete = { filePath ->
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                    chatViewModel.sendMessage(conversationId, "[Voice message: $filePath]")
+                },
+                onVoiceRecordingError = { /* Could show a snackbar */ },
+                onImageCaptured = { uri ->
+                    capturedImageUri = uri
+                },
+                onImageCaptureError = { /* Could show a snackbar */ },
             )
         },
     ) { padding ->
@@ -121,7 +142,7 @@ fun ChatScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = "Send a message to start the conversation.\nMessages are encrypted end-to-end.",
+                    text = stringResource(R.string.chat_empty_prompt),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -138,11 +159,38 @@ fun ChatScreen(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 reverseLayout = true,
             ) {
-                items(messages.reversed(), key = { it.messageId }) { message ->
-                    MessageBubble(message = message)
+                items(
+                    items = messages.reversed(),
+                    key = { it.messageId },
+                ) { message ->
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = slideInVertically(
+                            initialOffsetY = { fullHeight -> fullHeight },
+                            animationSpec = tween(durationMillis = 300),
+                        ) + fadeIn(
+                            animationSpec = tween(durationMillis = 300),
+                        ),
+                        modifier = Modifier.animateItem(),
+                    ) {
+                        MessageBubble(message = message)
+                    }
                 }
             }
         }
+    }
+
+    // Image preview bottom sheet
+    capturedImageUri?.let { uri ->
+        ImagePreviewSheet(
+            imageUri = uri,
+            onSend = { imageUri ->
+                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                chatViewModel.sendMessage(conversationId, "[Image: $imageUri]")
+                capturedImageUri = null
+            },
+            onDismiss = { capturedImageUri = null },
+        )
     }
 }
 
@@ -229,11 +277,11 @@ private fun DeliveryStatusIcon(status: DeliveryStatus, tint: Color) {
     Icon(
         icon,
         contentDescription = when (status) {
-            DeliveryStatus.PENDING -> "Sending"
-            DeliveryStatus.SENT -> "Sent"
-            DeliveryStatus.DELIVERED -> "Delivered"
-            DeliveryStatus.READ -> "Read"
-            DeliveryStatus.FAILED -> "Failed"
+            DeliveryStatus.PENDING -> stringResource(R.string.chat_status_sending)
+            DeliveryStatus.SENT -> stringResource(R.string.chat_status_sent)
+            DeliveryStatus.DELIVERED -> stringResource(R.string.chat_status_delivered)
+            DeliveryStatus.READ -> stringResource(R.string.chat_status_read)
+            DeliveryStatus.FAILED -> stringResource(R.string.chat_status_failed)
         },
         modifier = Modifier.size(14.dp),
         tint = iconTint,
@@ -245,6 +293,10 @@ private fun MessageInput(
     text: String,
     onTextChange: (String) -> Unit,
     onSend: () -> Unit,
+    onVoiceRecordingComplete: (String) -> Unit,
+    onVoiceRecordingError: (String) -> Unit,
+    onImageCaptured: (Uri) -> Unit,
+    onImageCaptureError: (String) -> Unit,
 ) {
     Surface(
         tonalElevation = 2.dp,
@@ -256,6 +308,12 @@ private fun MessageInput(
                 .imePadding(),
             verticalAlignment = Alignment.Bottom,
         ) {
+            // Camera button
+            ImageCaptureButton(
+                onImageCaptured = onImageCaptured,
+                onError = onImageCaptureError,
+            )
+
             OutlinedTextField(
                 value = text,
                 onValueChange = onTextChange,
@@ -278,17 +336,27 @@ private fun MessageInput(
 
             Spacer(Modifier.width(8.dp))
 
-            FilledIconButton(
-                onClick = onSend,
-                enabled = text.isNotBlank(),
-                modifier = Modifier.size(48.dp),
-                shape = CircleShape,
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.Send,
-                    contentDescription = stringResource(R.string.action_send),
-                    modifier = Modifier.size(20.dp),
+            if (text.isBlank()) {
+                // Show voice record button when text is empty
+                VoiceRecordButton(
+                    onRecordingComplete = onVoiceRecordingComplete,
+                    onRecordingError = onVoiceRecordingError,
+                    modifier = Modifier.size(48.dp),
                 )
+            } else {
+                // Show send button when text is present
+                FilledIconButton(
+                    onClick = onSend,
+                    enabled = text.isNotBlank(),
+                    modifier = Modifier.size(48.dp),
+                    shape = CircleShape,
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send,
+                        contentDescription = stringResource(R.string.action_send),
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
             }
         }
     }

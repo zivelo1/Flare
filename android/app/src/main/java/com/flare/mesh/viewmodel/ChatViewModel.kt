@@ -1,10 +1,17 @@
 package com.flare.mesh.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import androidx.core.content.getSystemService
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.flare.mesh.data.model.*
 import com.flare.mesh.data.repository.FlareRepository
 import com.flare.mesh.service.MeshService
+import com.flare.mesh.util.Constants
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -14,9 +21,16 @@ import java.time.Instant
  * ViewModel for the conversation list and individual chat screens.
  * Bridges the Rust core (via FlareRepository) to the Compose UI.
  */
-class ChatViewModel : ViewModel() {
+class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: FlareRepository by lazy { FlareRepository.getInstance() }
+
+    private val vibrator: Vibrator? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        application.getSystemService<VibratorManager>()?.defaultVibrator
+    } else {
+        @Suppress("DEPRECATION")
+        application.getSystemService<Vibrator>()
+    }
 
     private val _conversations = MutableStateFlow<List<Conversation>>(emptyList())
     val conversations: StateFlow<List<Conversation>> = _conversations.asStateFlow()
@@ -126,7 +140,33 @@ class ChatViewModel : ViewModel() {
             _currentMessages.value = _currentMessages.value + message
         }
 
+        // Trigger notification-style vibration
+        triggerIncomingVibration()
+
         updateConversationList(repository.contacts.value)
+    }
+
+    /**
+     * Triggers a notification-style vibration pattern for incoming messages.
+     * Uses the pattern defined in [Constants.HAPTIC_INCOMING_PATTERN].
+     */
+    private fun triggerIncomingVibration() {
+        val v = vibrator ?: return
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val effect = VibrationEffect.createWaveform(
+                    Constants.HAPTIC_INCOMING_PATTERN,
+                    Constants.HAPTIC_INCOMING_AMPLITUDES,
+                    -1, // No repeat
+                )
+                v.vibrate(effect)
+            } else {
+                @Suppress("DEPRECATION")
+                v.vibrate(Constants.HAPTIC_INCOMING_PATTERN, -1)
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to trigger incoming message vibration")
+        }
     }
 
     private fun updateConversationList(contacts: List<Contact>) {

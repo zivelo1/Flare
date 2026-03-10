@@ -4,10 +4,13 @@ import SwiftUI
 struct FlareApp: App {
     @StateObject private var appState = AppState()
     @AppStorage("onboarding_complete") private var onboardingComplete = false
+    @State private var splashFinished = false
 
     var body: some Scene {
         WindowGroup {
-            if !appState.isInitialized {
+            if !splashFinished {
+                SplashView(isFinished: $splashFinished)
+            } else if !appState.isInitialized {
                 ProgressView("Initializing Flare…")
                     .task {
                         await appState.initialize()

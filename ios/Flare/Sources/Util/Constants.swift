@@ -1,5 +1,6 @@
 import Foundation
 import CoreBluetooth
+import SwiftUI
 
 enum Constants {
     static let protocolVersion: UInt8 = 1
@@ -42,6 +43,29 @@ enum Constants {
     // Crypto
     static let deviceIdLength = 16
     static let publicKeyLength = 32
+
+    // Brand Colors
+    static let flareOrange = Color(red: 1.0, green: 0.42, blue: 0.21)
+    static let flareOrangeLight = Color(red: 1.0, green: 0.56, blue: 0.38)
+
+    // Splash Screen
+    static let splashDurationSeconds: TimeInterval = 1.5
+
+    // Animations
+    static let bubbleSpringResponse: Double = 0.3
+    static let bubbleDampingFraction: Double = 0.7
+    static let sendButtonScalePressed: CGFloat = 0.85
+    static let sendButtonScaleNormal: CGFloat = 1.0
+
+    // Voice Recording
+    static let voiceWaveformPollInterval: TimeInterval = 0.06
+    static let voiceRecordingFormat: String = "m4a"
+    static let voiceWaveformBarCount: Int = 24
+
+    // Mesh Visualization
+    static let meshVisualizationCenterRadius: CGFloat = 28
+    static let meshVisualizationPeerRadius: CGFloat = 20
+    static let meshVisualizationOrbitRadius: CGFloat = 100
 
     // Notifications
     static let rendezvousBroadcastInterval: TimeInterval = 30.0

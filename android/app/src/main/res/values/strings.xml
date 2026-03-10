@@ -52,4 +52,69 @@
     <string name="onboarding_next">Next</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_get_started">Get Started</string>
+
+    <!-- Splash -->
+    <string name="splash_app_name">Flare</string>
+    <string name="splash_tagline">Mesh messaging, everywhere</string>
+
+    <!-- Chat -->
+    <string name="chat_empty_prompt">Send a message to start the conversation.\nMessages are encrypted end-to-end.</string>
+    <string name="chat_via_mesh">via mesh</string>
+    <string name="chat_back">Back</string>
+    <string name="chat_status_sending">Sending</string>
+    <string name="chat_status_sent">Sent</string>
+    <string name="chat_status_delivered">Delivered</string>
+    <string name="chat_status_read">Read</string>
+    <string name="chat_status_failed">Failed</string>
+
+    <!-- Voice Recording -->
+    <string name="voice_record_hold">Hold to record</string>
+    <string name="voice_recording">Recording…</string>
+    <string name="voice_record_release">Release to send</string>
+    <string name="voice_record_cancel">Slide to cancel</string>
+    <string name="voice_record_permission_needed">Microphone permission is required to record voice messages</string>
+    <string name="voice_record_error">Failed to record audio</string>
+    <string name="voice_record_too_short">Recording too short</string>
+
+    <!-- Image Capture -->
+    <string name="image_capture">Take photo</string>
+    <string name="image_preview_title">Send photo</string>
+    <string name="image_send">Send</string>
+    <string name="image_cancel">Cancel</string>
+    <string name="image_capture_error">Failed to capture photo</string>
+    <string name="image_permission_needed">Camera permission is required to take photos</string>
+
+    <!-- APK Sharing -->
+    <string name="apk_share_title">Share Flare</string>
+    <string name="apk_receive_title">Receive Flare</string>
+    <string name="apk_share_description">Share the Flare app with nearby devices via Bluetooth</string>
+    <string name="apk_share_version">Version %s</string>
+    <string name="apk_share_size">Size: %s</string>
+    <string name="apk_share_hash">SHA-256: %s</string>
+    <string name="apk_share_button">Share via Bluetooth</string>
+    <string name="apk_share_stop_button">Stop Sharing</string>
+    <string name="apk_share_advertising">Broadcasting to nearby devices…</string>
+    <string name="apk_share_transfer_progress">Transfer progress</string>
+    <string name="apk_share_requesting_devices">Devices requesting Flare</string>
+    <string name="apk_share_no_requests">No requests yet</string>
+    <string name="apk_receive_scanning">Scanning for nearby Flare devices…</string>
+    <string name="apk_receive_available">Available to download</string>
+    <string name="apk_receive_version">Version: %s</string>
+    <string name="apk_receive_size">Size: %s</string>
+    <string name="apk_receive_verified">Signature verified</string>
+    <string name="apk_receive_unverified">Signature not verified</string>
+    <string name="apk_receive_download">Download</string>
+    <string name="apk_receive_install">Install</string>
+    <string name="apk_receive_downloading">Downloading…</string>
+    <string name="apk_receive_no_offers">No nearby Flare devices found</string>
+    <string name="apk_settings_share">Share Flare App</string>
+    <string name="apk_settings_share_subtitle">Send app to nearby devices via Bluetooth</string>
+
+    <!-- Mesh Visualization -->
+    <string name="mesh_visualization_you">You</string>
+    <string name="mesh_visualization_title">Mesh Topology</string>
+
+    <!-- Network -->
+    <string name="network_nearby_devices">Nearby Devices</string>
+    <string name="network_scanning">Scanning for Flare devices…</string>
 </resources>

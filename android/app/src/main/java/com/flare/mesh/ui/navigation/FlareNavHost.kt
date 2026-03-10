@@ -37,6 +37,9 @@ import com.flare.mesh.ui.settings.DuressSettingsScreen
 import com.flare.mesh.ui.settings.NetworkScreen
 import com.flare.mesh.ui.settings.PowerSettingsScreen
 import com.flare.mesh.ui.settings.SettingsScreen
+import com.flare.mesh.ui.sharing.ApkReceiveScreen
+import com.flare.mesh.ui.sharing.ApkShareScreen
+import com.flare.mesh.ui.splash.SplashScreen
 import com.flare.mesh.viewmodel.ContactsViewModel
 import com.flare.mesh.viewmodel.DiscoveryViewModel
 
@@ -73,7 +76,8 @@ fun FlareNavHost(
     val prefs = remember { context.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE) }
     val onboardingComplete = remember { mutableStateOf(prefs.getBoolean(KEY_ONBOARDING_COMPLETE, false)) }
 
-    val startDest = if (onboardingComplete.value) Screen.Chats.route else "onboarding"
+    // Always start with splash; it will navigate to onboarding or chats
+    val startDest = "splash"
 
     // Show bottom nav only on top-level screens
     val showBottomBar = bottomNavItems.any { screen ->
@@ -120,6 +124,22 @@ fun FlareNavHost(
             startDestination = startDest,
             modifier = Modifier.padding(innerPadding),
         ) {
+            // ── Splash ────────────────────────────────────────────────
+            composable("splash") {
+                SplashScreen(
+                    onSplashComplete = {
+                        val nextRoute = if (onboardingComplete.value) {
+                            Screen.Chats.route
+                        } else {
+                            "onboarding"
+                        }
+                        navController.navigate(nextRoute) {
+                            popUpTo("splash") { inclusive = true }
+                        }
+                    },
+                )
+            }
+
             // ── Onboarding ──────────────────────────────────────────
             composable("onboarding") {
                 OnboardingScreen(
@@ -233,6 +253,7 @@ fun FlareNavHost(
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToDuress = { navController.navigate("settings-duress") },
                     onNavigateToPower = { navController.navigate("settings-power") },
+                    onNavigateToApkShare = { navController.navigate("apk-share") },
                 )
             }
 
@@ -265,6 +286,19 @@ fun FlareNavHost(
                     onGroupCreated = { groupId ->
                         navController.popBackStack("groups", false)
                     },
+                )
+            }
+
+            // ── APK Sharing ─────────────────────────────────────────
+            composable("apk-share") {
+                ApkShareScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                )
+            }
+
+            composable("apk-receive") {
+                ApkReceiveScreen(
+                    onNavigateBack = { navController.popBackStack() },
                 )
             }
         }

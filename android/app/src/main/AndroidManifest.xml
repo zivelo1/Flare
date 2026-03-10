@@ -34,8 +34,14 @@
     <!-- Wake lock for maintaining BLE connections -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
-    <!-- Camera for QR code scanning -->
+    <!-- Camera for QR code scanning and image capture -->
     <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Microphone for voice message recording -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Haptic feedback for incoming messages -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <!-- Contacts for phone-number-based peer discovery -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -69,6 +75,16 @@
             android:name=".service.MeshService"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
     </application>
 

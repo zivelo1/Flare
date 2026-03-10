@@ -4,6 +4,10 @@ struct ChatView: View {
     let conversationId: String
     @ObservedObject var viewModel: ChatViewModel
     @State private var messageText = ""
+    @State private var sendButtonScale: CGFloat = Constants.sendButtonScaleNormal
+    @State private var showImageCapture = false
+    @State private var capturedImage: UIImage?
+    @State private var showImagePreview = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -17,13 +21,19 @@ struct ChatView: View {
                         ForEach(viewModel.currentMessages) { message in
                             MessageBubble(message: message)
                                 .id(message.messageId)
+                                .transition(
+                                    .asymmetric(
+                                        insertion: .move(edge: .bottom).combined(with: .opacity),
+                                        removal: .opacity
+                                    )
+                                )
                         }
                     }
                     .padding()
                 }
                 .onChange(of: viewModel.currentMessages.count) { _ in
                     if let lastId = viewModel.currentMessages.last?.messageId {
-                        withAnimation {
+                        withAnimation(.spring(response: Constants.bubbleSpringResponse, dampingFraction: Constants.bubbleDampingFraction)) {
                             proxy.scrollTo(lastId, anchor: .bottom)
                         }
                     }
@@ -49,6 +59,32 @@ struct ChatView: View {
         .onAppear {
             viewModel.loadConversation(conversationId)
         }
+        .fullScreenCover(isPresented: $showImageCapture) {
+            ImageCaptureView(capturedImage: $capturedImage)
+                .ignoresSafeArea()
+        }
+        .onChange(of: capturedImage) { _ in
+            if capturedImage != nil {
+                showImagePreview = true
+            }
+        }
+        .sheet(isPresented: $showImagePreview) {
+            if let image = capturedImage {
+                ImagePreviewSheet(
+                    image: image,
+                    onSend: {
+                        showImagePreview = false
+                        capturedImage = nil
+                        viewModel.sendMessage(conversationId: conversationId, text: "[Photo]")
+                    },
+                    onCancel: {
+                        showImagePreview = false
+                        capturedImage = nil
+                    }
+                )
+                .presentationDetents([.medium, .large])
+            }
+        }
     }
 
     private var emptyState: some View {
@@ -69,6 +105,21 @@ struct ChatView: View {
 
     private var messageInputBar: some View {
         HStack(spacing: 8) {
+            // Camera button
+            Button {
+                HapticManager.buttonTap()
+                ImageCaptureView.checkCameraPermission { granted in
+                    if granted {
+                        showImageCapture = true
+                    }
+                }
+            } label: {
+                Image(systemName: "camera")
+                    .font(.system(size: 20))
+                    .foregroundStyle(Color(.secondaryLabel))
+                    .frame(width: 32, height: 32)
+            }
+
             TextField("Message", text: $messageText, axis: .vertical)
                 .textFieldStyle(.plain)
                 .lineLimit(1...4)
@@ -76,14 +127,30 @@ struct ChatView: View {
                 .padding(.vertical, 8)
                 .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 20))
 
-            Button {
-                sendMessage()
-            } label: {
-                Image(systemName: "arrow.up.circle.fill")
-                    .font(.system(size: 32))
-                    .foregroundStyle(Color.accentColor)
+            if messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                VoiceRecordButton { fileURL in
+                    viewModel.sendMessage(conversationId: conversationId, text: "[Voice Message]")
+                }
+            } else {
+                Button {
+                    HapticManager.messageSent()
+                    withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+                        sendButtonScale = Constants.sendButtonScalePressed
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+                            sendButtonScale = Constants.sendButtonScaleNormal
+                        }
+                    }
+                    sendMessage()
+                } label: {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.system(size: 32))
+                        .foregroundStyle(Color.accentColor)
+                        .scaleEffect(sendButtonScale)
+                }
+                .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
-            .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
@@ -93,7 +160,9 @@ struct ChatView: View {
         let text = messageText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
         messageText = ""
-        viewModel.sendMessage(conversationId: conversationId, text: text)
+        withAnimation(.spring(response: Constants.bubbleSpringResponse, dampingFraction: Constants.bubbleDampingFraction)) {
+            viewModel.sendMessage(conversationId: conversationId, text: text)
+        }
     }
 }
 
@@ -147,7 +216,7 @@ struct MessageBubble: View {
         case .read:
             Image(systemName: "checkmark.circle.fill")
                 .font(.caption2)
-                .foregroundStyle(Color(red: 0.31, green: 0.76, blue: 0.97)) // Light blue
+                .foregroundStyle(Color(red: 0.31, green: 0.76, blue: 0.97))
         case .failed:
             Image(systemName: "exclamationmark.triangle")
                 .font(.caption2)

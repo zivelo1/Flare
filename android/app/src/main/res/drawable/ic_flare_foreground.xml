@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Flame shape centered in the adaptive icon safe zone (18-90 on each axis) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,22
+            C46,32 36,40 34,52
+            C32,60 34,68 38,74
+            C40,78 44,81 48,83
+            C46,78 45,72 47,67
+            C49,62 52,58 54,53
+            C56,58 59,62 61,67
+            C63,72 62,78 60,83
+            C64,81 68,78 70,74
+            C74,68 76,60 74,52
+            C72,40 62,32 54,22Z" />
+</vector>

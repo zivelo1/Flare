@@ -102,6 +102,15 @@
 - [x] **Power management settings** — current tier card with color coding, battery saver toggle, tier explanation cards with Constants values
 - [x] **Group messaging UI** — group list with empty state, create group with contact selection and checkboxes
 - [x] **Identicon avatars** — SHA-256 deterministic colors from 12-color curated palette (IdenticonGenerator)
+- [x] **Splash screen** — animated flame Canvas drawing with brand gradient, configurable duration
+- [x] **App icon** — adaptive icon with vector flame foreground and FlareOrange background
+- [x] **Chat animations** — AnimatedVisibility entrance on new messages, animateItem() for smooth reordering
+- [x] **Haptic feedback** — impact on send, vibration pattern on receive (via Vibrator system service)
+- [x] **Mesh visualization** — Canvas topology with peer nodes (IdenticonGenerator colors), pulsing connection lines, RSSI-based thickness
+- [x] **Voice recording** — hold-to-record with MediaRecorder, live waveform from getMaxAmplitude(), elapsed time, .m4a output
+- [x] **Image capture** — ActivityResultContracts.TakePicture with FileProvider, bottom sheet preview with send FAB
+- [x] **APK sharing** — share screen (version, size, SHA-256 hash, progress), receive screen (verification status, install button)
+- [x] **Dark mode refinement** — extended dark color scheme (surfaceContainer, inverseSurface, errorContainer)
 
 ### Blind Rendezvous Discovery (Android)
 - [x] Find Contact screen — discovery hub with 4 methods
@@ -136,6 +145,13 @@
 - [x] **Power management settings** — current tier card, battery saver toggle, tier explanation cards with live Constants values
 - [x] **Group messaging UI** — group list, create group with contact selection, group chat placeholder
 - [x] **Identicon avatars** — SHA-256 deterministic colors from 12-color curated palette (IdenticonGenerator + IdenticonAvatarView)
+- [x] **Splash screen** — animated FlameShape + brand gradient, configurable via Constants
+- [x] **Chat animations** — spring transitions on new messages, scale animation on send button
+- [x] **Haptic feedback** — centralized HapticManager (medium impact on send, success notification on receive)
+- [x] **Mesh visualization** — Canvas-based animated topology with Timer-driven pulsing, RSSI line thickness
+- [x] **Voice recording** — hold-to-record with AVAudioRecorder, live waveform from averagePower, .m4a output
+- [x] **Image capture** — UIImagePickerController via UIViewControllerRepresentable, preview sheet with send/cancel
+- [x] **Dark mode** — semantic SwiftUI colors throughout, FlareOrange with appropriate opacity
 
 ### Infrastructure
 - [x] GitHub repo (github.com/zivelo1/Flare)
@@ -174,17 +190,17 @@
 - [ ] Cross-platform test: Android ↔ iOS message exchange over BLE
 - [ ] Background execution tuning (CoreBluetooth state restoration is wired but untested)
 
-### UI/UX — Remaining Visual Design & Polish
-- [ ] App icon and splash screen design
-- [ ] Chat bubble animations and transitions
-- [ ] Network visualization (animated mesh topology)
-- [ ] Dark mode theming refinement
-- [ ] Haptic feedback for message send/receive
-- [ ] Voice message recording UI (hold-to-record, waveform display)
-- [ ] Image capture and preview UI
-- [ ] APK sharing UI (offer/request/progress)
+### UI/UX — Visual Design & Polish (Complete)
+- [x] App icon (adaptive vector drawable on Android, programmatic FlameShape on iOS) and animated splash screen
+- [x] Chat bubble animations (slide-in + fade on new messages, spring animations)
+- [x] Network mesh visualization (Canvas-based animated topology with peer nodes, pulsing connection lines, RSSI thickness)
+- [x] Dark mode theming refinement (extended dark color scheme on Android, semantic colors on iOS)
+- [x] Haptic feedback (medium impact on send, notification vibration on receive — both platforms)
+- [x] Voice message recording UI (hold-to-record with live waveform, AVAudioRecorder/MediaRecorder, .m4a format)
+- [x] Image capture and preview UI (UIImagePickerController/ActivityResultContracts.TakePicture, preview sheet with send/cancel)
+- [x] APK sharing UI (Android: share screen with version/hash/progress, receive screen with verification status)
 
-### Phase 5 — Launch
+### Phase 6 — Launch
 - [ ] Security audit
 - [ ] Farsi/Persian localization
 - [ ] Performance optimization (battery, memory)
@@ -198,4 +214,4 @@
 | 3 — Full Messaging | Groups, receipts, content types | **Complete** (Rust core + Android/iOS UI) |
 | 4 — Security & Distribution | Duress PIN, APK signing, route guard, compression | **Complete** |
 | 4B — Scaling & Dual Transport | Adaptive spray, neighborhood routing, size tiers, Wi-Fi Direct | **Complete** |
-| 5 — UI/UX & Launch Prep | Settings, onboarding, groups, identicons, read receipts | **In progress** — core UI done, visual polish remaining |
+| 5 — UI/UX & Launch Prep | Settings, onboarding, groups, identicons, animations, haptics, voice/image UI, APK sharing | **Complete** |

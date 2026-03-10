@@ -36,6 +36,10 @@ private val LightColorScheme = lightColorScheme(
     outline = Color(0xFF85736D),
 )
 
+private val FlareSurfaceContainerDark = Color(0xFF231F20)
+private val FlareSurfaceContainerHighDark = Color(0xFF2D2829)
+private val FlareSurfaceContainerHighestDark = Color(0xFF383234)
+
 private val DarkColorScheme = darkColorScheme(
     primary = FlareOrangeDark,
     onPrimary = Color(0xFF5E1700),
@@ -54,6 +58,16 @@ private val DarkColorScheme = darkColorScheme(
     surfaceVariant = Color(0xFF53433E),
     onSurfaceVariant = Color(0xFFD8C2BA),
     outline = Color(0xFFA08D86),
+    surfaceContainer = FlareSurfaceContainerDark,
+    surfaceContainerHigh = FlareSurfaceContainerHighDark,
+    surfaceContainerHighest = FlareSurfaceContainerHighestDark,
+    surfaceBright = Color(0xFF3B3637),
+    surfaceDim = FlareSurfaceDark,
+    inverseSurface = Color(0xFFE6E1E5),
+    inverseOnSurface = Color(0xFF313033),
+    inversePrimary = FlareOrange,
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6),
 )
 
 val FlareTypography = Typography(

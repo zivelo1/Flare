@@ -127,6 +127,12 @@ The transfer is verified with Ed25519 developer signatures and SHA-256 hash to e
 - **Settings** — duress PIN setup, power tier management, storage stats, device info
 - **Onboarding** — 4-page introduction flow with skip/next navigation
 - **Group messaging UI** — create groups, member selection, group list
+- **Splash screen** — animated flame icon with brand gradient
+- **Chat animations** — entrance animations on new messages, haptic feedback on send/receive
+- **Mesh visualization** — animated Canvas topology showing connected peers with RSSI-based line thickness
+- **Voice recording** — hold-to-record with live waveform, .m4a output via MediaRecorder
+- **Image capture** — camera capture with preview sheet before sending
+- **APK sharing** — share/receive screens with version, SHA-256 hash, transfer progress, developer signature verification
 
 **iOS App** (Swift + SwiftUI):
 - CoreBluetooth BLE central + peripheral with state restoration
@@ -136,6 +142,11 @@ The transfer is verified with Ed25519 developer signatures and SHA-256 hash to e
 - **Identicon avatars** — deterministic colors from SHA-256 hash of device ID
 - **Settings** — duress PIN, power management, storage stats
 - **Onboarding** — 4-page introduction with @AppStorage persistence
+- **Splash screen** — animated FlameShape icon with brand gradient
+- **Chat animations** — spring transitions, haptic feedback via centralized HapticManager
+- **Mesh visualization** — animated Canvas topology with pulsing peer connections
+- **Voice recording** — hold-to-record with AVAudioRecorder, live waveform display
+- **Image capture** — UIImagePickerController with preview sheet
 - iOS ARM cross-compilation verified — awaiting device testing
 
 See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for detailed progress.

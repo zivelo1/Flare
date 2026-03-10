@@ -11,9 +11,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flare.mesh.R
 import com.flare.mesh.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,6 +24,7 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToDuress: () -> Unit,
     onNavigateToPower: () -> Unit,
+    onNavigateToApkShare: () -> Unit = {},
     settingsViewModel: SettingsViewModel = viewModel(),
 ) {
     val hasDuressPin by settingsViewModel.hasDuressPin.collectAsState()
@@ -93,6 +96,18 @@ fun SettingsScreen(
             DeviceInfoCard(
                 deviceId = settingsViewModel.deviceId,
                 safetyNumber = settingsViewModel.safetyNumber,
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+            // ── Sharing Section ───────────────────────────────────────
+            SettingsSectionHeader("Sharing")
+
+            SettingsItem(
+                icon = Icons.Filled.Share,
+                title = stringResource(R.string.apk_settings_share),
+                subtitle = stringResource(R.string.apk_settings_share_subtitle),
+                onClick = onNavigateToApkShare,
             )
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
