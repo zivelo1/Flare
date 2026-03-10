@@ -61,7 +61,7 @@ downloads Flare           installs Flare         installs Flare
 5. **The new user installs Flare** and immediately becomes part of the mesh — they can now message AND share the app further
 6. **Each new user repeats the process** — Flare spreads virally, person to person, across an entire city or region
 
-The transfer is verified with a SHA-256 hash to ensure the app hasn't been tampered with. On Android, this works via standard APK sideloading. iOS distribution options are being evaluated.
+The transfer is verified with Ed25519 developer signatures and SHA-256 hash to ensure the app hasn't been tampered with. A trusted developer key store maintains a chain of trust from the first install, with support for key rotation. On Android, this works via standard APK sideloading. iOS distribution options are being evaluated.
 
 ## Key Features
 
@@ -95,7 +95,7 @@ The transfer is verified with a SHA-256 hash to ensure the app hasn't been tampe
 
 ## Current Status
 
-**Rust Core** (109 tests passing):
+**Rust Core** (161 tests passing):
 - Ed25519/X25519 identity and key agreement
 - AES-256-GCM encryption, HKDF key derivation
 - Spray-and-Wait mesh routing with adaptive TTL (48h → 72h → 7d)
@@ -106,6 +106,11 @@ The transfer is verified with a SHA-256 hash to ensure the app hasn't been tampe
 - Delivery ACK and read receipt processing for relay cleanup
 - Group messaging, duress PIN, APK sharing protocol
 - SQLCipher encrypted database, BLE chunking, UniFFI FFI layer
+- **Adaptive power management** — 4-tier duty cycling (High/Balanced/LowPower/UltraLow) with configurable thresholds
+- **DEFLATE compression** — payload compression before encryption for BLE bandwidth savings (50-70% for text)
+- **Ed25519 APK signing** — developer code signing with trusted key store and key rotation protocol
+- **Sender Keys group encryption** — O(1) group messaging via Signal Groups v2 approach with HKDF chain ratchet
+- **Route guard** — signature verification, TTL inflation cap, hop count monotonicity, per-sender rate limiting
 
 **Android App** (Kotlin + Jetpack Compose):
 - BLE GATT server + client with full mesh routing
@@ -113,6 +118,7 @@ The transfer is verified with a SHA-256 hash to ensure the app hasn't been tampe
 - Find Contact screen: shared phrase, QR code, phone number discovery
 - Full message pipeline: encrypt → send → relay → deliver → ACK
 - Foreground service, neighborhood detection, ProGuard rules
+- **Adaptive power management** — MeshService evaluates battery + network state to dynamically adjust BLE scan/advertise tiers with burst mode scanning
 
 **iOS App** (Swift + SwiftUI):
 - CoreBluetooth BLE central + peripheral with state restoration
@@ -151,6 +157,8 @@ Flare uses established, audited cryptographic primitives:
 - **HKDF-SHA256** — key derivation
 - **Argon2id** — passphrase-based key derivation (database encryption + rendezvous tokens)
 - **SQLCipher** — encrypted SQLite for data at rest
+- **Sender Keys** — O(1) group encryption with chain ratchet (Signal Groups v2)
+- **DEFLATE** — payload compression before encryption for BLE bandwidth efficiency
 
 **Privacy by design:**
 - No servers, no accounts, no tracking

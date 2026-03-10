@@ -39,6 +39,44 @@ object Constants {
     /** How long to consider a peer "recent" before marking stale (milliseconds). */
     const val PEER_STALE_TIMEOUT_MS: Long = 300_000L  // 5 minutes
 
+    // ── Adaptive Power Management ──────────────────────────────────────
+    // See flare-core/src/power/mod.rs for the full tier-based power manager.
+    // These constants mirror the Rust PowerConfig defaults for the Android BLE layer.
+
+    /**
+     * Power tier scan parameters: [scanWindowMs, scanIntervalMs, burstScanMs, burstSleepMs]
+     * High:      near-continuous scanning for active data exchange (max 30s)
+     * Balanced:  25% duty cycle when peers are present
+     * LowPower:  burst mode — 5s scan every 30s (~17% active)
+     * UltraLow:  burst mode — 3s scan every 60s (~5% active)
+     */
+    val POWER_TIER_HIGH_SCAN_WINDOW_MS: Long = 4096L
+    val POWER_TIER_HIGH_SCAN_INTERVAL_MS: Long = 4096L
+
+    val POWER_TIER_BALANCED_SCAN_WINDOW_MS: Long = 1024L
+    val POWER_TIER_BALANCED_SCAN_INTERVAL_MS: Long = 4096L
+
+    val POWER_TIER_LOW_BURST_SCAN_MS: Long = 5000L
+    val POWER_TIER_LOW_BURST_SLEEP_MS: Long = 25000L
+
+    val POWER_TIER_ULTRALOW_BURST_SCAN_MS: Long = 3000L
+    val POWER_TIER_ULTRALOW_BURST_SLEEP_MS: Long = 57000L
+
+    /** Seconds of inactivity before downgrading from High to Balanced. */
+    const val POWER_HIGH_INACTIVITY_THRESHOLD_SECS: Int = 10
+
+    /** Seconds without peer discovery before downgrading to LowPower. */
+    const val POWER_BALANCED_NO_PEERS_THRESHOLD_SECS: Int = 60
+
+    /** Maximum continuous seconds in High tier. */
+    const val POWER_HIGH_DURATION_LIMIT_SECS: Int = 30
+
+    /** Battery % below which UltraLow is forced. */
+    const val POWER_CRITICAL_BATTERY_PERCENT: Int = 15
+
+    /** Battery % below which High tier is disabled (cap at Balanced). */
+    const val POWER_LOW_BATTERY_PERCENT: Int = 30
+
     // ── Messages ──────────────────────────────────────────────────────
 
     /** Default maximum hops for a message. */

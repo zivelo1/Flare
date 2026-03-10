@@ -7,6 +7,7 @@
 pub mod encryption;
 pub mod identity;
 pub mod keys;
+pub mod sender_keys;
 
 pub use encryption::{decrypt_message, encrypt_message, EncryptedPayload};
 pub use identity::Identity;

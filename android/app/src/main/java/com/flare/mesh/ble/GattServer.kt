@@ -114,23 +114,57 @@ class GattServer(private val context: Context) {
         server.addService(service)
         Timber.i("GATT server started with Flare service")
 
-        startAdvertising()
+        startAdvertising(AdvertisePowerTier.BALANCED)
     }
 
     /**
+     * Advertise mode tiers for adaptive power management.
+     * Maps to Android AdvertiseSettings modes.
+     */
+    enum class AdvertisePowerTier {
+        HIGH,      // ADVERTISE_MODE_LOW_LATENCY — fastest discovery by peers
+        BALANCED,  // ADVERTISE_MODE_BALANCED — moderate interval
+        LOW_POWER, // ADVERTISE_MODE_LOW_POWER — least battery, slowest discovery
+    }
+
+    private var currentAdvertiseTier: AdvertisePowerTier = AdvertisePowerTier.BALANCED
+
+    /**
      * Starts BLE advertising with the Flare service UUID.
+     * Tier controls the advertising interval for power management.
      */
     @SuppressLint("MissingPermission")
-    private fun startAdvertising() {
+    fun startAdvertising(tier: AdvertisePowerTier = AdvertisePowerTier.BALANCED) {
+        // Stop current advertising if changing tier
+        if (advertiseCallback != null && tier != currentAdvertiseTier) {
+            try {
+                advertiseCallback?.let { advertiser?.stopAdvertising(it) }
+            } catch (_: SecurityException) { }
+            advertiseCallback = null
+        }
+
+        currentAdvertiseTier = tier
         advertiser = bluetoothAdapter?.bluetoothLeAdvertiser
         if (advertiser == null) {
             Timber.e("BLE advertiser not available")
             return
         }
 
+        val advertiseMode = when (tier) {
+            AdvertisePowerTier.HIGH -> AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY
+            AdvertisePowerTier.BALANCED -> AdvertiseSettings.ADVERTISE_MODE_BALANCED
+            AdvertisePowerTier.LOW_POWER -> AdvertiseSettings.ADVERTISE_MODE_LOW_POWER
+        }
+
+        val txPower = when (tier) {
+            AdvertisePowerTier.HIGH -> AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM
+            AdvertisePowerTier.BALANCED -> AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM
+            AdvertisePowerTier.LOW_POWER -> AdvertiseSettings.ADVERTISE_TX_POWER_LOW
+        }
+
         val settings = AdvertiseSettings.Builder()
-            .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
-            .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
+            .setAdvertiseMode(advertiseMode)
+            .setTxPowerLevel(txPower)
             .setConnectable(true)
             .setTimeout(0) // Advertise indefinitely
             .build()

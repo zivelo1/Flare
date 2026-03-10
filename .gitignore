@@ -68,6 +68,9 @@ Thumbs.db
 *.ipa
 *.aab
 
+# --- Local dev tracking (not for git) ---
+mac-installed-packages.txt
+
 # --- Logs ---
 *.log
 npm-debug.log*

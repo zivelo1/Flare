@@ -4,6 +4,7 @@
 //! All fields are serialized to a compact binary format using bincode.
 
 pub mod apk_share;
+pub mod apk_signing;
 pub mod message;
 pub mod rendezvous;
 

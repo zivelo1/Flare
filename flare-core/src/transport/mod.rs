@@ -5,6 +5,8 @@
 //! The routing and messaging layers use this abstraction and never
 //! interact with platform-specific Bluetooth/Wi-Fi APIs directly.
 
+pub mod compression;
+
 use crate::crypto::identity::DeviceId;
 use crate::routing::peer_table::TransportType;
 

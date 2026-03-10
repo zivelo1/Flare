@@ -6,6 +6,7 @@
 
 pub mod crypto;
 pub mod ffi;
+pub mod power;
 pub mod protocol;
 pub mod routing;
 pub mod storage;

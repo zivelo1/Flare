@@ -14,6 +14,20 @@ enum Constants {
     static let bleScanIntervalSeconds: TimeInterval = 5.0
     static let peerStaleTimeoutSeconds: TimeInterval = 300.0
 
+    // Adaptive Power Management (mirrors Rust PowerConfig defaults)
+    // See flare-core/src/power/mod.rs for the full tier-based power manager.
+    static let powerHighBurstScanSeconds: TimeInterval = 4.096
+    static let powerBalancedBurstScanSeconds: TimeInterval = 1.024
+    static let powerLowBurstScanSeconds: TimeInterval = 5.0
+    static let powerLowBurstSleepSeconds: TimeInterval = 25.0
+    static let powerUltraLowBurstScanSeconds: TimeInterval = 3.0
+    static let powerUltraLowBurstSleepSeconds: TimeInterval = 57.0
+    static let powerHighInactivityThresholdSeconds: TimeInterval = 10.0
+    static let powerBalancedNoPeersThresholdSeconds: TimeInterval = 60.0
+    static let powerHighDurationLimitSeconds: TimeInterval = 30.0
+    static let powerCriticalBatteryPercent: Int = 15
+    static let powerLowBatteryPercent: Int = 30
+
     // Messaging
     static let defaultMaxHops: Int = 10
     static let defaultTTLSeconds: Int = 86400

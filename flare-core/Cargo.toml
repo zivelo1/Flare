@@ -43,6 +43,9 @@ log = "0.4"
 # Bloom filter for deduplication
 bloomfilter = "1"
 
+# Compression (pure Rust, no C deps — critical for mobile cross-compilation)
+flate2 = { version = "1", default-features = false, features = ["rust_backend"] }
+
 [dev-dependencies]
 tempfile = "3"
 

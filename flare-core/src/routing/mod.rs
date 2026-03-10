@@ -7,6 +7,7 @@ pub mod dedup;
 pub mod neighborhood;
 pub mod peer_table;
 pub mod priority_store;
+pub mod route_guard;
 pub mod router;
 
 pub use dedup::DeduplicationFilter;

@@ -5,7 +5,7 @@
 
 ## What's Done
 
-### Rust Core (109 tests passing)
+### Rust Core (161 tests passing)
 - [x] Identity generation (Ed25519 signing + X25519 key agreement)
 - [x] Diffie-Hellman key agreement between devices
 - [x] HKDF key derivation (per-message keys from shared secrets)
@@ -28,6 +28,11 @@
 - [x] **Group messaging (database layer)** — `groups` and `group_members` tables, CRUD operations, `build_group_messages()` FFI
 - [x] **Duress PIN** — Argon2id-hashed duress passphrase stored in `duress_config` table, `check_duress_passphrase()` standalone function for pre-login check
 - [x] **APK sharing protocol** — `ApkOfferPayload`, `ApkRequestPayload`, `ApkChunk` types, chunked transfer with SHA-256 verification, 16KB chunk size
+- [x] **Adaptive power management** — `PowerManager` with 4-tier duty cycling (High/Balanced/LowPower/UltraLow), configurable thresholds, burst mode scanning, battery-aware tier transitions (12 tests)
+- [x] **DEFLATE compression** — `compress_payload`/`decompress_payload` with 1-byte header, MIN_COMPRESS_SIZE=64, decompression bomb protection (8 tests)
+- [x] **Ed25519 APK signing** — `DeveloperSigningKey`, `TrustedDeveloperKeys` store, `ApkSignature` verification, key rotation protocol with old-key endorsement (10 tests)
+- [x] **Sender Keys group encryption** — O(1) group messaging via HKDF chain ratchet, `SenderKeyStore` with per-group key management, forward secrecy within chains (12 tests)
+- [x] **Route guard** — `RouteGuard` with signature verification, TTL inflation cap (3.5x factor, 7-day max), monotonic hop count enforcement, per-sender rate limiting (100 msgs), `HopTracker` LRU cache (10 tests)
 - [x] **Blind Rendezvous Protocol** — decentralized peer discovery without servers:
   - Shared Phrase mode: Argon2id(normalized_phrase, salt=epoch_week), ~50+ bits entropy, nation-state resistant
   - Phone Number mode: Bilateral hash = Argon2id(sort(phone_A, phone_B), salt=epoch_week), with explicit security warning
@@ -63,6 +68,9 @@
 - [x] GATT Server — advertises service, accepts connections, receives messages, sends notifications (status code checked)
 - [x] GATT Client — connects to peers, MTU negotiation, message write (status code checked), notification subscription
 - [x] MeshService — foreground service, message routing via Rust core, outbound queue, neighborhood bitmap exchange, incoming message delivery to UI
+- [x] **Adaptive power management** — MeshService evaluates battery + network state every scan cycle, transitions BLE scan/advertise tiers (High/Balanced/LowPower/UltraLow), burst mode duty cycling for low-power tiers, battery-level-aware capping
+- [x] **BLE scanner power tiers** — `ScanPowerTier` enum maps to Android `SCAN_MODE_LOW_LATENCY`/`BALANCED`/`LOW_POWER`/`OPPORTUNISTIC`
+- [x] **GATT server power tiers** — `AdvertisePowerTier` enum maps to `ADVERTISE_MODE_*` with per-tier TX power levels
 - [x] **Multi-hop relay** — calls `prepareForRelay()` before forwarding, increments hop count
 - [x] **Delivery ACK** — automatically sends ACK back through mesh on local delivery
 - [x] FlareRepository — bridge layer between UniFFI bindings and Android app (incl. neighborhood + store stats + message persistence + relay + receipts)
@@ -143,6 +151,16 @@
 - [ ] Duress PIN setup screen in Settings
 - [ ] APK sharing UI (offer/request/progress)
 
+### Rust Core Integration (pending wiring)
+- [ ] Wire `compress_payload`/`decompress_payload` into message build/parse flow in `ffi.rs`
+- [ ] Wire `RouteGuard.validate()` into `Router::route_incoming()`
+- [ ] Expose `SenderKeyStore` via FFI for group messaging
+- [ ] Expose `TrustedDeveloperKeys` via FFI for APK verification
+- [ ] Expose `PowerManager` via FFI (alternative to Kotlin-native reimplementation)
+
+### iOS App — Remaining Work
+- [ ] Adaptive power management in `BLEManager.swift` (power tier enums, burst mode)
+
 ### Phase 5 — Launch
 - [ ] Security audit
 - [ ] Farsi/Persian localization
@@ -155,5 +173,5 @@
 | 1 — Foundation | Rust core + Android BLE + UI + UniFFI bridge | **Complete** (awaiting device test with NDK) |
 | 2 — Multi-Hop & iOS | Relay routing + iOS app | **Rust core complete**, iOS app implemented (awaiting cross-compile + device test) |
 | 3 — Full Messaging | Groups, receipts, content types | **Rust core complete**, Android UI pending |
-| 4 — Security & Distribution | Duress PIN, APK sharing protocol | **Rust core complete**, Android UI pending |
+| 4 — Security & Distribution | Duress PIN, APK signing, route guard, compression | **Rust core complete**, Android power mgmt integrated, FFI wiring pending |
 | 5 — Launch | Optimization, audit, localization, release | Not started |

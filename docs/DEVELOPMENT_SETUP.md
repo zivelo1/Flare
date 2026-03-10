@@ -32,7 +32,8 @@ Flare/
 │   │   ├── routing/         # Spray-and-Wait router, Bloom filter dedup, neighborhood, priority store
 │   │   ├── storage/         # SQLCipher encrypted database
 │   │   ├── protocol/        # Message wire format and serialization
-│   │   ├── transport/       # BLE chunking/reassembly
+│   │   ├── transport/       # BLE chunking/reassembly, DEFLATE compression
+│   │   ├── power/           # Adaptive power management (4-tier duty cycling)
 │   │   └── ffi.rs           # UniFFI bindings (FlareNode entry point)
 │   ├── uniffi-bindgen.rs    # UniFFI bindgen binary
 │   └── Cargo.toml
@@ -51,6 +52,8 @@ Flare/
 │           └── uniffi/flare_core/ # Auto-generated Kotlin bindings
 ├── docs/                    # Project documentation
 ├── venv/                    # Python virtual environment (gitignored)
+├── requirements.txt         # Python venv dependencies
+├── mac-installed-packages.txt # Local MAC package tracking (gitignored)
 └── FEASIBILITY_AND_ARCHITECTURE.md
 ```
 
@@ -60,7 +63,7 @@ Flare/
 ```bash
 cd flare-core
 cargo build
-cargo test      # 85 tests
+cargo test      # 161 tests
 ```
 
 ### Generate Kotlin Bindings

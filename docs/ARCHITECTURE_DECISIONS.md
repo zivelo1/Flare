@@ -92,10 +92,17 @@
 **Decision:** Flare can share its own APK file phone-to-phone using `ApkOffer`/`ApkRequest` mesh messages and chunked transfer with SHA-256 verification.
 **Rationale:** During internet shutdowns, app stores are inaccessible. Users need to install Flare from nearby phones. The protocol advertises APK metadata (version, size, hash), allows peers to request it, and transfers in 16KB chunks verified by SHA-256 hash. This enables viral distribution without any internet connectivity.
 
-## ADR-014: Group Messaging via Individual Encryption
-**Date:** 2026-03-09
-**Decision:** Group messages are encrypted individually for each group member using their respective DH shared secrets, not a shared group key.
-**Rationale:** In a mesh network without a reliable server to manage group key distribution, per-member encryption is more robust. Each member receives their own copy encrypted with their unique shared secret. This avoids the complexity of group key agreement protocols in a delay-tolerant network where members may be offline for days.
+## ADR-014: Group Messaging via Sender Keys (supersedes individual encryption)
+**Date:** 2026-03-10
+**Decision:** Group messages use Sender Keys protocol (Signal Groups v2 approach) for O(1) encryption per send, replacing O(n) per-member encryption.
+**Rationale:** Per-member encryption scales linearly — a 50-member group requires 50 separate encryptions per message, each consuming BLE bandwidth. Sender Keys uses a chain ratchet: each sender distributes a seed key once via existing DH channels, then derives per-message AES-256-GCM keys using HKDF. The group receives one ciphertext regardless of size.
+
+**Mechanism:**
+- `SenderKeyChain` with HKDF chain ratchet: `message_key = HKDF(chain_key, "msg"||index)`, `next_chain_key = SHA-256(chain_key)`
+- `SenderKeyDistribution` messages sent via existing pairwise DH channels on join
+- `SenderKeyStore` manages own and remote keys per group
+- MAX_SKIP_KEYS=256 for out-of-order message handling
+- Forward secrecy within chain (ratchet is one-way; old keys are deleted)
 
 ## ADR-015: Blind Rendezvous Protocol for Peer Discovery
 **Date:** 2026-03-09
@@ -118,3 +125,52 @@
 - Tokens are 8-byte truncated hashes — cannot be reversed to the input
 - Ephemeral keys provide forward secrecy for the discovery handshake
 - Bilateral phone hashing means both parties must actively participate
+
+## ADR-016: Adaptive Power Management with 4-Tier Duty Cycling
+**Date:** 2026-03-10
+**Decision:** BLE scanning and advertising use a 4-tier adaptive power management system (High/Balanced/LowPower/UltraLow) that transitions automatically based on network activity, peer presence, and battery level.
+**Rationale:** Continuous BLE scanning at LOW_LATENCY mode draws ~75mA — a 4000mAh battery would last ~53 hours. In practice, full-speed scanning is only needed during active data exchange. The adaptive strategy reduces average draw to ~10-15mA by spending most time in LOW_POWER mode and bursting to BALANCED/LOW_LATENCY only when needed.
+
+**Tier transitions:**
+- **High → Balanced:** 10 seconds of inactivity or 30 seconds continuous in High
+- **Balanced → LowPower:** 60 seconds without any peer discovery
+- **Any → UltraLow:** Battery below 15% or user battery saver enabled
+- **Any → High:** Data sent/received or pending outbound with connected peers
+- **Battery cap:** High tier disabled below 30% battery (capped at Balanced)
+
+**Burst mode:** LowPower scans 5s/30s (~17% active), UltraLow scans 3s/60s (~5% active).
+
+**Implementation:** Canonical logic in `flare-core/src/power/mod.rs` (Rust), mirrored in Android `MeshService.kt` for direct BLE API access. Constants centralized in `Constants.kt`/`Constants.swift`.
+
+## ADR-017: DEFLATE Compression Before Encryption
+**Date:** 2026-03-10
+**Decision:** Message payloads are compressed with DEFLATE before encryption. A 1-byte header indicates compression method (0x00=none, 0x01=DEFLATE).
+**Rationale:** Encrypted data has maximum entropy and cannot be compressed. Compressing plaintext before AES-256-GCM encryption reduces BLE transmission size by 50-70% for text messages (including multi-byte UTF-8 like Farsi). This directly reduces BLE transmission time and power consumption.
+
+**Properties:**
+- Pure Rust implementation (flate2/miniz_oxide) — no C dependencies, critical for mobile cross-compilation
+- Payloads < 64 bytes skipped (DEFLATE framing overhead exceeds savings)
+- Decompression bomb protection: 1MB maximum decompressed size
+- Pipeline: `compress → encrypt → chunk → transmit → reassemble → decrypt → decompress`
+
+## ADR-018: Ed25519 Developer Signing for APK Distribution
+**Date:** 2026-03-10
+**Decision:** APK files distributed phone-to-phone are signed with Ed25519 developer keys, verified against a trusted developer key store on the receiving device.
+**Rationale:** SHA-256 hash verification (ADR-013) only ensures integrity — it cannot verify the APK came from a legitimate developer. An attacker could modify the APK, recompute the hash, and distribute a trojaned version. Ed25519 signing provides authenticity: only the holder of the private key can produce a valid signature.
+
+**Mechanism:**
+- `DeveloperSigningKey` signs APK bytes at build time
+- `TrustedDeveloperKeys` store maintains trusted public keys per device (TOFU on first install)
+- `KeyRotation` protocol: old key signs endorsement of new key for graceful key succession
+- `ApkVerifyResult`: Valid / InvalidSignature / UntrustedDeveloper
+
+## ADR-019: Route Guard for Mutable Field Protection
+**Date:** 2026-03-10
+**Decision:** A `RouteGuard` validates incoming messages before routing, protecting against manipulation of the mutable routing fields (`hop_count`, `ttl_seconds`) that are excluded from signatures (ADR-011).
+**Rationale:** Excluding mutable fields from signatures is necessary for multi-hop relay but creates attack surface: a malicious relay could inflate TTL to keep messages alive forever, decrease hop count to bypass limits, or flood the network. The route guard enforces invariants that don't require signatures.
+
+**Protections:**
+- **TTL inflation cap:** New TTL cannot exceed `original_ttl * 3.5`, hard max 7 days (604800s)
+- **Hop count monotonicity:** Per-message hop tracking via `HopTracker` LRU cache; hop count must never decrease
+- **Signature verification:** Ed25519 signature checked on `signable_bytes()` (immutable fields)
+- **Sender rate limiting:** Max 100 active messages per sender to prevent flooding

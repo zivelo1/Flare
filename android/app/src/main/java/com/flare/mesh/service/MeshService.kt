@@ -6,7 +6,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ServiceInfo
+import android.os.BatteryManager
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
@@ -45,6 +47,19 @@ class MeshService : LifecycleService() {
     private var scanJob: Job? = null
     private var pruneJob: Job? = null
     private var rendezvousJob: Job? = null
+    private var powerJob: Job? = null
+
+    /** Current adaptive power tier. Updated by the power evaluation loop. */
+    private var currentScanTier: BleScanner.ScanPowerTier = BleScanner.ScanPowerTier.BALANCED
+    private var currentAdvertiseTier: GattServer.AdvertisePowerTier = GattServer.AdvertisePowerTier.BALANCED
+
+    /** Tracks last data activity timestamp for power tier evaluation. */
+    private var lastDataActivityMs: Long = 0L
+    private var lastPeerSeenMs: Long = 0L
+    private var highTierEnteredMs: Long = 0L
+
+    /** Whether a burst scan is currently sleeping (LowPower/UltraLow tiers). */
+    private var burstSleeping: Boolean = false
 
     companion object {
         private val _meshStatus = MutableStateFlow(MeshStatus())
@@ -134,8 +149,8 @@ class MeshService : LifecycleService() {
         // Start GATT server (advertise + accept connections)
         gattServer.start()
 
-        // Start BLE scanning
-        bleScanner.startScanning()
+        // Start BLE scanning at default Balanced tier
+        bleScanner.startScanning(BleScanner.ScanPowerTier.BALANCED)
 
         // Periodic scan cycle: update status, discovered peers, and neighborhood filter
         scanJob = lifecycleScope.launch {
@@ -143,6 +158,10 @@ class MeshService : LifecycleService() {
                 delay(Constants.BLE_SCAN_INTERVAL_MS)
                 val peers = bleScanner.discoveredPeers.value
                 _discoveredPeers.value = peers
+
+                if (peers.isNotEmpty()) {
+                    lastPeerSeenMs = System.currentTimeMillis()
+                }
 
                 // Record discovered peers' BLE addresses as short IDs in neighborhood filter
                 try {
@@ -154,6 +173,14 @@ class MeshService : LifecycleService() {
                 } catch (_: Exception) { }
 
                 updateMeshStatus()
+            }
+        }
+
+        // Adaptive power management loop — evaluates tier every scan interval
+        powerJob = lifecycleScope.launch {
+            while (isActive) {
+                delay(Constants.BLE_SCAN_INTERVAL_MS)
+                evaluateAndApplyPowerTier()
             }
         }
 
@@ -252,14 +279,183 @@ class MeshService : LifecycleService() {
         scanJob?.cancel()
         pruneJob?.cancel()
         rendezvousJob?.cancel()
+        powerJob?.cancel()
         bleScanner.stopScanning()
         gattServer.stop()
         gattClient.disconnectAll()
     }
 
+    /**
+     * Evaluates network activity and battery state to determine the optimal
+     * BLE power tier, then applies it to scanner and advertiser.
+     *
+     * Tier transitions:
+     * - High:      active data exchange or recent activity (max 30s, disabled below 30% battery)
+     * - Balanced:  peers present or recently seen
+     * - LowPower:  no peers nearby, burst mode scanning
+     * - UltraLow:  critical battery (<15%) or user battery saver
+     *
+     * See flare-core/src/power/mod.rs for the canonical tier logic.
+     */
+    private fun evaluateAndApplyPowerTier() {
+        val now = System.currentTimeMillis()
+        val batteryPercent = getBatteryPercent()
+
+        val connectedCount = gattServer.connectedCount() + gattClient.connectedAddresses().size
+        val hasPendingOutbound = try {
+            FlareRepository.getInstance().getStoreStats().totalMessages > 0
+        } catch (_: Exception) { false }
+
+        // ── Force UltraLow on critical battery ──
+        if (batteryPercent <= Constants.POWER_CRITICAL_BATTERY_PERCENT) {
+            applyPowerTier(PowerTierResult.ULTRA_LOW)
+            return
+        }
+
+        // ── Determine candidate tier ──
+        val secsSinceData = (now - lastDataActivityMs) / 1000
+        val secsSincePeer = (now - lastPeerSeenMs) / 1000
+        val secsInHigh = (now - highTierEnteredMs) / 1000
+
+        val highDurationOk = if (currentScanTier == BleScanner.ScanPowerTier.HIGH) {
+            secsInHigh < Constants.POWER_HIGH_DURATION_LIMIT_SECS
+        } else {
+            true
+        }
+
+        val candidate = when {
+            hasPendingOutbound && connectedCount > 0 ->
+                PowerTierResult.HIGH
+            secsSinceData < Constants.POWER_HIGH_INACTIVITY_THRESHOLD_SECS && highDurationOk ->
+                PowerTierResult.HIGH
+            connectedCount > 0 || secsSincePeer < Constants.POWER_BALANCED_NO_PEERS_THRESHOLD_SECS ->
+                PowerTierResult.BALANCED
+            else ->
+                PowerTierResult.LOW_POWER
+        }
+
+        // ── Cap at Balanced when battery is low ──
+        val capped = if (batteryPercent <= Constants.POWER_LOW_BATTERY_PERCENT &&
+            candidate == PowerTierResult.HIGH
+        ) {
+            PowerTierResult.BALANCED
+        } else {
+            candidate
+        }
+
+        applyPowerTier(capped)
+    }
+
+    /**
+     * Applies the evaluated power tier to BLE scanner and GATT server advertiser.
+     * Handles burst mode for LowPower/UltraLow tiers.
+     */
+    private fun applyPowerTier(tier: PowerTierResult) {
+        val newScanTier = tier.toScanTier()
+        val newAdvertiseTier = tier.toAdvertiseTier()
+
+        // Track High tier entry
+        if (newScanTier == BleScanner.ScanPowerTier.HIGH &&
+            currentScanTier != BleScanner.ScanPowerTier.HIGH
+        ) {
+            highTierEnteredMs = System.currentTimeMillis()
+        }
+
+        // Only reconfigure if tier actually changed
+        if (newScanTier != currentScanTier) {
+            Timber.i("Power tier changed: %s -> %s", currentScanTier, newScanTier)
+            currentScanTier = newScanTier
+            currentAdvertiseTier = newAdvertiseTier
+
+            // Apply new scan tier (handles burst mode internally via Android scan modes)
+            bleScanner.startScanning(newScanTier)
+            gattServer.startAdvertising(newAdvertiseTier)
+
+            // Manage burst mode for low-power tiers
+            manageBurstMode(tier)
+        }
+    }
+
+    /**
+     * Manages burst-mode scanning for LowPower and UltraLow tiers.
+     * In burst mode, scanning runs for a short window then pauses to save battery.
+     */
+    private fun manageBurstMode(tier: PowerTierResult) {
+        // Cancel any existing burst job
+        burstSleeping = false
+
+        if (tier == PowerTierResult.LOW_POWER || tier == PowerTierResult.ULTRA_LOW) {
+            val burstScanMs = if (tier == PowerTierResult.LOW_POWER) {
+                Constants.POWER_TIER_LOW_BURST_SCAN_MS
+            } else {
+                Constants.POWER_TIER_ULTRALOW_BURST_SCAN_MS
+            }
+            val burstSleepMs = if (tier == PowerTierResult.LOW_POWER) {
+                Constants.POWER_TIER_LOW_BURST_SLEEP_MS
+            } else {
+                Constants.POWER_TIER_ULTRALOW_BURST_SLEEP_MS
+            }
+
+            lifecycleScope.launch {
+                while (isActive && currentScanTier == tier.toScanTier()) {
+                    // Scan phase
+                    burstSleeping = false
+                    bleScanner.startScanning(tier.toScanTier())
+                    delay(burstScanMs)
+
+                    // Sleep phase — stop scanning to save power
+                    burstSleeping = true
+                    bleScanner.stopScanning()
+                    delay(burstSleepMs)
+                }
+            }
+        }
+    }
+
+    /** Reads the current battery percentage from the system. */
+    private fun getBatteryPercent(): Int {
+        val batteryStatus = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val level = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+        val scale = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+        return if (level >= 0 && scale > 0) {
+            (level * 100) / scale
+        } else {
+            100 // Assume full if unavailable
+        }
+    }
+
+    /** Notifies the power manager that data was sent or received. */
+    fun notifyDataActivity() {
+        lastDataActivityMs = System.currentTimeMillis()
+    }
+
+    /**
+     * Internal enum representing evaluated power tier result.
+     * Maps to both BleScanner.ScanPowerTier and GattServer.AdvertisePowerTier.
+     */
+    private enum class PowerTierResult {
+        HIGH, BALANCED, LOW_POWER, ULTRA_LOW;
+
+        fun toScanTier(): BleScanner.ScanPowerTier = when (this) {
+            HIGH -> BleScanner.ScanPowerTier.HIGH
+            BALANCED -> BleScanner.ScanPowerTier.BALANCED
+            LOW_POWER -> BleScanner.ScanPowerTier.LOW_POWER
+            ULTRA_LOW -> BleScanner.ScanPowerTier.ULTRA_LOW
+        }
+
+        fun toAdvertiseTier(): GattServer.AdvertisePowerTier = when (this) {
+            HIGH -> GattServer.AdvertisePowerTier.HIGH
+            BALANCED -> GattServer.AdvertisePowerTier.BALANCED
+            LOW_POWER -> GattServer.AdvertisePowerTier.LOW_POWER
+            ULTRA_LOW -> GattServer.AdvertisePowerTier.LOW_POWER
+        }
+    }
+
     private suspend fun handleIncomingMessage(message: GattServer.IncomingBleMessage) {
         Timber.d("Processing incoming message from %s (%d bytes)",
             message.fromAddress, message.data.size)
+
+        notifyDataActivity()
 
         try {
             val repo = FlareRepository.getInstance()
@@ -325,6 +521,8 @@ class MeshService : LifecycleService() {
     }
 
     private fun sendToMesh(outbound: OutboundMessage) {
+        notifyDataActivity()
+
         // Send to all connected peers (Spray-and-Wait)
         val serverPeers = gattServer.connectedDeviceAddresses()
         val clientPeers = gattClient.connectedAddresses()

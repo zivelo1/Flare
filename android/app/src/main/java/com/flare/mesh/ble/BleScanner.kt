@@ -37,28 +37,55 @@ class BleScanner(context: Context) {
     private var scanCallback: ScanCallback? = null
 
     /**
+     * BLE scan mode tiers for adaptive power management.
+     * Maps to Android ScanSettings scan modes.
+     * See flare-core/src/power/mod.rs for the Rust-side power manager.
+     */
+    enum class ScanPowerTier {
+        HIGH,       // SCAN_MODE_LOW_LATENCY — max discovery, max battery
+        BALANCED,   // SCAN_MODE_BALANCED — good discovery/battery tradeoff
+        LOW_POWER,  // SCAN_MODE_LOW_POWER — minimal scanning
+        ULTRA_LOW,  // SCAN_MODE_OPPORTUNISTIC — almost no scanning
+    }
+
+    private var currentTier: ScanPowerTier = ScanPowerTier.BALANCED
+
+    /**
      * Starts BLE scanning for Flare mesh devices.
      * Filters by the Flare service UUID to minimize battery impact.
      */
     @SuppressLint("MissingPermission")
-    fun startScanning() {
+    fun startScanning(tier: ScanPowerTier = ScanPowerTier.BALANCED) {
         val scanner = bleScanner
         if (scanner == null) {
             Timber.e("BLE scanner not available — Bluetooth may be off")
             return
         }
 
-        if (_isScanning.value) {
-            Timber.d("Already scanning, ignoring duplicate start request")
+        // If already scanning at a different tier, stop first to reconfigure
+        if (_isScanning.value && tier == currentTier) {
+            Timber.d("Already scanning at tier %s, ignoring", tier)
             return
         }
+        if (_isScanning.value) {
+            stopScanning()
+        }
+
+        currentTier = tier
 
         val filter = ScanFilter.Builder()
             .setServiceUuid(ParcelUuid(Constants.SERVICE_UUID))
             .build()
 
+        val scanMode = when (tier) {
+            ScanPowerTier.HIGH -> ScanSettings.SCAN_MODE_LOW_LATENCY
+            ScanPowerTier.BALANCED -> ScanSettings.SCAN_MODE_BALANCED
+            ScanPowerTier.LOW_POWER -> ScanSettings.SCAN_MODE_LOW_POWER
+            ScanPowerTier.ULTRA_LOW -> ScanSettings.SCAN_MODE_OPPORTUNISTIC
+        }
+
         val settings = ScanSettings.Builder()
-            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+            .setScanMode(scanMode)
             .setReportDelay(0) // Immediate callbacks
             .build()
 
@@ -82,7 +109,7 @@ class BleScanner(context: Context) {
         try {
             scanner.startScan(listOf(filter), settings, callback)
             _isScanning.value = true
-            Timber.i("BLE scanning started for service UUID: %s", Constants.SERVICE_UUID)
+            Timber.i("BLE scanning started at tier %s (mode=%d)", tier, scanMode)
         } catch (e: SecurityException) {
             Timber.e(e, "BLE scan permission denied")
         }
