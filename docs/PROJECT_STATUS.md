@@ -1,7 +1,8 @@
 # Flare — Project Status
 
-## Current Phase: Phase 6A — Device Testing (Verified)
-**Goal:** Build, install, and verify encrypted BLE mesh messaging between physical Android devices
+## Current Phase: Phase 7 — Security Hardening
+**Strategy:** Android-first. In target markets (Iran, Syria, Yemen, Sudan, Myanmar, Cuba, Venezuela, Ethiopia), Android has 85-98% market share. iOS deferred to backlog.
+**Previous:** Phase 6A device testing verified — encrypted BLE mesh messaging working on 2 physical Android devices.
 
 ## What's Done
 
@@ -214,21 +215,15 @@
 - **Permission request loop:** `requestBluetoothPermissions()` called every `onResume` even when already granted, causing infinite dialog loop. Fixed to check permissions first and start MeshService directly if all granted
 - **armv7 native library missing:** Second phone (armeabi-v7a) crashed with `library "libflare_core.so" not found`. Cross-compiled for armv7 target and included in APK
 
-### iOS App — Remaining Work
-- [x] Cross-compile Rust core for iOS ARM (`aarch64-apple-ios`) — build verified
-- [ ] Integration test: physical iOS device, BLE scanning + advertising
-- [ ] Cross-platform test: Android ↔ iOS message exchange over BLE
-- [ ] Background execution tuning (CoreBluetooth state restoration is wired but untested)
-
-### Phase 6B — Security Hardening
+### Phase 7 — Security Hardening
 - [ ] Cryptographic protocol review (signature exclusion of mutable fields, route guard adversarial testing)
 - [ ] Duress PIN forensic analysis (dual-database detectability)
 - [ ] FFI boundary memory safety audit
 - [ ] Traffic analysis resistance (BLE fingerprinting)
 - [ ] Bloom filter privacy validation
 
-### Phase 6C — Localization
-- [ ] **Farsi/Persian** — RTL layout (Compose + SwiftUI), Farsi string translations, RTL chat bubbles, Persian number formatting
+### Phase 8 — Localization (Android)
+- [ ] **Farsi/Persian** — RTL layout (Compose), Farsi string translations, RTL chat bubbles, Persian number formatting
 - [ ] **Arabic** — RTL layout (shared with Farsi), Arabic string translations
 - [ ] **Spanish** — string translations
 - [ ] **Russian** — string translations
@@ -236,15 +231,24 @@
 - [ ] **Korean** — string translations
 - [ ] Language selector in Settings (override system locale)
 
-### Phase 6D — UI Polish
+### Phase 9 — UI Polish (Android)
 - [ ] **Dark mode toggle** — user-selectable light/dark/system in Settings (dark mode rendering already implemented)
 - [ ] **Emoji picker** — in-chat emoji selector for quick access beyond system keyboard
 
-### Phase 6E — Performance & Release
+### Phase 10 — Android Release
 - [ ] Battery drain profiling across power tiers
 - [ ] Memory profiling under relay load
-- [ ] Release builds (signed APK, iOS TestFlight)
+- [ ] Wi-Fi Direct testing on real hardware
+- [ ] Power management tier behavior on real battery
+- [ ] Signed release APK
 - [ ] F-Droid submission
+- [ ] First GitHub Release (tagged APK download)
+
+### Future Enhancements (Backlog)
+- [ ] **iOS device testing** — physical iPhone BLE, cross-platform Android↔iOS messaging (Rust iOS cross-compilation already verified)
+- [ ] **iOS App Store submission** — $99/year Apple Developer Program, App Store review
+- [ ] iOS localization (SwiftUI RTL, translations for all 6 languages)
+- [ ] iOS background execution tuning (CoreBluetooth state restoration is wired but untested)
 
 ### Known Issues (Remaining)
 - **FFI method gaps:** Several Kotlin methods in `FlareRepository.kt` called FFI methods that don't exist in the UniFFI bindings (`wifiDirect*`, `power*`, `recommendTransferStrategy`, `processRemoteNeighborhoodForPeer`). These are currently stubbed with local implementations. The Rust FFI layer needs to expose these methods properly.
@@ -260,13 +264,33 @@
 | Phase | Scope | Status |
 |---|---|---|
 | 1 — Foundation | Rust core + Android BLE + UI + UniFFI bridge | **Complete** |
-| 2 — Multi-Hop & iOS | Relay routing + iOS app | **Complete** (iOS awaiting device test) |
+| 2 — Multi-Hop & iOS | Relay routing + iOS app | **Complete** (iOS code complete, device test deferred) |
 | 3 — Full Messaging | Groups, receipts, content types | **Complete** (Rust core + Android/iOS UI) |
 | 4 — Security & Distribution | Duress PIN, APK signing, route guard, compression | **Complete** |
 | 4B — Scaling & Dual Transport | Adaptive spray, neighborhood routing, size tiers, Wi-Fi Direct | **Complete** |
 | 5 — UI/UX & Launch Prep | Settings, onboarding, groups, identicons, animations, haptics, voice/image UI, APK sharing | **Complete** |
 | 6A — Device Testing | Android APK build, cross-compilation, device install, BLE mesh verified | **Complete** (2 devices, encrypted chat working) |
-| 6B — Security Hardening | Crypto review, duress forensics, FFI audit, traffic analysis | Planned |
-| 6C — Localization | Farsi, Arabic, Spanish, Russian, Chinese, Korean | Planned |
-| 6D — UI Polish | Dark mode toggle, emoji picker | Planned |
-| 6E — Performance & Release | Battery/memory profiling, signed APK, F-Droid | Planned |
+| 7 — Security Hardening | Crypto review, duress forensics, FFI audit, traffic analysis | **Next** |
+| 8 — Localization (Android) | Farsi, Arabic, Spanish, Russian, Chinese, Korean | Planned |
+| 9 — UI Polish (Android) | Dark mode toggle, emoji picker | Planned |
+| 10 — Android Release | Battery/memory profiling, signed APK, F-Droid, GitHub Release | Planned |
+| Backlog — iOS | iOS device testing, App Store ($99/yr), iOS localization | Deferred |
+
+### Target Market Analysis (Android-First Rationale)
+| Country | Android | iOS | Context |
+|---|---|---|---|
+| Iran | 86% | 14% | Internet shutdowns, App Store blocked by sanctions |
+| Syria | 95% | 5% | Active conflict |
+| Yemen | 96% | 4% | Active civil war |
+| Sudan | 97% | 3% | Active civil war |
+| Myanmar | 86% | 14% | Military coup, internet shutdowns |
+| Ethiopia | 98% | 2% | Conflict, internet shutdowns |
+| Cuba | 95% | 5% | Government-controlled internet |
+| Venezuela | 88% | 12% | Economic crisis, sanctions |
+| Afghanistan | 86% | 14% | Taliban rule |
+| Libya | 85% | 15% | Post-conflict instability |
+| Somalia | 89% | 11% | Ongoing conflict |
+| Ukraine | 64% | 35% | Active war (higher iOS due to income) |
+| China | 77% | 22% | Google Play blocked, HarmonyOS rising |
+
+Source: [StatCounter Global Stats](https://gs.statcounter.com/os-market-share/mobile/) (Feb 2026)

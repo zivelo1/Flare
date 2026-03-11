@@ -22,7 +22,7 @@ No servers. No accounts. No phone number required. Just install and start messag
 > Requires Android 8.0 or newer. No Google Play Store needed. No internet needed after download.
 
 ### iOS
-Coming soon — iOS TestFlight link will be available here.
+On the roadmap. Android is the priority — in the countries where Flare is needed most (Iran, Syria, Yemen, Sudan, Myanmar, Cuba, Venezuela), Android has 85-98% market share.
 
 ### Already have Flare?
 You can share it with someone nearby via Bluetooth — open **Settings > Share Flare App** in the app. The entire app transfers phone-to-phone, no internet needed.
@@ -167,7 +167,7 @@ The transfer is verified with Ed25519 developer signatures and SHA-256 hash to e
 - **Mesh visualization** — animated Canvas topology with pulsing peer connections
 - **Voice recording** — hold-to-record with AVAudioRecorder, live waveform display
 - **Image capture** — UIImagePickerController with preview sheet
-- iOS ARM cross-compilation verified — awaiting device testing
+- iOS ARM cross-compilation verified — device testing deferred (Android-first strategy based on target market analysis)
 
 See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for detailed progress.
 
