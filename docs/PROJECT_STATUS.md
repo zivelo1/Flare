@@ -227,13 +227,20 @@
 - [ ] Traffic analysis resistance (BLE fingerprinting)
 - [ ] Bloom filter privacy validation
 
-### Phase 6C — Farsi/Persian Localization
-- [ ] RTL layout support (Compose + SwiftUI)
-- [ ] Farsi string translations
-- [ ] RTL-aware chat bubbles and navigation
-- [ ] Persian number formatting
+### Phase 6C — Localization
+- [ ] **Farsi/Persian** — RTL layout (Compose + SwiftUI), Farsi string translations, RTL chat bubbles, Persian number formatting
+- [ ] **Arabic** — RTL layout (shared with Farsi), Arabic string translations
+- [ ] **Spanish** — string translations
+- [ ] **Russian** — string translations
+- [ ] **Chinese (Simplified)** — string translations
+- [ ] **Korean** — string translations
+- [ ] Language selector in Settings (override system locale)
 
-### Phase 6D — Performance & Release
+### Phase 6D — UI Polish
+- [ ] **Dark mode toggle** — user-selectable light/dark/system in Settings (dark mode rendering already implemented)
+- [ ] **Emoji picker** — in-chat emoji selector for quick access beyond system keyboard
+
+### Phase 6E — Performance & Release
 - [ ] Battery drain profiling across power tiers
 - [ ] Memory profiling under relay load
 - [ ] Release builds (signed APK, iOS TestFlight)
@@ -259,3 +266,7 @@
 | 4B — Scaling & Dual Transport | Adaptive spray, neighborhood routing, size tiers, Wi-Fi Direct | **Complete** |
 | 5 — UI/UX & Launch Prep | Settings, onboarding, groups, identicons, animations, haptics, voice/image UI, APK sharing | **Complete** |
 | 6A — Device Testing | Android APK build, cross-compilation, device install, BLE mesh verified | **Complete** (2 devices, encrypted chat working) |
+| 6B — Security Hardening | Crypto review, duress forensics, FFI audit, traffic analysis | Planned |
+| 6C — Localization | Farsi, Arabic, Spanish, Russian, Chinese, Korean | Planned |
+| 6D — UI Polish | Dark mode toggle, emoji picker | Planned |
+| 6E — Performance & Release | Battery/memory profiling, signed APK, F-Droid | Planned |
