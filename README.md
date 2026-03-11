@@ -11,18 +11,21 @@ No servers. No accounts. No phone number required. Just install and start messag
 ## Download & Install
 
 ### Android
-1. **Download the APK** from the [latest release](https://github.com/zivelo1/Flare/releases/latest)
-2. On your phone, open the downloaded `.apk` file
-3. If prompted, allow "Install from unknown sources" for your browser
-4. Open Flare — no account, no sign-up, just start messaging
 
-> No Google Play Store required. No internet required after download.
+**[Download the latest APK](https://github.com/zivelo1/Flare/releases/latest)** — look for the `Flare-...-android.apk` file.
+
+**How to install:**
+1. Download the `.apk` file on your Android phone (or transfer it from a computer)
+2. Open the file — if prompted, allow "Install from unknown sources" for your browser
+3. Open Flare — no account, no sign-up, no phone number needed. Just start messaging.
+
+> Requires Android 8.0 or newer. No Google Play Store needed. No internet needed after download.
 
 ### iOS
 Coming soon — iOS TestFlight link will be available here.
 
 ### Already have Flare?
-You can share it with someone nearby via Bluetooth — open **Settings > Share Flare App** in the app. No internet needed.
+You can share it with someone nearby via Bluetooth — open **Settings > Share Flare App** in the app. The entire app transfers phone-to-phone, no internet needed.
 
 ## Who Is This For?
 

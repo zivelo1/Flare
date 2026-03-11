@@ -1,0 +1,202 @@
+name: Release Flare
+
+# Trigger on version tags: v0.1.0, v1.0.0, etc.
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  RUST_VERSION: "stable"
+  NDK_VERSION: "27.1.12297006"
+  JAVA_VERSION: "17"
+
+jobs:
+  build-android-libs:
+    name: Cross-compile Rust for Android (${{ matrix.abi }})
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flare-core
+
+    strategy:
+      matrix:
+        include:
+          - target: aarch64-linux-android
+            abi: arm64-v8a
+          - target: armv7-linux-androideabi
+            abi: armeabi-v7a
+          - target: x86_64-linux-android
+            abi: x86_64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain with Android target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            flare-core/target
+          key: rust-android-${{ matrix.target }}-${{ hashFiles('flare-core/Cargo.lock', 'flare-core/Cargo.toml') }}
+          restore-keys: rust-android-${{ matrix.target }}-
+
+      - name: Set up Android NDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "ndk;${{ env.NDK_VERSION }}"
+
+      - name: Configure Cargo for Android cross-compilation
+        run: |
+          NDK_HOME="${ANDROID_HOME}/ndk/${{ env.NDK_VERSION }}"
+          TOOLCHAIN="${NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64"
+
+          case "${{ matrix.target }}" in
+            aarch64-linux-android)
+              CC_TARGET="aarch64-linux-android26"
+              ;;
+            armv7-linux-androideabi)
+              CC_TARGET="armv7a-linux-androideabi26"
+              ;;
+            x86_64-linux-android)
+              CC_TARGET="x86_64-linux-android26"
+              ;;
+          esac
+
+          mkdir -p .cargo
+          cat > .cargo/config.toml << EOF
+          [${{ matrix.target }}]
+          linker = "${TOOLCHAIN}/bin/${CC_TARGET}-clang"
+          ar = "${TOOLCHAIN}/bin/llvm-ar"
+          EOF
+
+          echo "CC_${{ matrix.target }}=${TOOLCHAIN}/bin/${CC_TARGET}-clang" >> $GITHUB_ENV
+          echo "AR_${{ matrix.target }}=${TOOLCHAIN}/bin/llvm-ar" >> $GITHUB_ENV
+          echo "CARGO_TARGET_$(echo '${{ matrix.target }}' | tr 'a-z-' 'A-Z_')_LINKER=${TOOLCHAIN}/bin/${CC_TARGET}-clang" >> $GITHUB_ENV
+
+      - name: Build release library
+        run: cargo build --target ${{ matrix.target }} --release
+
+      - name: Upload native library
+        uses: actions/upload-artifact@v4
+        with:
+          name: libflare_core-${{ matrix.abi }}
+          path: flare-core/target/${{ matrix.target }}/release/libflare_core.so
+
+  generate-bindings:
+    name: Generate Kotlin Bindings
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flare-core
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            flare-core/target
+          key: rust-bindings-${{ runner.os }}-${{ hashFiles('flare-core/Cargo.lock', 'flare-core/Cargo.toml') }}
+          restore-keys: rust-bindings-${{ runner.os }}-
+
+      - name: Build library
+        run: cargo build
+
+      - name: Generate Kotlin bindings
+        run: |
+          cargo run --bin uniffi-bindgen generate \
+            --library target/debug/libflare_core.so \
+            --language kotlin \
+            --out-dir ../android/app/src/main/java
+
+      - name: Upload Kotlin bindings
+        uses: actions/upload-artifact@v4
+        with:
+          name: kotlin-bindings
+          path: android/app/src/main/java/uniffi/
+
+  build-and-release:
+    name: Build APK & Create Release
+    runs-on: ubuntu-latest
+    needs: [build-android-libs, generate-bindings]
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+
+      - name: Download all native libraries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: libflare_core-*
+          merge-multiple: false
+
+      - name: Place native libraries in jniLibs
+        run: |
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            mkdir -p android/app/src/main/jniLibs/${abi}
+            cp libflare_core-${abi}/libflare_core.so \
+               android/app/src/main/jniLibs/${abi}/libflare_core.so
+          done
+
+      - name: Download Kotlin bindings
+        uses: actions/download-artifact@v4
+        with:
+          name: kotlin-bindings
+          path: android/app/src/main/java/uniffi/
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/**/*.gradle.kts', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+      - name: Rename APK with version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          cp android/app/build/outputs/apk/debug/app-debug.apk \
+             "Flare-${VERSION}-android.apk"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: Flare-*-android.apk
+          body: |
+            ## Install on Android
+
+            1. Download **Flare-${{ github.ref_name }}-android.apk** below
+            2. Open the file on your Android phone
+            3. If prompted, allow "Install from unknown sources"
+            4. Open Flare — no account needed, just start messaging
+
+            > Requires Android 8.0+ with Bluetooth. No internet needed after install.
