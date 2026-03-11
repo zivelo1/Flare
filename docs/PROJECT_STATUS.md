@@ -180,9 +180,14 @@
 
 ## What's Next
 
-### Requires Android NDK (deferred)
-- [ ] Cross-compile Rust core for Android ARM targets
+### Phase 6A — Device Testing (In Progress)
+- [x] Cross-compile Rust core for Android ARM targets (`aarch64-linux-android`) — **5.7MB .so built**
+- [x] Debug APK builds successfully — **48MB app-debug.apk ready**
+- [ ] Install and test on physical Android device (USB debugging via adb)
 - [ ] Integration test: Two physical Android devices, encrypted chat over BLE
+- [ ] BLE GATT MTU negotiation across device models
+- [ ] Wi-Fi Direct group formation on real hardware
+- [ ] Power management tier behavior on real battery
 
 ### iOS App — Remaining Work
 - [x] Cross-compile Rust core for iOS ARM (`aarch64-apple-ios`) — build verified
@@ -190,28 +195,39 @@
 - [ ] Cross-platform test: Android ↔ iOS message exchange over BLE
 - [ ] Background execution tuning (CoreBluetooth state restoration is wired but untested)
 
-### UI/UX — Visual Design & Polish (Complete)
-- [x] App icon (adaptive vector drawable on Android, programmatic FlameShape on iOS) and animated splash screen
-- [x] Chat bubble animations (slide-in + fade on new messages, spring animations)
-- [x] Network mesh visualization (Canvas-based animated topology with peer nodes, pulsing connection lines, RSSI thickness)
-- [x] Dark mode theming refinement (extended dark color scheme on Android, semantic colors on iOS)
-- [x] Haptic feedback (medium impact on send, notification vibration on receive — both platforms)
-- [x] Voice message recording UI (hold-to-record with live waveform, AVAudioRecorder/MediaRecorder, .m4a format)
-- [x] Image capture and preview UI (UIImagePickerController/ActivityResultContracts.TakePicture, preview sheet with send/cancel)
-- [x] APK sharing UI (Android: share screen with version/hash/progress, receive screen with verification status)
+### Phase 6B — Security Hardening
+- [ ] Cryptographic protocol review (signature exclusion of mutable fields, route guard adversarial testing)
+- [ ] Duress PIN forensic analysis (dual-database detectability)
+- [ ] FFI boundary memory safety audit
+- [ ] Traffic analysis resistance (BLE fingerprinting)
+- [ ] Bloom filter privacy validation
 
-### Phase 6 — Launch
-- [ ] Security audit
-- [ ] Farsi/Persian localization
-- [ ] Performance optimization (battery, memory)
-- [ ] Release builds and distribution
+### Phase 6C — Farsi/Persian Localization
+- [ ] RTL layout support (Compose + SwiftUI)
+- [ ] Farsi string translations
+- [ ] RTL-aware chat bubbles and navigation
+- [ ] Persian number formatting
+
+### Phase 6D — Performance & Release
+- [ ] Battery drain profiling across power tiers
+- [ ] Memory profiling under relay load
+- [ ] Release builds (signed APK, iOS TestFlight)
+- [ ] F-Droid submission
+
+### Known Issues Found During Build
+- **FFI method gaps:** Several Kotlin methods in `FlareRepository.kt` called FFI methods that don't exist in the UniFFI bindings (`wifiDirect*`, `power*`, `recommendTransferStrategy`, `processRemoteNeighborhoodForPeer`). These are currently stubbed with local implementations. The Rust FFI layer needs to expose these methods properly.
+- **Coil dependency was missing:** `ImagePreviewSheet.kt` imports `coil` for async image loading but it wasn't in `build.gradle.kts`.
+- **`settings.gradle.kts` had `dependencyResolution` instead of `dependencyResolutionManagement`** — invalid Gradle API name.
+- **Gradle wrapper (`gradlew`)** was missing from the repo — generated during this phase.
+- **SQLCipher cross-compilation** required switching from `bundled-sqlcipher` to `bundled-sqlcipher-vendored-openssl` in Cargo.toml to bundle OpenSSL source for Android NDK builds.
 
 ## Phase Overview
 | Phase | Scope | Status |
 |---|---|---|
-| 1 — Foundation | Rust core + Android BLE + UI + UniFFI bridge | **Complete** (awaiting device test with NDK) |
-| 2 — Multi-Hop & iOS | Relay routing + iOS app | **Complete** (iOS cross-compiled and building, awaiting device test) |
+| 1 — Foundation | Rust core + Android BLE + UI + UniFFI bridge | **Complete** |
+| 2 — Multi-Hop & iOS | Relay routing + iOS app | **Complete** (iOS awaiting device test) |
 | 3 — Full Messaging | Groups, receipts, content types | **Complete** (Rust core + Android/iOS UI) |
 | 4 — Security & Distribution | Duress PIN, APK signing, route guard, compression | **Complete** |
 | 4B — Scaling & Dual Transport | Adaptive spray, neighborhood routing, size tiers, Wi-Fi Direct | **Complete** |
 | 5 — UI/UX & Launch Prep | Settings, onboarding, groups, identicons, animations, haptics, voice/image UI, APK sharing | **Complete** |
+| 6A — Device Testing | Android APK build, cross-compilation, device install | **In Progress** (APK ready, awaiting device test) |

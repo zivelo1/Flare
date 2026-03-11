@@ -28,7 +28,9 @@ serde_json = "1"
 bincode = "1"
 
 # Database
-rusqlite = { version = "0.31", features = ["bundled-sqlcipher"] }
+# bundled-sqlcipher-vendored-openssl: bundles both SQLCipher AND OpenSSL source,
+# so cross-compilation for Android/iOS works without pre-built OpenSSL libraries.
+rusqlite = { version = "0.31", features = ["bundled-sqlcipher-vendored-openssl"] }
 
 # FFI (mobile bindings)
 uniffi = { version = "0.28", features = ["cli"] }

@@ -217,7 +217,7 @@ class WiFiDirectManager(private val context: Context) {
 
                     WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION -> {
                         val state = intent.getIntExtra(
-                            WifiP2pManager.EXTRA_WIFI_P2P_STATE,
+                            WifiP2pManager.EXTRA_WIFI_STATE,
                             WifiP2pManager.WIFI_P2P_STATE_DISABLED
                         )
                         if (state != WifiP2pManager.WIFI_P2P_STATE_ENABLED) {

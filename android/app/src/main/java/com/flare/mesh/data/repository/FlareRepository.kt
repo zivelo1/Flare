@@ -305,9 +305,11 @@ class FlareRepository private constructor(private val node: FlareNode) {
     /**
      * Processes a remote peer's neighborhood bitmap and tags the peer
      * for neighborhood-aware routing. Bridge peers are prioritized in routing.
+     *
+     * Note: Delegates to processRemoteNeighborhood (peer-specific variant not yet in FFI).
      */
     fun processRemoteNeighborhoodForPeer(peerDeviceId: String, remoteBitmap: ByteArray): String =
-        node.processRemoteNeighborhoodForPeer(peerDeviceId, remoteBitmap)
+        node.processRemoteNeighborhood(remoteBitmap)
 
     // ── Transfer Strategy ──────────────────────────────────────────────
 
@@ -316,16 +318,20 @@ class FlareRepository private constructor(private val node: FlareNode) {
      * Used by the service layer to decide BLE mesh vs Wi-Fi Direct.
      */
     fun recommendTransferStrategy(contentType: UByte, payloadBytes: UInt): TransferRecommendation {
-        val ffi = node.recommendTransferStrategy(contentType, payloadBytes)
+        // Transfer strategy recommendation not yet exposed via FFI — use heuristic defaults.
+        val isLarge = payloadBytes > 50_000u
         return TransferRecommendation(
-            strategy = ffi.strategy.toString().lowercase(),
-            sizeTier = ffi.sizeTier,
-            estimatedBleChunks = ffi.estimatedBleChunks.toInt(),
-            isOversized = ffi.isOversized,
+            strategy = if (isLarge) "directpreferred" else "meshrelay",
+            sizeTier = if (payloadBytes < 5_000u) "small" else if (payloadBytes < 100_000u) "medium" else "large",
+            estimatedBleChunks = (payloadBytes / 512u + 1u).toInt(),
+            isOversized = payloadBytes > 1_000_000u,
         )
     }
 
     // ── Wi-Fi Direct Transfer Queue ────────────────────────────────────
+
+    // Wi-Fi Direct transfer queue methods — not yet exposed via FFI.
+    // Stubbed with no-op defaults to allow compilation; will delegate to FFI once available.
 
     fun wifiDirectEnqueue(
         transferIdHex: String,
@@ -333,45 +339,26 @@ class FlareRepository private constructor(private val node: FlareNode) {
         payload: ByteArray,
         contentType: UByte,
         nowSecs: ULong,
-    ): Boolean = try {
-        node.wifiDirectEnqueue(transferIdHex, recipientDeviceId, payload, contentType, nowSecs)
-    } catch (e: Exception) {
-        Timber.w(e, "Wi-Fi Direct enqueue failed")
-        false
+    ): Boolean {
+        Timber.d("Wi-Fi Direct enqueue stub: %s -> %s", transferIdHex, recipientDeviceId)
+        return false
     }
 
-    fun wifiDirectNextTransfer(peerDeviceId: String): ByteArray? = try {
-        node.wifiDirectNextTransfer(peerDeviceId)
-    } catch (e: Exception) {
-        Timber.w(e, "Wi-Fi Direct next transfer failed")
-        null
-    }
+    fun wifiDirectNextTransfer(peerDeviceId: String): ByteArray? = null
 
-    fun wifiDirectCompleteTransfer(transferIdHex: String): Boolean = try {
-        node.wifiDirectCompleteTransfer(transferIdHex)
-    } catch (e: Exception) {
-        false
-    }
+    fun wifiDirectCompleteTransfer(transferIdHex: String): Boolean = false
 
-    fun wifiDirectFailTransfer(transferIdHex: String): Boolean = try {
-        node.wifiDirectFailTransfer(transferIdHex)
-    } catch (e: Exception) {
-        false
-    }
+    fun wifiDirectFailTransfer(transferIdHex: String): Boolean = false
 
     fun wifiDirectConnectionChanged(state: String, peerDeviceId: String?) {
-        try {
-            node.wifiDirectConnectionChanged(state, peerDeviceId)
-        } catch (e: Exception) {
-            Timber.w(e, "Wi-Fi Direct connection state update failed")
-        }
+        Timber.d("Wi-Fi Direct connection changed stub: state=%s peer=%s", state, peerDeviceId)
     }
 
-    fun wifiDirectMostNeededPeer(): String? = node.wifiDirectMostNeededPeer()
+    fun wifiDirectMostNeededPeer(): String? = null
 
-    fun wifiDirectHasPending(): Boolean = node.wifiDirectHasPending()
+    fun wifiDirectHasPending(): Boolean = false
 
-    fun wifiDirectPruneExpired(nowSecs: ULong): Int = node.wifiDirectPruneExpired(nowSecs).toInt()
+    fun wifiDirectPruneExpired(nowSecs: ULong): Int = 0
 
     // ── Store Stats ────────────────────────────────────────────────────
 
@@ -509,38 +496,44 @@ class FlareRepository private constructor(private val node: FlareNode) {
 
     // ── Power Management ────────────────────────────────────────────────
 
+    // Power management methods — not yet exposed via FFI.
+    // Stubbed with sensible defaults to allow compilation.
+
+    private var _batterySaverEnabled = false
+
     /**
      * Enables or disables battery saver mode in the power manager.
      */
     fun powerSetBatterySaver(enabled: Boolean) {
-        node.powerSetBatterySaver(enabled)
+        _batterySaverEnabled = enabled
+        Timber.d("Battery saver %s (local stub)", if (enabled) "enabled" else "disabled")
     }
 
     /**
      * Updates the current battery level in the power manager.
      */
     fun powerUpdateBattery(percent: Int) {
-        node.powerUpdateBattery(percent.toUByte())
+        Timber.d("Battery level updated to %d%% (local stub)", percent)
     }
 
     /**
      * Returns the current power tier name.
      */
-    fun powerCurrentTier(): String = node.powerCurrentTier()
+    fun powerCurrentTier(): String = if (_batterySaverEnabled) "low" else "normal"
 
     /**
      * Evaluates and returns the recommended power tier with parameters.
      */
     fun powerEvaluate(nowSecs: Long): PowerTierInfo {
-        val ffi = node.powerEvaluate(nowSecs)
+        val tier = powerCurrentTier()
         return PowerTierInfo(
-            tier = ffi.tier,
-            scanWindowMs = ffi.scanWindowMs.toLong(),
-            scanIntervalMs = ffi.scanIntervalMs.toLong(),
-            advertiseIntervalMs = ffi.advertiseIntervalMs.toLong(),
-            burstScanDurationMs = ffi.burstScanDurationMs.toLong(),
-            burstSleepDurationMs = ffi.burstSleepDurationMs.toLong(),
-            useBurstMode = ffi.useBurstMode,
+            tier = tier,
+            scanWindowMs = if (_batterySaverEnabled) 2000L else 5000L,
+            scanIntervalMs = if (_batterySaverEnabled) 10000L else 5000L,
+            advertiseIntervalMs = if (_batterySaverEnabled) 1000L else 400L,
+            burstScanDurationMs = 10000L,
+            burstSleepDurationMs = 30000L,
+            useBurstMode = _batterySaverEnabled,
         )
     }
 

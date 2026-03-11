@@ -69,16 +69,24 @@ fi
 
 echo "Using NDK: ${ANDROID_NDK_HOME}"
 
-# Detect host OS for toolchain path
-case "$(uname -s)" in
-    Linux*)  HOST_TAG="linux-x86_64" ;;
-    Darwin*) HOST_TAG="darwin-x86_64" ;;
-    *)       echo "Unsupported host OS: $(uname -s)"; exit 1 ;;
-esac
+# Detect host OS and architecture for toolchain path
+# NDK 27+ on Apple Silicon still uses "darwin-x86_64" for the prebuilt dir,
+# but we check multiple candidates to be resilient across NDK versions.
+HOST_OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+HOST_ARCH=$(uname -m)
 
-TOOLCHAIN="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/${HOST_TAG}"
-if [ ! -d "${TOOLCHAIN}" ]; then
-    echo "ERROR: NDK toolchain not found at ${TOOLCHAIN}"
+TOOLCHAIN=""
+for tag in "${HOST_OS}-${HOST_ARCH}" "${HOST_OS}-x86_64" "${HOST_OS}"; do
+    candidate="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/${tag}"
+    if [ -d "${candidate}" ]; then
+        TOOLCHAIN="${candidate}"
+        break
+    fi
+done
+
+if [ -z "${TOOLCHAIN}" ]; then
+    echo "ERROR: NDK toolchain not found in ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/"
+    echo "Tried: ${HOST_OS}-${HOST_ARCH}, ${HOST_OS}-x86_64, ${HOST_OS}"
     exit 1
 fi
 
@@ -102,9 +110,13 @@ for entry in "${TARGETS[@]}"; do
 done
 
 # ── Build each target ───────────────────────────────────────────────
+ORIGINAL_PATH="${PATH}"
 echo ""
 echo "Building flare-core for Android (${BUILD_MODE})..."
 echo ""
+
+LAST_BUILT_TARGET=""
+LAST_BUILT_MODE="${BUILD_MODE}"
 
 for entry in "${TARGETS[@]}"; do
     IFS='|' read -r rust_target abi cc_prefix <<< "${entry}"
@@ -114,12 +126,20 @@ for entry in "${TARGETS[@]}"; do
         continue
     fi
 
+    LAST_BUILT_TARGET="${rust_target}"
     echo "── ${abi} (${rust_target}) ──"
 
     # Set cross-compilation environment
+    # Use target-specific env vars (CC_<target>) so they don't pollute host builds.
+    # Also add toolchain bin/ to PATH so OpenSSL's Makefile can find the compiler
+    # by short name (it records "aarch64-linux-android26-clang" not the full path).
+    TARGET_ENV=$(echo "${rust_target}" | tr '-' '_')
+    export CC_${TARGET_ENV}="${TOOLCHAIN}/bin/${cc_prefix}-clang"
+    export AR_${TARGET_ENV}="${TOOLCHAIN}/bin/llvm-ar"
     export CC="${TOOLCHAIN}/bin/${cc_prefix}-clang"
     export AR="${TOOLCHAIN}/bin/llvm-ar"
     export CARGO_TARGET_$(echo "${rust_target}" | tr 'a-z-' 'A-Z_')_LINKER="${CC}"
+    export PATH="${TOOLCHAIN}/bin:${ORIGINAL_PATH}"
 
     # Build
     (cd "${CORE_DIR}" && cargo build --target "${rust_target}" ${BUILD_FLAG})
@@ -136,9 +156,16 @@ for entry in "${TARGETS[@]}"; do
 done
 
 # ── Generate Kotlin bindings ────────────────────────────────────────
+# Restore clean host environment — uniffi-bindgen must compile for macOS,
+# not Android. The cross-compiled .so is only read for metadata extraction.
+unset CC AR CC_aarch64_linux_android AR_aarch64_linux_android \
+      CC_armv7_linux_androideabi AR_armv7_linux_androideabi \
+      CC_x86_64_linux_android AR_x86_64_linux_android
+export PATH="${ORIGINAL_PATH}"
+
 echo "Generating Kotlin bindings..."
 (cd "${CORE_DIR}" && cargo run --bin uniffi-bindgen generate \
-    --library "target/${rust_target}/${BUILD_MODE}/libflare_core.so" \
+    --library "target/${LAST_BUILT_TARGET}/${LAST_BUILT_MODE}/libflare_core.so" \
     --language kotlin \
     --out-dir "${PROJECT_ROOT}/android/app/src/main/java")
 

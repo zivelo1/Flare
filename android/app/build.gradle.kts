@@ -8,6 +8,7 @@ plugins {
 android {
     namespace = "com.flare.mesh"
     compileSdk = 35
+    ndkVersion = "27.1.12297006"
 
     defaultConfig {
         applicationId = "com.flare.mesh"
@@ -94,6 +95,9 @@ dependencies {
 
     // JNA (required by UniFFI Rust bindings)
     implementation("net.java.dev.jna:jna:5.14.0@aar")
+
+    // Image loading (Coil for Compose)
+    implementation("io.coil-kt:coil-compose:2.7.0")
 
     // Logging
     implementation("com.jakewharton.timber:timber:5.0.1")
