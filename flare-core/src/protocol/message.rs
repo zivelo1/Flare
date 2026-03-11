@@ -97,7 +97,7 @@ impl MeshMessage {
         // ttl_seconds intentionally excluded — mutable by adaptive TTL
         bytes.extend_from_slice(&self.created_at_ms.to_le_bytes());
         bytes.push(self.content_type as u8);
-        bytes.extend_from_slice(&(self.payload.len() as u16).to_le_bytes());
+        bytes.extend_from_slice(&(self.payload.len() as u64).to_le_bytes());
         bytes.extend_from_slice(&self.payload);
         bytes
     }

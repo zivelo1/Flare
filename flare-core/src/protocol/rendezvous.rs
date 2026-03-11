@@ -353,12 +353,17 @@ impl RendezvousManager {
 
 // ── Identity Encryption for Replies ───────────────────────────────
 
-/// Encrypts a PublicIdentity for a rendezvous reply.
-/// Uses a DH between our static agreement key and the querier's ephemeral key,
-/// with the token as salt for HKDF.
+/// Encrypts a PublicIdentity for a rendezvous reply using X25519 ECDH.
+///
+/// The responder generates an ephemeral X25519 keypair and performs DH with the
+/// querier's ephemeral public key. The shared secret is fed into HKDF with the
+/// token as salt. Only the querier (who holds the ephemeral private key) can
+/// derive the same shared secret to decrypt.
+///
+/// Returns (encrypted_identity, responder_ephemeral_public_key).
 fn encrypt_identity_for_reply(
     identity: &PublicIdentity,
-    ephemeral_public_bytes: &[u8; 32],
+    querier_ephemeral_public_bytes: &[u8; 32],
     token: &[u8; TOKEN_SIZE],
 ) -> Option<Vec<u8>> {
     // Serialize the identity
@@ -368,44 +373,78 @@ fn encrypt_identity_for_reply(
     plaintext.extend_from_slice(&identity.agreement_public_key); // 32 bytes
                                                                  // total: 80 bytes
 
-    // Use the token itself as a symmetric key source via HKDF
-    // We also mix in the ephemeral public key for binding
-    let hkdf = Hkdf::<sha2::Sha256>::new(Some(token), ephemeral_public_bytes);
+    // Perform X25519 DH: responder's ephemeral secret × querier's ephemeral public
+    let responder_secret = StaticSecret::random_from_rng(rand::thread_rng());
+    let responder_public = PublicKey::from(&responder_secret);
+    let querier_public = PublicKey::from(*querier_ephemeral_public_bytes);
+    let shared_secret = responder_secret.diffie_hellman(&querier_public);
+
+    // Derive encryption key from DH shared secret + token
+    let hkdf = Hkdf::<sha2::Sha256>::new(Some(token), shared_secret.as_bytes());
     let mut key = [0u8; 32];
-    hkdf.expand(b"flare-rendezvous-reply-key", &mut key).ok()?;
+    hkdf.expand(b"flare-rendezvous-reply-key-v2", &mut key)
+        .ok()?;
+
+    // Derive nonce from token + responder public key
+    let mut nonce_input = Vec::with_capacity(TOKEN_SIZE + 32);
+    nonce_input.extend_from_slice(token);
+    nonce_input.extend_from_slice(responder_public.as_bytes());
+    let nonce_hash = Sha256::digest(&nonce_input);
+    let mut nonce_arr = [0u8; 12];
+    nonce_arr.copy_from_slice(&nonce_hash[..12]);
+    let nonce = Nonce::from_slice(&nonce_arr);
 
     // Encrypt with AES-256-GCM
     let cipher = Aes256Gcm::new_from_slice(&key).ok()?;
-    let nonce_bytes = &token[..TOKEN_SIZE]; // Use part of token as nonce base
-    let mut nonce_arr = [0u8; 12];
-    nonce_arr[..TOKEN_SIZE].copy_from_slice(nonce_bytes);
-    let nonce = Nonce::from_slice(&nonce_arr);
+    let ciphertext = cipher.encrypt(nonce, plaintext.as_ref()).ok()?;
 
-    cipher.encrypt(nonce, plaintext.as_ref()).ok()
+    // Prepend responder's ephemeral public key so the querier can perform DH
+    let mut result = Vec::with_capacity(32 + ciphertext.len());
+    result.extend_from_slice(responder_public.as_bytes());
+    result.extend_from_slice(&ciphertext);
+    Some(result)
 }
 
-/// Decrypts a PublicIdentity from a rendezvous reply.
+/// Decrypts a PublicIdentity from a rendezvous reply using X25519 ECDH.
+///
+/// The querier uses their ephemeral private key and the responder's ephemeral
+/// public key (prepended to the encrypted data) to derive the shared secret.
 fn decrypt_identity_from_reply(
     encrypted: &[u8],
     ephemeral_secret_bytes: &[u8; 32],
     token: &[u8; TOKEN_SIZE],
 ) -> Option<PublicIdentity> {
-    // Reconstruct the ephemeral public key from the secret
-    let secret = StaticSecret::from(*ephemeral_secret_bytes);
-    let public = PublicKey::from(&secret);
+    // First 32 bytes are the responder's ephemeral public key
+    if encrypted.len() < 32 {
+        return None;
+    }
+    let mut responder_public_bytes = [0u8; 32];
+    responder_public_bytes.copy_from_slice(&encrypted[..32]);
+    let ciphertext = &encrypted[32..];
+
+    // Perform X25519 DH: querier's ephemeral secret × responder's ephemeral public
+    let querier_secret = StaticSecret::from(*ephemeral_secret_bytes);
+    let responder_public = PublicKey::from(responder_public_bytes);
+    let shared_secret = querier_secret.diffie_hellman(&responder_public);
 
     // Derive the same key the encryptor used
-    let hkdf = Hkdf::<sha2::Sha256>::new(Some(token), public.as_bytes());
+    let hkdf = Hkdf::<sha2::Sha256>::new(Some(token), shared_secret.as_bytes());
     let mut key = [0u8; 32];
-    hkdf.expand(b"flare-rendezvous-reply-key", &mut key).ok()?;
+    hkdf.expand(b"flare-rendezvous-reply-key-v2", &mut key)
+        .ok()?;
+
+    // Derive nonce from token + responder public key
+    let mut nonce_input = Vec::with_capacity(TOKEN_SIZE + 32);
+    nonce_input.extend_from_slice(token);
+    nonce_input.extend_from_slice(&responder_public_bytes);
+    let nonce_hash = Sha256::digest(&nonce_input);
+    let mut nonce_arr = [0u8; 12];
+    nonce_arr.copy_from_slice(&nonce_hash[..12]);
+    let nonce = Nonce::from_slice(&nonce_arr);
 
     // Decrypt with AES-256-GCM
     let cipher = Aes256Gcm::new_from_slice(&key).ok()?;
-    let mut nonce_arr = [0u8; 12];
-    nonce_arr[..TOKEN_SIZE].copy_from_slice(token);
-    let nonce = Nonce::from_slice(&nonce_arr);
-
-    let plaintext = cipher.decrypt(nonce, encrypted).ok()?;
+    let plaintext = cipher.decrypt(nonce, ciphertext).ok()?;
 
     if plaintext.len() != 80 {
         return None;

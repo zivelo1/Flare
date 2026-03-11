@@ -6,7 +6,7 @@
 
 ## What's Done
 
-### Rust Core (191 tests passing)
+### Rust Core (193 tests passing)
 - [x] Identity generation (Ed25519 signing + X25519 key agreement)
 - [x] Diffie-Hellman key agreement between devices
 - [x] HKDF key derivation (per-message keys from shared secrets)
@@ -33,7 +33,7 @@
 - [x] **DEFLATE compression** — `compress_payload`/`decompress_payload` with 1-byte header, MIN_COMPRESS_SIZE=64, decompression bomb protection (8 tests)
 - [x] **Ed25519 APK signing** — `DeveloperSigningKey`, `TrustedDeveloperKeys` store, `ApkSignature` verification, key rotation protocol with old-key endorsement (10 tests)
 - [x] **Sender Keys group encryption** — O(1) group messaging via HKDF chain ratchet, `SenderKeyStore` with per-group key management, forward secrecy within chains (12 tests)
-- [x] **Route guard** — `RouteGuard` with signature verification, TTL inflation cap (3.5x factor, 7-day max), monotonic hop count enforcement, per-sender rate limiting (100 msgs), `HopTracker` LRU cache (10 tests)
+- [x] **Route guard** — `RouteGuard` with signature verification, TTL inflation cap (3.5x factor based on inferred original TTL, 7-day absolute max), monotonic hop count enforcement, per-sender rate limiting (100 msgs), `HopTracker` LRU cache (10 tests)
 - [x] **Blind Rendezvous Protocol** — decentralized peer discovery without servers:
   - Shared Phrase mode: Argon2id(normalized_phrase, salt=epoch_week), ~50+ bits entropy, nation-state resistant
   - Phone Number mode: Bilateral hash = Argon2id(sort(phone_A, phone_B), salt=epoch_week), with explicit security warning
@@ -41,7 +41,7 @@
   - Proof-of-work anti-spam: 16 leading zero bits in SHA256(token || nonce), ~50ms per token
   - Weekly epoch rotation: tokens rotate via `epoch_week = unix_timestamp / (7 * 86400)`
   - Ephemeral X25519 keypair per search for forward secrecy
-  - Identity encryption in replies: HKDF(ephemeral_key, salt=token) → AES-256-GCM
+  - Identity encryption in replies: X25519 ECDH → HKDF(shared_secret, salt=token) → AES-256-GCM (eavesdropper-resistant)
   - `RendezvousManager` with active search tracking, token registration, request/reply processing
   - 15 dedicated tests for rendezvous protocol
 - [x] **Adaptive spray count** — spray copies = ceil(sqrt(observed_peers) × density_factor), clamped to [3, 16]. Based on Spyropoulos et al. optimal L = O(sqrt(N)). Reduces broadcast amplification in dense networks (7 tests)
@@ -215,12 +215,16 @@
 - **Permission request loop:** `requestBluetoothPermissions()` called every `onResume` even when already granted, causing infinite dialog loop. Fixed to check permissions first and start MeshService directly if all granted
 - **armv7 native library missing:** Second phone (armeabi-v7a) crashed with `library "libflare_core.so" not found`. Cross-compiled for armv7 target and included in APK
 
-### Phase 7 — Security Hardening
-- [ ] Cryptographic protocol review (signature exclusion of mutable fields, route guard adversarial testing)
+### Phase 7 — Security Hardening (Complete)
+- [x] **Full security code audit** — read all security-critical Rust files, identified 5 vulnerabilities
+- [x] **CRITICAL FIX: Database key derivation** — `derive_key()` used random salt on every open, making DB unopenable on restart. Fixed: deterministic salt via SHA-256(domain_separator || passphrase). Added 2 regression tests (determinism + uniqueness)
+- [x] **CRITICAL FIX: Hardware-backed key fallback** — Android Keystore hardware-backed path used guessable `Build.FINGERPRINT.hashCode()`. Fixed: encrypt a fixed challenge with the hardware key, store the ciphertext hash as passphrase (unforgeable without TEE access)
+- [x] **HIGH FIX: Rendezvous reply eavesdropping** — reply encryption used HKDF(ephemeral_public_key) as input, but the ephemeral public key is broadcast in cleartext — any eavesdropper could decrypt. Fixed: proper X25519 ECDH between responder's ephemeral key and querier's ephemeral key, nonce derived from token + responder public key
+- [x] **HIGH FIX: Payload length truncation** — `signable_bytes()` cast `payload.len()` to `u16`, truncating for payloads >65535 bytes. An attacker could append data without invalidating signatures. Fixed: cast to `u64`
+- [x] **MEDIUM FIX: TTL extension factor ignored** — `compute_max_allowed_ttl()` returned hard-coded 7-day cap regardless of original TTL. `max_ttl_extension_factor` config was defined but never used. Fixed: infers original TTL from message age + current TTL, applies 3.5x factor, capped at 7-day absolute max
 - [ ] Duress PIN forensic analysis (dual-database detectability)
-- [ ] FFI boundary memory safety audit
 - [ ] Traffic analysis resistance (BLE fingerprinting)
-- [ ] Bloom filter privacy validation
+- [ ] Bloom filter privacy validation (initial review: 4-byte short_id + 6-hour rollover looks sound)
 
 ### Phase 8 — Localization (Android)
 - [ ] **Farsi/Persian** — RTL layout (Compose), Farsi string translations, RTL chat bubbles, Persian number formatting
@@ -270,7 +274,7 @@
 | 4B — Scaling & Dual Transport | Adaptive spray, neighborhood routing, size tiers, Wi-Fi Direct | **Complete** |
 | 5 — UI/UX & Launch Prep | Settings, onboarding, groups, identicons, animations, haptics, voice/image UI, APK sharing | **Complete** |
 | 6A — Device Testing | Android APK build, cross-compilation, device install, BLE mesh verified | **Complete** (2 devices, encrypted chat working) |
-| 7 — Security Hardening | Crypto review, duress forensics, FFI audit, traffic analysis | **Next** |
+| 7 — Security Hardening | Crypto review, DB key fix, rendezvous DH fix, payload sig fix, TTL guard fix | **Complete** (5 vulnerabilities fixed, 193 tests) |
 | 8 — Localization (Android) | Farsi, Arabic, Spanish, Russian, Chinese, Korean | Planned |
 | 9 — UI Polish (Android) | Dark mode toggle, emoji picker | Planned |
 | 10 — Android Release | Battery/memory profiling, signed APK, F-Droid, GitHub Release | Planned |

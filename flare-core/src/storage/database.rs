@@ -6,6 +6,7 @@
 use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
 use rand_core::OsRng;
 use rusqlite::{params, Connection};
+use sha2::{Digest, Sha256};
 
 use crate::crypto::identity::{DeviceId, PublicIdentity};
 
@@ -63,14 +64,34 @@ impl FlareDatabase {
     }
 
     /// Derives a 256-bit encryption key from a passphrase using Argon2id.
+    ///
+    /// Uses a deterministic salt derived from the passphrase itself (via SHA-256)
+    /// so the same passphrase always produces the same key. This is essential:
+    /// SQLCipher needs the identical key on every open, and a random salt would
+    /// produce a different key each time, making the database unopenable on restart.
+    ///
+    /// The salt is NOT random — this is intentional. The security model relies on
+    /// the passphrase having high entropy (it's derived from Android Keystore or
+    /// hardware-backed key material, not user-typed passwords).
     fn derive_key(passphrase: &str) -> Result<String, DatabaseError> {
-        let salt = SaltString::generate(&mut OsRng);
-        let argon2 = Argon2::default();
-        let hash = argon2
-            .hash_password(passphrase.as_bytes(), &salt)
+        // Deterministic salt: SHA-256(domain_separator || passphrase), truncated to 16 bytes
+        let mut salt_hasher = Sha256::new();
+        salt_hasher.update(b"flare-db-salt-v1:");
+        salt_hasher.update(passphrase.as_bytes());
+        let salt_hash = salt_hasher.finalize();
+        let salt_bytes = &salt_hash[..16];
+
+        // Use Argon2id raw API (hash_password_into) which accepts byte slices directly
+        let params = argon2::Params::new(65536, 3, 1, Some(32))
             .map_err(|e| DatabaseError::KeyDerivation(e.to_string()))?;
-        // Use the hash output as hex key for SQLCipher
-        Ok(format!("x'{}'", hex_encode(hash.hash.unwrap().as_bytes())))
+        let argon2 = Argon2::new(argon2::Algorithm::Argon2id, argon2::Version::V0x13, params);
+
+        let mut key = [0u8; 32];
+        argon2
+            .hash_password_into(passphrase.as_bytes(), salt_bytes, &mut key)
+            .map_err(|e| DatabaseError::KeyDerivation(e.to_string()))?;
+
+        Ok(format!("x'{}'", hex_encode(&key)))
     }
 
     /// Creates the database schema if it doesn't exist.
@@ -702,6 +723,20 @@ mod tests {
     #[test]
     fn test_schema_creation() {
         let _db = test_db(); // Should not panic
+    }
+
+    #[test]
+    fn test_derive_key_is_deterministic() {
+        let key1 = FlareDatabase::derive_key("test-passphrase").unwrap();
+        let key2 = FlareDatabase::derive_key("test-passphrase").unwrap();
+        assert_eq!(key1, key2, "Same passphrase must produce same key");
+    }
+
+    #[test]
+    fn test_derive_key_different_passphrases_different_keys() {
+        let key1 = FlareDatabase::derive_key("passphrase-a").unwrap();
+        let key2 = FlareDatabase::derive_key("passphrase-b").unwrap();
+        assert_ne!(key1, key2, "Different passphrases must produce different keys");
     }
 
     #[test]

@@ -115,7 +115,7 @@ The transfer is verified with Ed25519 developer signatures and SHA-256 hash to e
 
 ## Current Status
 
-**Rust Core** (191 tests passing):
+**Rust Core** (193 tests passing):
 - Ed25519/X25519 identity and key agreement
 - AES-256-GCM encryption, HKDF key derivation
 - Spray-and-Wait mesh routing with adaptive TTL (48h → 72h → 7d)

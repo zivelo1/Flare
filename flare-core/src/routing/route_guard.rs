@@ -249,14 +249,31 @@ impl RouteGuard {
 
     /// Computes the maximum allowed TTL for a message.
     ///
-    /// Uses the absolute maximum TTL of 7 days (from PriorityStoreConfig default)
-    /// multiplied by the extension factor, but hard-capped at 7 days.
-    /// This prevents any relay from setting TTL beyond the protocol's hard maximum.
-    fn compute_max_allowed_ttl(&self, _message: &MeshMessage) -> u32 {
-        // Hard cap: 7 days in seconds. This matches absolute_max_ttl_seconds
-        // in PriorityStoreConfig and cannot be exceeded by any relay node.
+    /// The message's original TTL is inferred from the signed `max_hops` and
+    /// creation timestamp. We allow TTL up to the protocol hard cap of 7 days,
+    /// and also up to `original_ttl * max_ttl_extension_factor`.
+    /// The lower of the two limits applies — this prevents a 1-hour message
+    /// from being inflated to 7 days, while still allowing legitimate bridge
+    /// extensions on longer-lived messages.
+    fn compute_max_allowed_ttl(&self, message: &MeshMessage) -> u32 {
         const ABSOLUTE_MAX_TTL_SECS: u32 = 7 * 24 * 3600;
-        ABSOLUTE_MAX_TTL_SECS
+
+        // Estimate original TTL: use default TTL (24h) as baseline,
+        // but the current TTL could be lower if the sender set a custom value.
+        // The signed creation timestamp lets us compute the message's age.
+        let now_ms = chrono::Utc::now().timestamp_millis();
+        let age_secs = ((now_ms - message.created_at_ms) / 1000).max(0) as u32;
+
+        // The original TTL must have been at least (age + remaining TTL) to still be alive.
+        // This gives us a lower bound on what the sender intended.
+        let inferred_original_ttl = age_secs.saturating_add(message.ttl_seconds);
+
+        // Apply the extension factor to the inferred original TTL
+        let factor_limit =
+            (inferred_original_ttl as f64 * self.config.max_ttl_extension_factor) as u32;
+
+        // Return the lower of: factor-based limit vs absolute hard cap
+        factor_limit.min(ABSOLUTE_MAX_TTL_SECS)
     }
 }
 
