@@ -210,6 +210,7 @@ fun FlareNavHost(
                 QrDisplayScreen(
                     qrData = contactsViewModel.generateQrData(),
                     safetyNumber = contactsViewModel.getSafetyNumber(),
+                    shareLink = contactsViewModel.generateShareLink(),
                     onNavigateBack = { navController.popBackStack() },
                 )
             }
@@ -220,6 +221,7 @@ fun FlareNavHost(
                     onNavigateToQrScanner = { navController.navigate("qr-scanner") },
                     onNavigateToPhone = { navController.navigate("phone-search") },
                     onNavigateToImport = { /* TODO: contact import screen */ },
+                    onNavigateToShareLink = { navController.navigate("qr-display") },
                     onNavigateBack = { navController.popBackStack() },
                 )
             }

@@ -1,9 +1,11 @@
 package com.flare.mesh.ui
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,12 +20,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.flare.mesh.FlareApplication
+import com.flare.mesh.R
 import com.flare.mesh.service.MeshService
 import com.flare.mesh.ui.navigation.FlareNavHost
 import com.flare.mesh.ui.theme.FlareTheme
+import com.flare.mesh.util.Constants
+import com.flare.mesh.viewmodel.ContactsViewModel
 import timber.log.Timber
 
 class MainActivity : ComponentActivity() {
+
+    private val contactsViewModel by lazy { ContactsViewModel() }
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -55,6 +62,39 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+
+        // Handle deep link if the activity was launched with one
+        handleDeepLink(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleDeepLink(intent)
+    }
+
+    /**
+     * Processes an incoming deep link intent (flare://add?id=...&sk=...&ak=...).
+     * Parses the URI, adds the contact, and shows a toast confirmation.
+     */
+    private fun handleDeepLink(intent: Intent?) {
+        val uri = intent?.data ?: return
+        if (uri.scheme != Constants.DEEP_LINK_SCHEME || uri.host != Constants.DEEP_LINK_HOST_ADD) return
+
+        Timber.i("Received deep link: %s", uri)
+
+        // Defer processing until FlareNode is initialized
+        if (FlareApplication.initError != null) {
+            Timber.w("Cannot process deep link — FlareNode not initialized")
+            return
+        }
+
+        val parsed = contactsViewModel.parseDeepLink(uri)
+        if (parsed != null) {
+            contactsViewModel.addContactFromLink(parsed)
+            Toast.makeText(this, R.string.deep_link_contact_added, Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, R.string.deep_link_invalid, Toast.LENGTH_SHORT).show()
         }
     }
 

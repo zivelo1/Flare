@@ -4,6 +4,9 @@ import CoreImage.CIFilterBuiltins
 struct QRDisplayView: View {
     let qrData: String
     let safetyNumber: String
+    let shareLink: String
+
+    @State private var showShareSheet = false
 
     var body: some View {
         VStack(spacing: 24) {
@@ -40,11 +43,41 @@ struct QRDisplayView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
 
+            // Share identity link button
+            Button {
+                showShareSheet = true
+            } label: {
+                Label("Share My Identity Link", systemImage: "square.and.arrow.up")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.accentColor)
+            .padding(.horizontal, 32)
+
+            Text("Send this link via SMS, WhatsApp, or any app.\nYour friend taps it to add you as a contact.")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+
             Spacer()
         }
         .padding(.top, 24)
         .navigationTitle("My QR Code")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showShareSheet = true
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                }
+            }
+        }
+        .sheet(isPresented: $showShareSheet) {
+            let shareText = "Add me on Flare (encrypted mesh messaging):\n\(shareLink)\n\nDon't have Flare? Get it at https://github.com/zivelo1/Flare"
+            ShareSheet(activityItems: [shareText])
+        }
     }
 
     private func generateQRCode(from string: String) -> UIImage? {
@@ -60,4 +93,15 @@ struct QRDisplayView: View {
         guard let cgImage = context.createCGImage(scaledImage, from: scaledImage.extent) else { return nil }
         return UIImage(cgImage: cgImage)
     }
+}
+
+/// UIKit share sheet wrapper for SwiftUI.
+struct ShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

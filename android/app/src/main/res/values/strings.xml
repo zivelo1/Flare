@@ -33,6 +33,12 @@
     <string name="qr_camera_permission_needed">Camera permission is required to scan QR codes</string>
     <string name="qr_safety_number_label">Safety number</string>
     <string name="qr_share_code">Share QR Code</string>
+    <string name="share_identity_button">Share My Identity Link</string>
+    <string name="share_identity_chooser_title">Share Flare Identity</string>
+    <string name="share_identity_message">Add me on Flare (encrypted mesh messaging):\n%1$s\n\nDon\'t have Flare? Get it at https://github.com/zivelo1/Flare</string>
+    <string name="share_identity_hint">Send this link via SMS, WhatsApp, or any app.\nYour friend taps it to add you as a contact.</string>
+    <string name="deep_link_contact_added">Contact added from shared link</string>
+    <string name="deep_link_invalid">Invalid Flare identity link</string>
     <string name="action_close">Close</string>
     <string name="action_done">Done</string>
 

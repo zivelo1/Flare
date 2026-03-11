@@ -40,6 +40,16 @@ enum Constants {
     static let qrMinFields = 3
     static let hexPublicKeyLength = 64
 
+    // Deep Link (Identity Sharing)
+    // URI format: flare://add?id=<deviceId>&sk=<signingKey>&ak=<agreementKey>&name=<displayName>
+    // Used for sharing identity via SMS, WhatsApp, email, or any out-of-band channel.
+    static let deepLinkScheme = "flare"
+    static let deepLinkHostAdd = "add"
+    static let deepLinkParamId = "id"
+    static let deepLinkParamSigningKey = "sk"
+    static let deepLinkParamAgreementKey = "ak"
+    static let deepLinkParamName = "name"
+
     // Crypto
     static let deviceIdLength = 16
     static let publicKeyLength = 32

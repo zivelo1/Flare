@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -31,6 +32,7 @@ fun FindContactScreen(
     onNavigateToQrScanner: () -> Unit,
     onNavigateToPhone: () -> Unit,
     onNavigateToImport: () -> Unit,
+    onNavigateToShareLink: () -> Unit,
     onNavigateBack: () -> Unit,
 ) {
     Scaffold(
@@ -68,6 +70,15 @@ fun FindContactScreen(
                     "A shared memory, a place, an inside joke. Most secure option.",
                 recommended = true,
                 onClick = onNavigateToPhrase,
+            )
+
+            // Share Identity Link
+            DiscoveryOptionCard(
+                icon = Icons.Default.Share,
+                title = "Share Identity Link",
+                description = "Send your Flare identity via SMS, WhatsApp, or any app. " +
+                    "Works at any distance — no mesh needed.",
+                onClick = onNavigateToShareLink,
             )
 
             // QR Code

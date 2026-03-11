@@ -116,6 +116,28 @@ object Constants {
     /** Expected length of hex-encoded public keys (32 bytes = 64 hex chars). */
     const val HEX_PUBLIC_KEY_LENGTH: Int = 64
 
+    // ── Deep Link (Identity Sharing) ─────────────────────────────────
+    // URI format: flare://add?id=<deviceId>&sk=<signingKey>&ak=<agreementKey>&name=<displayName>
+    // Used for sharing identity via SMS, WhatsApp, email, or any out-of-band channel.
+
+    /** Custom URL scheme for Flare deep links. */
+    const val DEEP_LINK_SCHEME: String = "flare"
+
+    /** Host component for the add-contact deep link. */
+    const val DEEP_LINK_HOST_ADD: String = "add"
+
+    /** Query parameter key for device ID. */
+    const val DEEP_LINK_PARAM_ID: String = "id"
+
+    /** Query parameter key for hex-encoded signing public key. */
+    const val DEEP_LINK_PARAM_SIGNING_KEY: String = "sk"
+
+    /** Query parameter key for hex-encoded agreement public key. */
+    const val DEEP_LINK_PARAM_AGREEMENT_KEY: String = "ak"
+
+    /** Query parameter key for optional display name. */
+    const val DEEP_LINK_PARAM_NAME: String = "name"
+
     // ── Crypto ────────────────────────────────────────────────────────
 
     /** Length of the device ID in bytes. */

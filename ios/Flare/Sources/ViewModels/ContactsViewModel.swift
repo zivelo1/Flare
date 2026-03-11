@@ -36,6 +36,65 @@ final class ContactsViewModel: ObservableObject {
         return [identity.deviceId, signingHex, agreementHex].joined(separator: Constants.qrDataSeparator)
     }
 
+    /// Generates a shareable deep link URL for the local device identity.
+    /// Format: flare://add?id=<deviceId>&sk=<signingKey>&ak=<agreementKey>
+    func generateShareLink() -> String {
+        guard let identity = getMyPublicIdentity() else { return "" }
+        let signingHex = identity.signingPublicKey.map { String(format: "%02x", $0) }.joined()
+        let agreementHex = identity.agreementPublicKey.map { String(format: "%02x", $0) }.joined()
+
+        var components = URLComponents()
+        components.scheme = Constants.deepLinkScheme
+        components.host = Constants.deepLinkHostAdd
+        components.queryItems = [
+            URLQueryItem(name: Constants.deepLinkParamId, value: identity.deviceId),
+            URLQueryItem(name: Constants.deepLinkParamSigningKey, value: signingHex),
+            URLQueryItem(name: Constants.deepLinkParamAgreementKey, value: agreementHex),
+        ]
+        return components.string ?? ""
+    }
+
+    /// Adds a contact from an incoming deep link URL.
+    /// Returns true if the contact was successfully added.
+    func addContactFromLink(_ url: URL) -> Bool {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              components.scheme == Constants.deepLinkScheme,
+              components.host == Constants.deepLinkHostAdd else {
+            return false
+        }
+
+        let params = Dictionary(
+            uniqueKeysWithValues: (components.queryItems ?? []).compactMap { item in
+                item.value.map { (item.name, $0) }
+            }
+        )
+
+        guard let deviceId = params[Constants.deepLinkParamId],
+              let signingKeyHex = params[Constants.deepLinkParamSigningKey],
+              let agreementKeyHex = params[Constants.deepLinkParamAgreementKey],
+              signingKeyHex.count == Constants.hexPublicKeyLength,
+              agreementKeyHex.count == Constants.hexPublicKeyLength,
+              let signingKey = Data(hexString: signingKeyHex),
+              let agreementKey = Data(hexString: agreementKeyHex) else {
+            return false
+        }
+
+        let displayName = params[Constants.deepLinkParamName]
+
+        do {
+            try repo.addContact(
+                deviceId: deviceId,
+                signingPublicKey: signingKey,
+                agreementPublicKey: agreementKey,
+                displayName: displayName,
+                isVerified: false  // Link-based = not verified (no in-person confirmation)
+            )
+            return true
+        } catch {
+            return false
+        }
+    }
+
     func addContactFromQr(_ qrData: String) {
         let parts = qrData.split(separator: Character(Constants.qrDataSeparator)).map(String.init)
         guard parts.count >= Constants.qrMinFields,

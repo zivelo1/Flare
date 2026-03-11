@@ -1,5 +1,6 @@
 package com.flare.mesh.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flare.mesh.data.model.Contact
@@ -75,6 +76,88 @@ class ContactsViewModel : ViewModel() {
             bytesToHex(identity.agreementPublicKey),
         ).joinToString(Constants.QR_DATA_SEPARATOR)
     }
+
+    /**
+     * Generates a shareable deep link URI for the local device identity.
+     * Format: flare://add?id=<deviceId>&sk=<signingKey>&ak=<agreementKey>
+     * Can be shared via SMS, WhatsApp, email, or any messaging channel.
+     */
+    fun generateShareLink(): String {
+        val identity = repository.getPublicIdentity()
+        return Uri.Builder()
+            .scheme(Constants.DEEP_LINK_SCHEME)
+            .authority(Constants.DEEP_LINK_HOST_ADD)
+            .appendQueryParameter(Constants.DEEP_LINK_PARAM_ID, identity.deviceId)
+            .appendQueryParameter(Constants.DEEP_LINK_PARAM_SIGNING_KEY, bytesToHex(identity.signingPublicKey))
+            .appendQueryParameter(Constants.DEEP_LINK_PARAM_AGREEMENT_KEY, bytesToHex(identity.agreementPublicKey))
+            .build()
+            .toString()
+    }
+
+    /**
+     * Parses and validates a deep link URI, returning extracted parameters.
+     * Returns null if the URI is invalid or missing required fields.
+     */
+    fun parseDeepLink(uri: Uri): DeepLinkContact? {
+        if (uri.scheme != Constants.DEEP_LINK_SCHEME || uri.host != Constants.DEEP_LINK_HOST_ADD) {
+            Timber.w("Invalid deep link scheme/host: %s", uri)
+            return null
+        }
+
+        val deviceId = uri.getQueryParameter(Constants.DEEP_LINK_PARAM_ID)
+        val signingKeyHex = uri.getQueryParameter(Constants.DEEP_LINK_PARAM_SIGNING_KEY)
+        val agreementKeyHex = uri.getQueryParameter(Constants.DEEP_LINK_PARAM_AGREEMENT_KEY)
+        val displayName = uri.getQueryParameter(Constants.DEEP_LINK_PARAM_NAME)
+
+        if (deviceId.isNullOrEmpty() || signingKeyHex.isNullOrEmpty() || agreementKeyHex.isNullOrEmpty()) {
+            Timber.w("Deep link missing required parameters: %s", uri)
+            return null
+        }
+
+        if (signingKeyHex.length != Constants.HEX_PUBLIC_KEY_LENGTH ||
+            agreementKeyHex.length != Constants.HEX_PUBLIC_KEY_LENGTH) {
+            Timber.w("Deep link has invalid key lengths: sk=%d ak=%d",
+                signingKeyHex.length, agreementKeyHex.length)
+            return null
+        }
+
+        return DeepLinkContact(
+            deviceId = deviceId,
+            signingPublicKey = hexToBytes(signingKeyHex),
+            agreementPublicKey = hexToBytes(agreementKeyHex),
+            displayName = displayName,
+        )
+    }
+
+    /**
+     * Adds a contact from a parsed deep link. Must be called from a coroutine.
+     */
+    fun addContactFromLink(contact: DeepLinkContact) {
+        viewModelScope.launch {
+            try {
+                repository.addContact(
+                    deviceId = contact.deviceId,
+                    signingPublicKey = contact.signingPublicKey,
+                    agreementPublicKey = contact.agreementPublicKey,
+                    displayName = contact.displayName,
+                    isVerified = false, // Link-based = not verified (no in-person confirmation)
+                )
+                Timber.i("Contact added via deep link: %s", contact.deviceId.take(12))
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to add contact from deep link")
+            }
+        }
+    }
+
+    /**
+     * Validated contact data extracted from a deep link URI.
+     */
+    data class DeepLinkContact(
+        val deviceId: String,
+        val signingPublicKey: ByteArray,
+        val agreementPublicKey: ByteArray,
+        val displayName: String?,
+    )
 
     fun refreshContacts() {
         viewModelScope.launch {

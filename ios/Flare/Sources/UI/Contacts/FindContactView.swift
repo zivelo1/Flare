@@ -22,6 +22,17 @@ struct FindContactView: View {
                 }
             }
 
+            Section("Remote Contact") {
+                NavigationLink(value: "qr-display") {
+                    DiscoveryOptionRow(
+                        icon: "square.and.arrow.up",
+                        title: "Share Identity Link",
+                        subtitle: "Send your Flare identity via SMS, WhatsApp, or any app. Works at any distance.",
+                        iconColor: .purple
+                    )
+                }
+            }
+
             Section("Other Methods") {
                 NavigationLink(value: "qr-scanner") {
                     DiscoveryOptionRow(

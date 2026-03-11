@@ -40,7 +40,8 @@ struct ContactsView: View {
             case "qr-display":
                 QRDisplayView(
                     qrData: viewModel.generateQrData(),
-                    safetyNumber: viewModel.getSafetyNumber()
+                    safetyNumber: viewModel.getSafetyNumber(),
+                    shareLink: viewModel.generateShareLink()
                 )
             case "phrase-search":
                 SharedPhraseSearchView(viewModel: discoveryVM)

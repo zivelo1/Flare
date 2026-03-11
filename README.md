@@ -8,6 +8,22 @@ Flare lets you send encrypted messages to anyone — even when there is no inter
 
 No servers. No accounts. No phone number required. Just install and start messaging.
 
+## Download & Install
+
+### Android
+1. **Download the APK** from the [latest release](https://github.com/zivelo1/Flare/releases/latest)
+2. On your phone, open the downloaded `.apk` file
+3. If prompted, allow "Install from unknown sources" for your browser
+4. Open Flare — no account, no sign-up, just start messaging
+
+> No Google Play Store required. No internet required after download.
+
+### iOS
+Coming soon — iOS TestFlight link will be available here.
+
+### Already have Flare?
+You can share it with someone nearby via Bluetooth — open **Settings > Share Flare App** in the app. No internet needed.
+
 ## Who Is This For?
 
 - **People during internet shutdowns** — governments blocking communication during protests or unrest
@@ -26,7 +42,7 @@ You ←──BLE──→ Stranger's ←──BLE──→ Another ←──BLE�
 ```
 
 1. **Install Flare** on your phone (Android or iPhone)
-2. **Find your friend** by entering a shared phrase you both know — a memory, a place, an inside joke. Flare searches the mesh network and connects you securely.
+2. **Find your friend** — enter a shared phrase you both know, share your identity link via SMS/WhatsApp, or scan each other's QR code when meeting in person
 3. **Send messages.** Your messages are encrypted on your phone and hop through other Flare users' phones until they reach your friend. Nobody in between can read them — not even the people whose phones relay them.
 
 Messages can travel across a city or even between cities, as long as there are enough Flare users along the way. The more people using Flare, the further messages can reach.
@@ -38,6 +54,7 @@ Since there are no servers, Flare uses a **Blind Rendezvous** protocol to help y
 | Method | How It Works | Best For |
 |---|---|---|
 | **Shared Phrase** | Both you and your friend type the same phrase (a shared memory). Flare matches you securely. | Most situations — secure and private |
+| **Share Identity Link** | Send your Flare identity via SMS, WhatsApp, or any app. Your friend taps the link to add you. | Friends who are far away |
 | **QR Code** | Scan each other's QR code when you meet in person | Maximum security |
 | **Phone Number** | Enter each other's phone numbers. Both must do it. | Convenience (with privacy tradeoff) |
 | **Contact Import** | Import your phone contacts to find friends already on Flare | Quick setup |
@@ -120,7 +137,7 @@ The transfer is verified with Ed25519 developer signatures and SHA-256 hash to e
 - BLE GATT server + client with full mesh routing
 - **Wi-Fi Direct transport** — Wi-Fi P2P peer discovery, group formation, TCP socket transfer with length-prefixed protocol
 - Material 3 UI: chat bubbles with read receipts, identicon avatars, contacts, network dashboard
-- Find Contact screen: shared phrase, QR code, phone number discovery
+- Find Contact screen: shared phrase, identity link sharing, QR code, phone number discovery
 - Full message pipeline: encrypt → send → relay → deliver → ACK
 - Foreground service, neighborhood detection, ProGuard rules
 - **Adaptive power management** — MeshService evaluates battery + network state to dynamically adjust BLE scan/advertise tiers with burst mode scanning
@@ -137,7 +154,7 @@ The transfer is verified with Ed25519 developer signatures and SHA-256 hash to e
 **iOS App** (Swift + SwiftUI):
 - CoreBluetooth BLE central + peripheral with state restoration
 - **MultipeerConnectivity transport** — Wi-Fi Direct via Apple's framework with automatic peer discovery, MCSession, deterministic connection deduplication
-- SwiftUI screens: chats, contacts, network, find contact, QR, discovery, settings, groups, onboarding
+- SwiftUI screens: chats, contacts, network, find contact, QR (with share link), discovery, settings, groups, onboarding
 - Full mesh service: dual transport (BLE + MultipeerConnectivity), rendezvous broadcast, delivery ACK, Wi-Fi Direct queue processing
 - **Identicon avatars** — deterministic colors from SHA-256 hash of device ID
 - **Settings** — duress PIN, power management, storage stats

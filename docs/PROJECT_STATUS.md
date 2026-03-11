@@ -83,7 +83,7 @@
 - [x] FlareRepository — bridge layer between UniFFI bindings and Android app (incl. neighborhood + store stats + message persistence + relay + receipts + transfer strategy + Wi-Fi Direct queue)
 - [x] FlareApplication — initializes FlareNode with device-bound passphrase (Android Keystore)
 - [x] ChatViewModel — conversation list, message sending via Rust encryption, incoming message delivery, persisted chat history
-- [x] ContactsViewModel — contact management, QR code data generation/parsing
+- [x] ContactsViewModel — contact management, QR code data generation/parsing, shareable identity deep links
 - [x] DiscoveryViewModel — shared phrase search, phone number search, contact import with SearchState management
 - [x] NetworkViewModel — mesh status, nearby peers from BLE scanner
 - [x] SettingsViewModel — duress PIN management, power tier state, store stats
@@ -92,7 +92,7 @@
 - [x] ConversationListScreen — conversation list with mesh status, unread badges, identicon avatars, settings/groups navigation
 - [x] ChatScreen — message bubbles, delivery status icons (pending/sent/delivered/read with blue/failed with error), identicon avatars, encrypted send via Rust core
 - [x] ContactsScreen — contact list, verified badges, QR code actions, last-seen formatting
-- [x] FindContactScreen — discovery hub with 4 methods (Shared Phrase, QR Code, Phone Number, Contact Import)
+- [x] FindContactScreen — discovery hub with 5 methods (Shared Phrase, Share Identity Link, QR Code, Phone Number, Contact Import)
 - [x] SharedPhraseSearchScreen — passphrase entry, searching animation, contact found state
 - [x] PhoneSearchScreen — bilateral phone number entry, security warning, risk acceptance
 - [x] NetworkScreen — mesh status card, stats row, nearby peer list with signal strength
@@ -132,10 +132,10 @@
 - [x] ConversationListView — conversation list, mesh status indicator, identicon avatars, settings/groups navigation
 - [x] ChatView — message bubbles, delivery status icons (pending/sent/delivered/read/failed), encrypted send
 - [x] ContactsView — contact list, identicon avatars, verified badges, last-seen formatting
-- [x] FindContactView — discovery hub (Shared Phrase, QR Code, Phone Number)
+- [x] FindContactView — discovery hub (Shared Phrase, Share Identity Link, QR Code, Phone Number)
 - [x] SharedPhraseSearchView — phrase input, searching animation, contact found
 - [x] PhoneSearchView — bilateral phone entry, security warning, risk acceptance
-- [x] QRDisplayView — QR code generation with safety number
+- [x] QRDisplayView — QR code generation with safety number and shareable identity link
 - [x] QRScannerView — AVFoundation camera with QR detection and format validation
 - [x] NetworkView — mesh status card, stats row, nearby peer list with signal strength
 - [x] MainTabView — tab navigation (Chats, Contacts, Network)
@@ -169,6 +169,17 @@
 - [x] Navigation wired — scanner and display accessible from Contacts tab
 - [x] Camera permission handling with runtime request
 - [x] QR format validation (device ID + 32-byte signing key + 32-byte agreement key)
+
+### Shareable Identity Link (Remote Contact Exchange)
+- [x] **Deep link format** — `flare://add?id=<deviceId>&sk=<signingKey>&ak=<agreementKey>&name=<displayName>`
+- [x] **Android share button** — QR display screen has "Share My Identity Link" button + toolbar icon, opens system share sheet
+- [x] **Android deep link handler** — intent filter for `flare://add` scheme, singleTask launch mode, toast confirmation
+- [x] **iOS share button** — QR display screen has share button + toolbar icon, opens UIActivityViewController
+- [x] **iOS URL scheme handler** — `flare` scheme registered in Info.plist, `.onOpenURL` handler in FlareApp
+- [x] **FindContactScreen** — "Share Identity Link" added as a discovery method (Android + iOS)
+- [x] **Validation** — hex key length checks, scheme/host validation, missing parameter detection
+- [x] **Security** — link-added contacts marked as unverified (no in-person confirmation); share message includes app download link
+- [x] **Constants** — deep link scheme, host, and query parameter keys centralized in both platform Constants files
 
 ### Scaling Improvements (Phase 4B)
 - [x] **Adaptive spray count** — L = ceil(sqrt(N) × 1.5), clamped [3, 16]. Reduces broadcast amplification in dense networks while maintaining delivery in sparse ones
