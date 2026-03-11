@@ -7,6 +7,7 @@ import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.BluetoothLeAdvertiser
 import android.content.Context
+import android.os.Build
 import android.os.ParcelUuid
 import com.flare.mesh.util.Constants
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -215,10 +216,17 @@ class GattServer(private val context: Context) {
         val characteristic = service.getCharacteristic(Constants.CHAR_MESSAGE_NOTIFY_UUID) ?: return false
 
         return try {
-            val statusCode = server.notifyCharacteristicChanged(device, characteristic, false, data)
-            val success = statusCode == BluetoothStatusCodes.SUCCESS
-            if (!success) {
-                Timber.w("Notify peer %s returned status %d", address, statusCode)
+            val success = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val statusCode = server.notifyCharacteristicChanged(device, characteristic, false, data)
+                if (statusCode != BluetoothStatusCodes.SUCCESS) {
+                    Timber.w("Notify peer %s returned status %d", address, statusCode)
+                }
+                statusCode == BluetoothStatusCodes.SUCCESS
+            } else {
+                @Suppress("DEPRECATION")
+                characteristic.value = data
+                @Suppress("DEPRECATION")
+                server.notifyCharacteristicChanged(device, characteristic, false)
             }
             success
         } catch (e: SecurityException) {

@@ -1,7 +1,7 @@
 # Flare — Project Status
 
-## Current Phase: Phase 5 — UI/UX Polish & Launch Prep
-**Goal:** Settings, onboarding, groups UI, identicons, read receipts across both platforms
+## Current Phase: Phase 6A — Device Testing (Verified)
+**Goal:** Build, install, and verify encrypted BLE mesh messaging between physical Android devices
 
 ## What's Done
 
@@ -180,14 +180,28 @@
 
 ## What's Next
 
-### Phase 6A — Device Testing (In Progress)
-- [x] Cross-compile Rust core for Android ARM targets (`aarch64-linux-android`) — **5.7MB .so built**
-- [x] Debug APK builds successfully — **48MB app-debug.apk ready**
-- [ ] Install and test on physical Android device (USB debugging via adb)
-- [ ] Integration test: Two physical Android devices, encrypted chat over BLE
-- [ ] BLE GATT MTU negotiation across device models
+### Phase 6A — Device Testing (Verified on 2 Physical Devices)
+- [x] Cross-compile Rust core for Android ARM targets (`aarch64-linux-android`, `armv7-linux-androideabi`) — arm64: 7.6MB, armv7: 5.3MB
+- [x] Debug APK builds successfully with both ABIs — **app-debug.apk**
+- [x] Install and test on physical Android devices via adb
+  - Phone 1: Samsung (RFCT804CZEP) — Android 14 (API 34), arm64-v8a
+  - Phone 2: Samsung (R9HR105EYKJ) — Android 12 (API 31), armeabi-v7a
+- [x] **Integration test: Encrypted chat over BLE mesh — WORKING**
+  - QR code contact exchange between devices
+  - End-to-end encrypted message send/receive over BLE GATT
+  - Zero internet required — pure mesh networking
+- [x] BLE GATT auto-connection — devices discover and connect automatically
+- [x] BLE GATT MTU negotiation — 517 bytes (514 usable) confirmed on both devices
+- [x] API backward compatibility — BLE GATT APIs work on both API 31 (deprecated path) and API 34 (new path)
 - [ ] Wi-Fi Direct group formation on real hardware
 - [ ] Power management tier behavior on real battery
+
+#### Bugs Fixed During Device Testing
+- **Missing GATT auto-connection:** BleScanner discovered peers but never initiated GATT connections. Added auto-connect flow in MeshService triggered by new peer discovery
+- **Missing conversation creation:** `add_contact()` in Rust core only created contact row but not conversation row, causing FOREIGN KEY constraint failure when storing messages. Fixed in `ffi.rs` + `database.rs` with `ensure_conversation()`
+- **API 31 BLE crash:** `writeDescriptor(descriptor, value)`, `writeCharacteristic(char, data, type)`, and `notifyCharacteristicChanged(device, char, confirm, data)` are API 33+. Added backward-compatible paths using deprecated APIs for older devices
+- **Permission request loop:** `requestBluetoothPermissions()` called every `onResume` even when already granted, causing infinite dialog loop. Fixed to check permissions first and start MeshService directly if all granted
+- **armv7 native library missing:** Second phone (armeabi-v7a) crashed with `library "libflare_core.so" not found`. Cross-compiled for armv7 target and included in APK
 
 ### iOS App — Remaining Work
 - [x] Cross-compile Rust core for iOS ARM (`aarch64-apple-ios`) — build verified
@@ -214,12 +228,15 @@
 - [ ] Release builds (signed APK, iOS TestFlight)
 - [ ] F-Droid submission
 
-### Known Issues Found During Build
+### Known Issues (Remaining)
 - **FFI method gaps:** Several Kotlin methods in `FlareRepository.kt` called FFI methods that don't exist in the UniFFI bindings (`wifiDirect*`, `power*`, `recommendTransferStrategy`, `processRemoteNeighborhoodForPeer`). These are currently stubbed with local implementations. The Rust FFI layer needs to expose these methods properly.
-- **Coil dependency was missing:** `ImagePreviewSheet.kt` imports `coil` for async image loading but it wasn't in `build.gradle.kts`.
-- **`settings.gradle.kts` had `dependencyResolution` instead of `dependencyResolutionManagement`** — invalid Gradle API name.
-- **Gradle wrapper (`gradlew`)** was missing from the repo — generated during this phase.
-- **SQLCipher cross-compilation** required switching from `bundled-sqlcipher` to `bundled-sqlcipher-vendored-openssl` in Cargo.toml to bundle OpenSSL source for Android NDK builds.
+
+### Known Issues (Resolved)
+- **Coil dependency was missing:** `ImagePreviewSheet.kt` imports `coil` for async image loading but it wasn't in `build.gradle.kts`. **Fixed.**
+- **`settings.gradle.kts` had `dependencyResolution` instead of `dependencyResolutionManagement`** — invalid Gradle API name. **Fixed.**
+- **Gradle wrapper (`gradlew`)** was missing from the repo — generated during this phase. **Fixed.**
+- **SQLCipher cross-compilation** required switching from `bundled-sqlcipher` to `bundled-sqlcipher-vendored-openssl` in Cargo.toml to bundle OpenSSL source for Android NDK builds. **Fixed.**
+- **UniFFI metadata stripped** — `strip = true` in release profile removed UniFFI metadata from .so. Changed to `strip = "debuginfo"`. **Fixed.**
 
 ## Phase Overview
 | Phase | Scope | Status |
@@ -230,4 +247,4 @@
 | 4 — Security & Distribution | Duress PIN, APK signing, route guard, compression | **Complete** |
 | 4B — Scaling & Dual Transport | Adaptive spray, neighborhood routing, size tiers, Wi-Fi Direct | **Complete** |
 | 5 — UI/UX & Launch Prep | Settings, onboarding, groups, identicons, animations, haptics, voice/image UI, APK sharing | **Complete** |
-| 6A — Device Testing | Android APK build, cross-compilation, device install | **In Progress** (APK ready, awaiting device test) |
+| 6A — Device Testing | Android APK build, cross-compilation, device install, BLE mesh verified | **Complete** (2 devices, encrypted chat working) |

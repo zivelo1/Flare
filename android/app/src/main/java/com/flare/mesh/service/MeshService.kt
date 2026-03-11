@@ -198,6 +198,19 @@ class MeshService : LifecycleService() {
             }
         }
 
+        // Auto-connect to newly discovered peers via GATT client
+        lifecycleScope.launch {
+            bleScanner.newPeerDevices.collect { device ->
+                val address = device.address
+                if (address !in gattClient.connectedAddresses() &&
+                    address !in gattServer.connectedDeviceAddresses()
+                ) {
+                    Timber.i("Auto-connecting to discovered peer: %s", address)
+                    gattClient.connectToPeer(device)
+                }
+            }
+        }
+
         // Collect incoming messages from GATT server
         lifecycleScope.launch {
             gattServer.incomingMessages.collect { message ->
@@ -233,6 +246,34 @@ class MeshService : LifecycleService() {
                         Timber.i("Peer disconnected: %s", event.address)
                         updateMeshStatus()
                     }
+                }
+            }
+        }
+
+        // Collect GATT client connection state changes
+        lifecycleScope.launch {
+            gattClient.connectionState.collect { event ->
+                if (event.connected) {
+                    Timber.i("GATT client connected to peer: %s", event.address)
+                    try {
+                        val repo = FlareRepository.getInstance()
+                        repo.notifyPeerConnected(event.address)
+
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            // Forward stored messages to newly connected peer
+                            val messages = repo.getMessagesForPeer(event.address)
+                            messages.forEach { data ->
+                                gattClient.writeMessage(event.address, data)
+                            }
+                            if (messages.isNotEmpty()) {
+                                Timber.d("Sent %d stored messages to %s via client", messages.size, event.address)
+                            }
+                        }
+                    } catch (_: Exception) { }
+                    updateMeshStatus()
+                } else {
+                    Timber.i("GATT client disconnected from peer: %s", event.address)
+                    updateMeshStatus()
                 }
             }
         }

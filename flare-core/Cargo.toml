@@ -58,5 +58,5 @@ path = "uniffi-bindgen.rs"
 [profile.release]
 opt-level = "z"     # Optimize for size (mobile)
 lto = true          # Link-time optimization
-strip = true        # Strip debug symbols
+strip = "debuginfo" # Strip debug info only — "true" removes UniFFI metadata section
 codegen-units = 1   # Better optimization

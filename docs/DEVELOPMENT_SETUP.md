@@ -115,9 +115,39 @@ cd android
 
 ### Install on Device
 ```bash
-# Enable USB Debugging: Settings > About phone > tap Build number 7 times > Developer Options > USB Debugging
-adb devices                    # Verify phone shows up
+# Enable USB Debugging:
+#   Settings > About phone > tap "Build number" 7 times
+#   Settings > Developer options > enable "USB debugging"
+#   Connect phone via USB, tap "Allow" on the authorization dialog
+
+adb devices                    # Verify phone shows up as "device" (not "unauthorized")
 adb install app/build/outputs/apk/debug/app-debug.apk
+
+# Grant permissions via adb (avoids manual dialog tapping):
+adb shell pm grant com.flare.mesh.debug android.permission.BLUETOOTH_SCAN
+adb shell pm grant com.flare.mesh.debug android.permission.BLUETOOTH_ADVERTISE
+adb shell pm grant com.flare.mesh.debug android.permission.BLUETOOTH_CONNECT
+# API 33+ only:
+adb shell pm grant com.flare.mesh.debug android.permission.POST_NOTIFICATIONS
+adb shell pm grant com.flare.mesh.debug android.permission.NEARBY_WIFI_DEVICES
+
+# If updating .so (Rust core changed), clear app data first:
+adb shell pm clear com.flare.mesh.debug
+# Then re-grant permissions above
+```
+
+### Testing Two Devices
+```bash
+# Both ABIs must be built: arm64 for modern phones, armv7 for older devices
+./scripts/build-android.sh arm64
+./scripts/build-android.sh armv7
+cd android && ./gradlew assembleDebug
+
+# Install on both, clear data, grant permissions, then:
+# 1. Open Flare on both phones
+# 2. Contacts > Add Contact > scan each other's QR codes
+# 3. Chat > select contact > send message
+# Messages travel over BLE mesh — no internet required
 ```
 
 ### iOS

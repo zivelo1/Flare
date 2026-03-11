@@ -229,6 +229,17 @@ impl FlareDatabase {
         Ok(())
     }
 
+    /// Ensures a conversation exists for a contact. Creates one if it doesn't exist.
+    /// Uses the contact's device_id as the conversation id (1:1 mapping).
+    pub fn ensure_conversation(&self, device_id: &DeviceId) -> Result<(), DatabaseError> {
+        self.conn.execute(
+            "INSERT OR IGNORE INTO conversations (id, peer_device_id)
+             VALUES (?1, ?1)",
+            params![device_id.to_hex()],
+        )?;
+        Ok(())
+    }
+
     /// Loads a contact by device ID.
     pub fn load_contact(
         &self,

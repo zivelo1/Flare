@@ -573,7 +573,7 @@ impl FlareNode {
         let public_identity = PublicIdentity {
             signing_public_key: signing,
             agreement_public_key: agreement,
-            device_id,
+            device_id: device_id.clone(),
         };
 
         let db = self.db.lock().expect("db lock");
@@ -582,7 +582,11 @@ impl FlareNode {
             contact.display_name.as_deref(),
             contact.is_verified,
         )
-        .map_err(|e| FlareError::StorageError { msg: e.to_string() })
+        .map_err(|e| FlareError::StorageError { msg: e.to_string() })?;
+
+        // Ensure a conversation exists for this contact (1:1 mapping)
+        db.ensure_conversation(&device_id)
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })
     }
 
     /// Lists all contacts.

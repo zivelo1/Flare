@@ -33,7 +33,15 @@ class FlareApplication : Application() {
             Timber.i("FlareRepository initialized successfully")
         } catch (e: Exception) {
             Timber.e(e, "Failed to initialize FlareRepository")
+            // Store error so the UI can display it instead of crashing
+            initError = "${e.javaClass.simpleName}: ${e.message}\n\n${e.stackTraceToString()}"
         }
+    }
+
+    companion object {
+        /** Non-null if FlareNode initialization failed. Displayed by the UI. */
+        var initError: String? = null
+            private set
     }
 
     /**

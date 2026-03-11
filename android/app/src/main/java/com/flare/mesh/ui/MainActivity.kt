@@ -1,15 +1,23 @@
 package com.flare.mesh.ui
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
+import androidx.core.content.ContextCompat
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
+import com.flare.mesh.FlareApplication
 import com.flare.mesh.service.MeshService
 import com.flare.mesh.ui.navigation.FlareNavHost
 import com.flare.mesh.ui.theme.FlareTheme
@@ -37,9 +45,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             FlareTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    FlareNavHost(
-                        onRequestPermissions = { requestBluetoothPermissions() },
-                    )
+                    val error = FlareApplication.initError
+                    if (error != null) {
+                        InitErrorScreen(error)
+                    } else {
+                        FlareNavHost(
+                            onRequestPermissions = { requestBluetoothPermissions() },
+                        )
+                    }
                 }
             }
         }
@@ -48,6 +61,34 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         requestBluetoothPermissions()
+    }
+
+    @Composable
+    private fun InitErrorScreen(error: String) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            Spacer(Modifier.height(48.dp))
+            Text(
+                text = "Flare — Init Error",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = "Take a screenshot and report this:",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = error,
+                style = MaterialTheme.typography.bodySmall,
+                fontFamily = FontFamily.Monospace,
+            )
+        }
     }
 
     private fun requestBluetoothPermissions() {
@@ -67,6 +108,17 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        permissionLauncher.launch(permissions.toTypedArray())
+        // Only request permissions that haven't been granted yet
+        val notGranted = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (notGranted.isEmpty()) {
+            // All permissions already granted — start mesh service directly
+            Timber.i("All permissions already granted, starting mesh service")
+            MeshService.start(this)
+        } else {
+            permissionLauncher.launch(notGranted.toTypedArray())
+        }
     }
 }

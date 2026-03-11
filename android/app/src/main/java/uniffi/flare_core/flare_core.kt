@@ -816,6 +816,64 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -847,6 +905,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_flare_core_fn_method_flarenode_add_group_member(`ptr`: Pointer,`groupId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_add_trusted_developer_key(`ptr`: Pointer,`publicKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_flare_core_fn_method_flarenode_build_group_messages(`ptr`: Pointer,`groupId`: RustBuffer.ByValue,`encryptedPayloads`: RustBuffer.ByValue,`memberDeviceIds`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_build_mesh_message(`ptr`: Pointer,`recipientDeviceId`: RustBuffer.ByValue,`encryptedPayload`: RustBuffer.ByValue,`contentType`: Byte,uniffi_out_err: UniffiRustCallStatus, 
@@ -859,6 +919,8 @@ internal interface UniffiLib : Library {
     ): Byte
     fun uniffi_flare_core_fn_method_flarenode_clear_duress_passphrase(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_compress(`ptr`: Pointer,`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_create_delivery_ack(`ptr`: Pointer,`originalMessageId`: RustBuffer.ByValue,`senderDeviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_create_encrypted_message(`ptr`: Pointer,`recipientDeviceId`: RustBuffer.ByValue,`recipientAgreementKey`: RustBuffer.ByValue,`plaintext`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -867,7 +929,15 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_flare_core_fn_method_flarenode_create_read_receipt(`ptr`: Pointer,`originalMessageId`: RustBuffer.ByValue,`senderDeviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_create_sender_key(`ptr`: Pointer,`groupId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_decompress(`ptr`: Pointer,`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_decrypt_group_sender_key(`ptr`: Pointer,`groupId`: RustBuffer.ByValue,`senderDeviceId`: RustBuffer.ByValue,`encryptedBytes`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_decrypt_incoming_message(`ptr`: Pointer,`senderDeviceId`: RustBuffer.ByValue,`senderAgreementKey`: RustBuffer.ByValue,`encryptedData`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_encrypt_group_sender_key(`ptr`: Pointer,`groupId`: RustBuffer.ByValue,`plaintext`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_export_neighborhood_bitmap(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -895,6 +965,8 @@ internal interface UniffiLib : Library {
     ): Byte
     fun uniffi_flare_core_fn_method_flarenode_import_phone_contacts(`ptr`: Pointer,`myPhone`: RustBuffer.ByValue,`contacts`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
+    fun uniffi_flare_core_fn_method_flarenode_invalidate_group_keys(`ptr`: Pointer,`groupId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_flare_core_fn_method_flarenode_list_contacts(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_list_groups(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -903,18 +975,40 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_flare_core_fn_method_flarenode_parse_mesh_message(`ptr`: Pointer,`rawData`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_power_current_tier(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_power_evaluate(`ptr`: Pointer,`nowSecs`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_power_on_data_activity(`ptr`: Pointer,`nowSecs`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_power_on_peer_discovered(`ptr`: Pointer,`nowSecs`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_power_set_battery_saver(`ptr`: Pointer,`enabled`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_power_set_has_pending_outbound(`ptr`: Pointer,`hasPending`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_power_update_battery(`ptr`: Pointer,`percent`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_power_update_connected_peers(`ptr`: Pointer,`count`: Int,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_flare_core_fn_method_flarenode_prepare_for_relay(`ptr`: Pointer,`rawMessage`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_process_remote_neighborhood(`ptr`: Pointer,`remoteBitmap`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_process_remote_neighborhood_for_peer(`ptr`: Pointer,`peerDeviceId`: RustBuffer.ByValue,`remoteBitmap`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_process_rendezvous_message(`ptr`: Pointer,`rawPayload`: RustBuffer.ByValue,`contentType`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_process_rendezvous_request(`ptr`: Pointer,`rawPayload`: RustBuffer.ByValue,`senderDeviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_process_sender_key_distribution(`ptr`: Pointer,`distributionBytes`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_flare_core_fn_method_flarenode_prune_expired_messages(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
     fun uniffi_flare_core_fn_method_flarenode_queue_outbound_message(`ptr`: Pointer,`messageId`: RustBuffer.ByValue,`recipientDeviceId`: RustBuffer.ByValue,`encryptedPayload`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_recommend_transfer_strategy(`ptr`: Pointer,`contentType`: Byte,`payloadBytes`: Int,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_record_neighborhood_peer(`ptr`: Pointer,`shortId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_flare_core_fn_method_flarenode_register_my_phone(`ptr`: Pointer,`phoneNumber`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -933,8 +1027,30 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_store_chat_message(`ptr`: Pointer,`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_trusted_developer_key_count(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
     fun uniffi_flare_core_fn_method_flarenode_update_delivery_status(`ptr`: Pointer,`messageId`: RustBuffer.ByValue,`status`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_verify_apk_signature(`ptr`: Pointer,`apkHash`: RustBuffer.ByValue,`signatureBytes`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_wifi_direct_complete_transfer(`ptr`: Pointer,`transferIdHex`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun uniffi_flare_core_fn_method_flarenode_wifi_direct_connection_changed(`ptr`: Pointer,`state`: RustBuffer.ByValue,`peerDeviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_wifi_direct_enqueue(`ptr`: Pointer,`transferIdHex`: RustBuffer.ByValue,`recipientDeviceId`: RustBuffer.ByValue,`payload`: RustBuffer.ByValue,`contentType`: Byte,`nowSecs`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun uniffi_flare_core_fn_method_flarenode_wifi_direct_fail_transfer(`ptr`: Pointer,`transferIdHex`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun uniffi_flare_core_fn_method_flarenode_wifi_direct_has_pending(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun uniffi_flare_core_fn_method_flarenode_wifi_direct_most_needed_peer(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_wifi_direct_next_transfer(`ptr`: Pointer,`peerDeviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_wifi_direct_prune_expired(`ptr`: Pointer,`nowSecs`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
+    fun uniffi_flare_core_fn_method_flarenode_wifi_direct_stats(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_func_check_duress_passphrase(`dbPath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`checkPassphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
     fun uniffi_flare_core_fn_func_get_protocol_version(uniffi_out_err: UniffiRustCallStatus, 
@@ -1065,6 +1181,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_add_group_member(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_add_trusted_developer_key(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_build_group_messages(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_build_mesh_message(
@@ -1077,6 +1195,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_clear_duress_passphrase(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_compress(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_create_delivery_ack(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_create_encrypted_message(
@@ -1085,7 +1205,15 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_create_read_receipt(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_create_sender_key(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_decompress(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_decrypt_group_sender_key(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_decrypt_incoming_message(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_encrypt_group_sender_key(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_export_neighborhood_bitmap(
     ): Short
@@ -1113,6 +1241,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_import_phone_contacts(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_invalidate_group_keys(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_list_contacts(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_list_groups(
@@ -1121,17 +1251,39 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_parse_mesh_message(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_power_current_tier(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_power_evaluate(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_power_on_data_activity(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_power_on_peer_discovered(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_power_set_battery_saver(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_power_set_has_pending_outbound(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_power_update_battery(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_power_update_connected_peers(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_prepare_for_relay(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_process_remote_neighborhood(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_process_remote_neighborhood_for_peer(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_process_rendezvous_message(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_process_rendezvous_request(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_process_sender_key_distribution(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_prune_expired_messages(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_queue_outbound_message(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_recommend_transfer_strategy(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_record_neighborhood_peer(
     ): Short
@@ -1151,7 +1303,29 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_store_chat_message(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_trusted_developer_key_count(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_update_delivery_status(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_verify_apk_signature(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_wifi_direct_complete_transfer(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_wifi_direct_connection_changed(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_wifi_direct_enqueue(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_wifi_direct_fail_transfer(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_wifi_direct_has_pending(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_wifi_direct_most_needed_peer(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_wifi_direct_next_transfer(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_wifi_direct_prune_expired(
+    ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_wifi_direct_stats(
     ): Short
     fun uniffi_flare_core_checksum_constructor_flarenode_new(
     ): Short
@@ -1190,6 +1364,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_add_group_member() != 61468.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_add_trusted_developer_key() != 54447.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_build_group_messages() != 30329.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1208,6 +1385,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_clear_duress_passphrase() != 25691.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_compress() != 29073.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_create_delivery_ack() != 63712.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1220,7 +1400,19 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_create_read_receipt() != 53109.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_create_sender_key() != 12646.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_decompress() != 38164.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_decrypt_group_sender_key() != 53817.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_decrypt_incoming_message() != 50281.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_encrypt_group_sender_key() != 61848.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_export_neighborhood_bitmap() != 57134.toShort()) {
@@ -1262,6 +1454,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_import_phone_contacts() != 9747.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_invalidate_group_keys() != 58497.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_list_contacts() != 45212.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1274,10 +1469,37 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_parse_mesh_message() != 29282.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_power_current_tier() != 53456.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_power_evaluate() != 4834.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_power_on_data_activity() != 31190.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_power_on_peer_discovered() != 14625.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_power_set_battery_saver() != 26040.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_power_set_has_pending_outbound() != 7775.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_power_update_battery() != 60632.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_power_update_connected_peers() != 40960.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_prepare_for_relay() != 35136.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_process_remote_neighborhood() != 58979.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_process_remote_neighborhood_for_peer() != 2356.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_process_rendezvous_message() != 35635.toShort()) {
@@ -1286,10 +1508,16 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_process_rendezvous_request() != 65192.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_process_sender_key_distribution() != 7780.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_prune_expired_messages() != 54958.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_queue_outbound_message() != 14460.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_recommend_transfer_strategy() != 27100.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_record_neighborhood_peer() != 61640.toShort()) {
@@ -1304,7 +1532,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_remove_group_member() != 43399.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_flare_core_checksum_method_flarenode_route_incoming() != 42385.toShort()) {
+    if (lib.uniffi_flare_core_checksum_method_flarenode_route_incoming() != 54046.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_set_duress_passphrase() != 12496.toShort()) {
@@ -1319,7 +1547,40 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_flare_core_checksum_method_flarenode_store_chat_message() != 48119.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_trusted_developer_key_count() != 38597.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_flare_core_checksum_method_flarenode_update_delivery_status() != 16495.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_verify_apk_signature() != 9893.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_wifi_direct_complete_transfer() != 53619.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_wifi_direct_connection_changed() != 12798.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_wifi_direct_enqueue() != 63306.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_wifi_direct_fail_transfer() != 55284.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_wifi_direct_has_pending() != 20788.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_wifi_direct_most_needed_peer() != 47634.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_wifi_direct_next_transfer() != 4215.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_wifi_direct_prune_expired() != 28914.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_wifi_direct_stats() != 42621.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_constructor_flarenode_new() != 12965.toShort()) {
@@ -1747,6 +2008,12 @@ public interface FlareNodeInterface {
     fun `addGroupMember`(`groupId`: kotlin.String, `deviceId`: kotlin.String)
     
     /**
+     * Adds a trusted developer public key (32 bytes).
+     * On first install, the installing APK's developer key is trusted (TOFU).
+     */
+    fun `addTrustedDeveloperKey`(`publicKey`: kotlin.ByteArray)
+    
+    /**
      * Sends a group message by encrypting it individually for each member.
      * Returns the serialized mesh messages (one per member, excluding self).
      */
@@ -1782,6 +2049,13 @@ public interface FlareNodeInterface {
     fun `clearDuressPassphrase`()
     
     /**
+     * Compresses a payload for efficient BLE transmission.
+     * Compression is already integrated into encrypt/decrypt, but this
+     * is exposed for direct use (e.g., compressing non-encrypted data).
+     */
+    fun `compress`(`data`: kotlin.ByteArray): kotlin.ByteArray
+    
+    /**
      * Creates a delivery acknowledgment for a received message.
      * Returns serialized mesh message bytes ready for BLE transmission.
      */
@@ -1805,10 +2079,35 @@ public interface FlareNodeInterface {
     fun `createReadReceipt`(`originalMessageId`: kotlin.String, `senderDeviceId`: kotlin.String): kotlin.ByteArray
     
     /**
+     * Creates a sender key for a group and returns the distribution bytes.
+     * The distribution bytes should be sent to each group member via
+     * their existing pairwise DH channel (one-time per member).
+     */
+    fun `createSenderKey`(`groupId`: kotlin.String): kotlin.ByteArray
+    
+    /**
+     * Decompresses a payload that was compressed with `compress`.
+     */
+    fun `decompress`(`data`: kotlin.ByteArray): kotlin.ByteArray
+    
+    /**
+     * Decrypts a group message using the sender's key.
+     * Returns the plaintext string, or None if decryption fails.
+     */
+    fun `decryptGroupSenderKey`(`groupId`: kotlin.String, `senderDeviceId`: kotlin.String, `encryptedBytes`: kotlin.ByteArray): kotlin.String?
+    
+    /**
      * Decrypts an incoming encrypted message from a sender.
      * Returns the plaintext string, or None if decryption fails.
      */
     fun `decryptIncomingMessage`(`senderDeviceId`: kotlin.String, `senderAgreementKey`: kotlin.ByteArray, `encryptedData`: kotlin.ByteArray): kotlin.String?
+    
+    /**
+     * Encrypts a plaintext message for a group using sender keys.
+     * Returns serialized SenderKeyMessage bytes.
+     * The group must have been set up via `create_sender_key` first.
+     */
+    fun `encryptGroupSenderKey`(`groupId`: kotlin.String, `plaintext`: kotlin.String): kotlin.ByteArray
     
     /**
      * Exports the neighborhood filter bitmap for exchange with a remote peer.
@@ -1879,6 +2178,11 @@ public interface FlareNodeInterface {
     fun `importPhoneContacts`(`myPhone`: kotlin.String, `contacts`: List<kotlin.String>): kotlin.UInt
     
     /**
+     * Invalidates all sender keys for a group (call on membership change).
+     */
+    fun `invalidateGroupKeys`(`groupId`: kotlin.String)
+    
+    /**
      * Lists all contacts.
      */
     fun `listContacts`(): List<FfiContact>
@@ -1899,6 +2203,48 @@ public interface FlareNodeInterface {
     fun `parseMeshMessage`(`rawData`: kotlin.ByteArray): FfiMeshMessage?
     
     /**
+     * Returns the current power tier without re-evaluating.
+     */
+    fun `powerCurrentTier`(): kotlin.String
+    
+    /**
+     * Evaluates the current state and returns the recommended power tier.
+     * Call this periodically (e.g., every scan cycle) from the mobile layer.
+     */
+    fun `powerEvaluate`(`nowSecs`: kotlin.Long): FfiPowerTierRecommendation
+    
+    /**
+     * Notifies the power manager that data was sent or received.
+     * Call this on every incoming/outgoing message to trigger High tier promotion.
+     */
+    fun `powerOnDataActivity`(`nowSecs`: kotlin.Long)
+    
+    /**
+     * Notifies the power manager that a peer was discovered via BLE scan.
+     */
+    fun `powerOnPeerDiscovered`(`nowSecs`: kotlin.Long)
+    
+    /**
+     * Sets whether the user has enabled battery saver mode.
+     */
+    fun `powerSetBatterySaver`(`enabled`: kotlin.Boolean)
+    
+    /**
+     * Updates whether there are pending outbound messages.
+     */
+    fun `powerSetHasPendingOutbound`(`hasPending`: kotlin.Boolean)
+    
+    /**
+     * Updates the battery percentage in the power manager.
+     */
+    fun `powerUpdateBattery`(`percent`: kotlin.UByte)
+    
+    /**
+     * Updates the connected peer count in the power manager.
+     */
+    fun `powerUpdateConnectedPeers`(`count`: kotlin.UInt)
+    
+    /**
      * Prepares a raw mesh message for relay by incrementing its hop count.
      * Returns the updated serialized message, or an error if hop limit is reached.
      */
@@ -1910,6 +2256,13 @@ public interface FlareNodeInterface {
      * If "bridge", stored messages have their TTL automatically extended.
      */
     fun `processRemoteNeighborhood`(`remoteBitmap`: kotlin.ByteArray): kotlin.String
+    
+    /**
+     * Processes a remote peer's neighborhood bitmap and tags the peer
+     * for neighborhood-aware routing. Bridge peers will be prioritized
+     * in future routing decisions.
+     */
+    fun `processRemoteNeighborhoodForPeer`(`peerDeviceId`: kotlin.String, `remoteBitmap`: kotlin.ByteArray): kotlin.String
     
     /**
      * Processes an incoming RouteRequest or RouteReply message.
@@ -1925,6 +2278,12 @@ public interface FlareNodeInterface {
     fun `processRendezvousRequest`(`rawPayload`: kotlin.ByteArray, `senderDeviceId`: kotlin.String): kotlin.ByteArray?
     
     /**
+     * Processes a received sender key distribution from another group member.
+     * Call this when receiving a key distribution via pairwise DH channel.
+     */
+    fun `processSenderKeyDistribution`(`distributionBytes`: kotlin.ByteArray)
+    
+    /**
      * Prunes expired messages from the routing store.
      */
     fun `pruneExpiredMessages`(): kotlin.UInt
@@ -1933,6 +2292,16 @@ public interface FlareNodeInterface {
      * Queues an outbound message for delivery.
      */
     fun `queueOutboundMessage`(`messageId`: kotlin.String, `recipientDeviceId`: kotlin.String, `encryptedPayload`: kotlin.ByteArray)
+    
+    /**
+     * Returns the recommended transfer strategy for a message based on
+     * content type and payload size. The platform layer uses this to decide
+     * whether to send via BLE mesh relay or queue for Wi-Fi Direct.
+     *
+     * `content_type`: same codes as build_mesh_message (0x01=Text, 0x02=Voice, etc.)
+     * `payload_bytes`: size of the encrypted payload in bytes.
+     */
+    fun `recommendTransferStrategy`(`contentType`: kotlin.UByte, `payloadBytes`: kotlin.UInt): FfiTransferRecommendation
     
     /**
      * Records a peer's short ID (4 bytes) in the neighborhood filter.
@@ -1958,6 +2327,8 @@ public interface FlareNodeInterface {
     
     /**
      * Routes an incoming mesh message and returns the routing decision.
+     * Route guard validation (TTL inflation, hop count monotonicity) is applied
+     * automatically by the router.
      */
     fun `routeIncoming`(`rawMessage`: kotlin.ByteArray): FfiRouteDecision
     
@@ -1985,9 +2356,72 @@ public interface FlareNodeInterface {
     fun `storeChatMessage`(`message`: FfiChatMessage)
     
     /**
+     * Returns the number of trusted developer keys.
+     */
+    fun `trustedDeveloperKeyCount`(): kotlin.UInt
+    
+    /**
      * Updates the delivery status of a stored message.
      */
     fun `updateDeliveryStatus`(`messageId`: kotlin.String, `status`: kotlin.UByte)
+    
+    /**
+     * Verifies an APK against its signature using the trusted developer key store.
+     * `apk_hash`: SHA-256 hash of the APK file (32 bytes).
+     * `signature_bytes`: Serialized ApkSignature.
+     */
+    fun `verifyApkSignature`(`apkHash`: kotlin.ByteArray, `signatureBytes`: kotlin.ByteArray): FfiApkVerifyResult
+    
+    /**
+     * Marks a Wi-Fi Direct transfer as completed.
+     */
+    fun `wifiDirectCompleteTransfer`(`transferIdHex`: kotlin.String): kotlin.Boolean
+    
+    /**
+     * Notifies the Rust core that Wi-Fi Direct connection state changed.
+     * `state`: "disconnected", "connecting", "connected", "failed"
+     */
+    fun `wifiDirectConnectionChanged`(`state`: kotlin.String, `peerDeviceId`: kotlin.String?)
+    
+    /**
+     * Queues a payload for Wi-Fi Direct transfer to a peer.
+     * Returns false if the queue is full or payload exceeds max size.
+     * `transfer_id_hex`: 32-byte message ID as hex string.
+     * `recipient_device_id`: peer's device ID as hex string.
+     */
+    fun `wifiDirectEnqueue`(`transferIdHex`: kotlin.String, `recipientDeviceId`: kotlin.String, `payload`: kotlin.ByteArray, `contentType`: kotlin.UByte, `nowSecs`: kotlin.ULong): kotlin.Boolean
+    
+    /**
+     * Marks a Wi-Fi Direct transfer as failed. Retries up to 3 times before dropping.
+     */
+    fun `wifiDirectFailTransfer`(`transferIdHex`: kotlin.String): kotlin.Boolean
+    
+    /**
+     * Returns true if there are pending Wi-Fi Direct transfers.
+     */
+    fun `wifiDirectHasPending`(): kotlin.Boolean
+    
+    /**
+     * Returns the device ID of the peer with the most pending transfers.
+     * The platform layer uses this to know which peer to initiate Wi-Fi Direct with.
+     */
+    fun `wifiDirectMostNeededPeer`(): kotlin.String?
+    
+    /**
+     * Returns the next pending transfer for a connected Wi-Fi Direct peer.
+     * Returns None if no transfers are pending for this peer.
+     */
+    fun `wifiDirectNextTransfer`(`peerDeviceId`: kotlin.String): kotlin.ByteArray?
+    
+    /**
+     * Prunes expired Wi-Fi Direct transfers. Returns count removed.
+     */
+    fun `wifiDirectPruneExpired`(`nowSecs`: kotlin.ULong): kotlin.UInt
+    
+    /**
+     * Returns Wi-Fi Direct transfer queue statistics.
+     */
+    fun `wifiDirectStats`(): FfiWifiDirectStats
     
     companion object
 }
@@ -2135,6 +2569,22 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Adds a trusted developer public key (32 bytes).
+     * On first install, the installing APK's developer key is trusted (TOFU).
+     */
+    @Throws(FlareException::class)override fun `addTrustedDeveloperKey`(`publicKey`: kotlin.ByteArray)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_add_trusted_developer_key(
+        it, FfiConverterByteArray.lower(`publicKey`),_status)
+}
+    }
+    
+    
+
+    
+    /**
      * Sends a group message by encrypting it individually for each member.
      * Returns the serialized mesh messages (one per member, excluding self).
      */
@@ -2234,6 +2684,23 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Compresses a payload for efficient BLE transmission.
+     * Compression is already integrated into encrypt/decrypt, but this
+     * is exposed for direct use (e.g., compressing non-encrypted data).
+     */override fun `compress`(`data`: kotlin.ByteArray): kotlin.ByteArray {
+            return FfiConverterByteArray.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_compress(
+        it, FfiConverterByteArray.lower(`data`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Creates a delivery acknowledgment for a received message.
      * Returns serialized mesh message bytes ready for BLE transmission.
      */
@@ -2300,6 +2767,57 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Creates a sender key for a group and returns the distribution bytes.
+     * The distribution bytes should be sent to each group member via
+     * their existing pairwise DH channel (one-time per member).
+     */
+    @Throws(FlareException::class)override fun `createSenderKey`(`groupId`: kotlin.String): kotlin.ByteArray {
+            return FfiConverterByteArray.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_create_sender_key(
+        it, FfiConverterString.lower(`groupId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Decompresses a payload that was compressed with `compress`.
+     */
+    @Throws(FlareException::class)override fun `decompress`(`data`: kotlin.ByteArray): kotlin.ByteArray {
+            return FfiConverterByteArray.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_decompress(
+        it, FfiConverterByteArray.lower(`data`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Decrypts a group message using the sender's key.
+     * Returns the plaintext string, or None if decryption fails.
+     */
+    @Throws(FlareException::class)override fun `decryptGroupSenderKey`(`groupId`: kotlin.String, `senderDeviceId`: kotlin.String, `encryptedBytes`: kotlin.ByteArray): kotlin.String? {
+            return FfiConverterOptionalString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_decrypt_group_sender_key(
+        it, FfiConverterString.lower(`groupId`),FfiConverterString.lower(`senderDeviceId`),FfiConverterByteArray.lower(`encryptedBytes`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Decrypts an incoming encrypted message from a sender.
      * Returns the plaintext string, or None if decryption fails.
      */
@@ -2309,6 +2827,24 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
     uniffiRustCallWithError(FlareException) { _status ->
     UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_decrypt_incoming_message(
         it, FfiConverterString.lower(`senderDeviceId`),FfiConverterByteArray.lower(`senderAgreementKey`),FfiConverterByteArray.lower(`encryptedData`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Encrypts a plaintext message for a group using sender keys.
+     * Returns serialized SenderKeyMessage bytes.
+     * The group must have been set up via `create_sender_key` first.
+     */
+    @Throws(FlareException::class)override fun `encryptGroupSenderKey`(`groupId`: kotlin.String, `plaintext`: kotlin.String): kotlin.ByteArray {
+            return FfiConverterByteArray.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_encrypt_group_sender_key(
+        it, FfiConverterString.lower(`groupId`),FfiConverterString.lower(`plaintext`),_status)
 }
     }
     )
@@ -2521,6 +3057,20 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Invalidates all sender keys for a group (call on membership change).
+     */override fun `invalidateGroupKeys`(`groupId`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_invalidate_group_keys(
+        it, FfiConverterString.lower(`groupId`),_status)
+}
+    }
+    
+    
+
+    
+    /**
      * Lists all contacts.
      */
     @Throws(FlareException::class)override fun `listContacts`(): List<FfiContact> {
@@ -2583,6 +3133,122 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Returns the current power tier without re-evaluating.
+     */override fun `powerCurrentTier`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_power_current_tier(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Evaluates the current state and returns the recommended power tier.
+     * Call this periodically (e.g., every scan cycle) from the mobile layer.
+     */override fun `powerEvaluate`(`nowSecs`: kotlin.Long): FfiPowerTierRecommendation {
+            return FfiConverterTypeFfiPowerTierRecommendation.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_power_evaluate(
+        it, FfiConverterLong.lower(`nowSecs`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Notifies the power manager that data was sent or received.
+     * Call this on every incoming/outgoing message to trigger High tier promotion.
+     */override fun `powerOnDataActivity`(`nowSecs`: kotlin.Long)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_power_on_data_activity(
+        it, FfiConverterLong.lower(`nowSecs`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Notifies the power manager that a peer was discovered via BLE scan.
+     */override fun `powerOnPeerDiscovered`(`nowSecs`: kotlin.Long)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_power_on_peer_discovered(
+        it, FfiConverterLong.lower(`nowSecs`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Sets whether the user has enabled battery saver mode.
+     */override fun `powerSetBatterySaver`(`enabled`: kotlin.Boolean)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_power_set_battery_saver(
+        it, FfiConverterBoolean.lower(`enabled`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Updates whether there are pending outbound messages.
+     */override fun `powerSetHasPendingOutbound`(`hasPending`: kotlin.Boolean)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_power_set_has_pending_outbound(
+        it, FfiConverterBoolean.lower(`hasPending`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Updates the battery percentage in the power manager.
+     */override fun `powerUpdateBattery`(`percent`: kotlin.UByte)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_power_update_battery(
+        it, FfiConverterUByte.lower(`percent`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Updates the connected peer count in the power manager.
+     */override fun `powerUpdateConnectedPeers`(`count`: kotlin.UInt)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_power_update_connected_peers(
+        it, FfiConverterUInt.lower(`count`),_status)
+}
+    }
+    
+    
+
+    
+    /**
      * Prepares a raw mesh message for relay by incrementing its hop count.
      * Returns the updated serialized message, or an error if hop limit is reached.
      */
@@ -2609,6 +3275,23 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_process_remote_neighborhood(
         it, FfiConverterByteArray.lower(`remoteBitmap`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Processes a remote peer's neighborhood bitmap and tags the peer
+     * for neighborhood-aware routing. Bridge peers will be prioritized
+     * in future routing decisions.
+     */override fun `processRemoteNeighborhoodForPeer`(`peerDeviceId`: kotlin.String, `remoteBitmap`: kotlin.ByteArray): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_process_remote_neighborhood_for_peer(
+        it, FfiConverterString.lower(`peerDeviceId`),FfiConverterByteArray.lower(`remoteBitmap`),_status)
 }
     }
     )
@@ -2652,6 +3335,22 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Processes a received sender key distribution from another group member.
+     * Call this when receiving a key distribution via pairwise DH channel.
+     */
+    @Throws(FlareException::class)override fun `processSenderKeyDistribution`(`distributionBytes`: kotlin.ByteArray)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_process_sender_key_distribution(
+        it, FfiConverterByteArray.lower(`distributionBytes`),_status)
+}
+    }
+    
+    
+
+    
+    /**
      * Prunes expired messages from the routing store.
      */override fun `pruneExpiredMessages`(): kotlin.UInt {
             return FfiConverterUInt.lift(
@@ -2678,6 +3377,26 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 }
     }
     
+    
+
+    
+    /**
+     * Returns the recommended transfer strategy for a message based on
+     * content type and payload size. The platform layer uses this to decide
+     * whether to send via BLE mesh relay or queue for Wi-Fi Direct.
+     *
+     * `content_type`: same codes as build_mesh_message (0x01=Text, 0x02=Voice, etc.)
+     * `payload_bytes`: size of the encrypted payload in bytes.
+     */override fun `recommendTransferStrategy`(`contentType`: kotlin.UByte, `payloadBytes`: kotlin.UInt): FfiTransferRecommendation {
+            return FfiConverterTypeFfiTransferRecommendation.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_recommend_transfer_strategy(
+        it, FfiConverterUByte.lower(`contentType`),FfiConverterUInt.lower(`payloadBytes`),_status)
+}
+    }
+    )
+    }
     
 
     
@@ -2744,6 +3463,8 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
     
     /**
      * Routes an incoming mesh message and returns the routing decision.
+     * Route guard validation (TTL inflation, hop count monotonicity) is applied
+     * automatically by the router.
      */override fun `routeIncoming`(`rawMessage`: kotlin.ByteArray): FfiRouteDecision {
             return FfiConverterTypeFfiRouteDecision.lift(
     callWithPointer {
@@ -2823,6 +3544,21 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 
     
     /**
+     * Returns the number of trusted developer keys.
+     */override fun `trustedDeveloperKeyCount`(): kotlin.UInt {
+            return FfiConverterUInt.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_trusted_developer_key_count(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Updates the delivery status of a stored message.
      */
     @Throws(FlareException::class)override fun `updateDeliveryStatus`(`messageId`: kotlin.String, `status`: kotlin.UByte)
@@ -2834,6 +3570,169 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 }
     }
     
+    
+
+    
+    /**
+     * Verifies an APK against its signature using the trusted developer key store.
+     * `apk_hash`: SHA-256 hash of the APK file (32 bytes).
+     * `signature_bytes`: Serialized ApkSignature.
+     */
+    @Throws(FlareException::class)override fun `verifyApkSignature`(`apkHash`: kotlin.ByteArray, `signatureBytes`: kotlin.ByteArray): FfiApkVerifyResult {
+            return FfiConverterTypeFfiApkVerifyResult.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_verify_apk_signature(
+        it, FfiConverterByteArray.lower(`apkHash`),FfiConverterByteArray.lower(`signatureBytes`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Marks a Wi-Fi Direct transfer as completed.
+     */
+    @Throws(FlareException::class)override fun `wifiDirectCompleteTransfer`(`transferIdHex`: kotlin.String): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_wifi_direct_complete_transfer(
+        it, FfiConverterString.lower(`transferIdHex`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Notifies the Rust core that Wi-Fi Direct connection state changed.
+     * `state`: "disconnected", "connecting", "connected", "failed"
+     */
+    @Throws(FlareException::class)override fun `wifiDirectConnectionChanged`(`state`: kotlin.String, `peerDeviceId`: kotlin.String?)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_wifi_direct_connection_changed(
+        it, FfiConverterString.lower(`state`),FfiConverterOptionalString.lower(`peerDeviceId`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Queues a payload for Wi-Fi Direct transfer to a peer.
+     * Returns false if the queue is full or payload exceeds max size.
+     * `transfer_id_hex`: 32-byte message ID as hex string.
+     * `recipient_device_id`: peer's device ID as hex string.
+     */
+    @Throws(FlareException::class)override fun `wifiDirectEnqueue`(`transferIdHex`: kotlin.String, `recipientDeviceId`: kotlin.String, `payload`: kotlin.ByteArray, `contentType`: kotlin.UByte, `nowSecs`: kotlin.ULong): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_wifi_direct_enqueue(
+        it, FfiConverterString.lower(`transferIdHex`),FfiConverterString.lower(`recipientDeviceId`),FfiConverterByteArray.lower(`payload`),FfiConverterUByte.lower(`contentType`),FfiConverterULong.lower(`nowSecs`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Marks a Wi-Fi Direct transfer as failed. Retries up to 3 times before dropping.
+     */
+    @Throws(FlareException::class)override fun `wifiDirectFailTransfer`(`transferIdHex`: kotlin.String): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_wifi_direct_fail_transfer(
+        it, FfiConverterString.lower(`transferIdHex`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Returns true if there are pending Wi-Fi Direct transfers.
+     */override fun `wifiDirectHasPending`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_wifi_direct_has_pending(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Returns the device ID of the peer with the most pending transfers.
+     * The platform layer uses this to know which peer to initiate Wi-Fi Direct with.
+     */override fun `wifiDirectMostNeededPeer`(): kotlin.String? {
+            return FfiConverterOptionalString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_wifi_direct_most_needed_peer(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Returns the next pending transfer for a connected Wi-Fi Direct peer.
+     * Returns None if no transfers are pending for this peer.
+     */
+    @Throws(FlareException::class)override fun `wifiDirectNextTransfer`(`peerDeviceId`: kotlin.String): kotlin.ByteArray? {
+            return FfiConverterOptionalByteArray.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_wifi_direct_next_transfer(
+        it, FfiConverterString.lower(`peerDeviceId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Prunes expired Wi-Fi Direct transfers. Returns count removed.
+     */override fun `wifiDirectPruneExpired`(`nowSecs`: kotlin.ULong): kotlin.UInt {
+            return FfiConverterUInt.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_wifi_direct_prune_expired(
+        it, FfiConverterULong.lower(`nowSecs`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Returns Wi-Fi Direct transfer queue statistics.
+     */override fun `wifiDirectStats`(): FfiWifiDirectStats {
+            return FfiConverterTypeFfiWifiDirectStats.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_wifi_direct_stats(
+        it, _status)
+}
+    }
+    )
+    }
     
 
     
@@ -3146,6 +4045,64 @@ public object FfiConverterTypeFfiMeshStatus: FfiConverterRustBuffer<FfiMeshStatu
 
 
 
+/**
+ * Power tier recommendation from the adaptive power manager.
+ */
+data class FfiPowerTierRecommendation (
+    /**
+     * Tier name: "high", "balanced", "low_power", "ultra_low"
+     */
+    var `tier`: kotlin.String, 
+    var `scanWindowMs`: kotlin.UInt, 
+    var `scanIntervalMs`: kotlin.UInt, 
+    var `advertiseIntervalMs`: kotlin.UInt, 
+    var `burstScanDurationMs`: kotlin.UInt, 
+    var `burstSleepDurationMs`: kotlin.UInt, 
+    var `useBurstMode`: kotlin.Boolean
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeFfiPowerTierRecommendation: FfiConverterRustBuffer<FfiPowerTierRecommendation> {
+    override fun read(buf: ByteBuffer): FfiPowerTierRecommendation {
+        return FfiPowerTierRecommendation(
+            FfiConverterString.read(buf),
+            FfiConverterUInt.read(buf),
+            FfiConverterUInt.read(buf),
+            FfiConverterUInt.read(buf),
+            FfiConverterUInt.read(buf),
+            FfiConverterUInt.read(buf),
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: FfiPowerTierRecommendation) = (
+            FfiConverterString.allocationSize(value.`tier`) +
+            FfiConverterUInt.allocationSize(value.`scanWindowMs`) +
+            FfiConverterUInt.allocationSize(value.`scanIntervalMs`) +
+            FfiConverterUInt.allocationSize(value.`advertiseIntervalMs`) +
+            FfiConverterUInt.allocationSize(value.`burstScanDurationMs`) +
+            FfiConverterUInt.allocationSize(value.`burstSleepDurationMs`) +
+            FfiConverterBoolean.allocationSize(value.`useBurstMode`)
+    )
+
+    override fun write(value: FfiPowerTierRecommendation, buf: ByteBuffer) {
+            FfiConverterString.write(value.`tier`, buf)
+            FfiConverterUInt.write(value.`scanWindowMs`, buf)
+            FfiConverterUInt.write(value.`scanIntervalMs`, buf)
+            FfiConverterUInt.write(value.`advertiseIntervalMs`, buf)
+            FfiConverterUInt.write(value.`burstScanDurationMs`, buf)
+            FfiConverterUInt.write(value.`burstSleepDurationMs`, buf)
+            FfiConverterBoolean.write(value.`useBurstMode`, buf)
+    }
+}
+
+
+
 data class FfiPublicIdentity (
     var `deviceId`: kotlin.String, 
     var `signingPublicKey`: kotlin.ByteArray, 
@@ -3230,6 +4187,145 @@ public object FfiConverterTypeFfiStoreStats: FfiConverterRustBuffer<FfiStoreStat
 
 
 
+/**
+ * Transfer strategy recommendation with details.
+ */
+data class FfiTransferRecommendation (
+    /**
+     * The recommended strategy.
+     */
+    var `strategy`: FfiTransferStrategy, 
+    /**
+     * Size tier: "small", "medium", "large".
+     */
+    var `sizeTier`: kotlin.String, 
+    /**
+     * Estimated BLE chunks needed (at 247 byte MTU).
+     */
+    var `estimatedBleChunks`: kotlin.UInt, 
+    /**
+     * Whether the payload exceeds the absolute maximum size.
+     */
+    var `isOversized`: kotlin.Boolean
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeFfiTransferRecommendation: FfiConverterRustBuffer<FfiTransferRecommendation> {
+    override fun read(buf: ByteBuffer): FfiTransferRecommendation {
+        return FfiTransferRecommendation(
+            FfiConverterTypeFfiTransferStrategy.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterUInt.read(buf),
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: FfiTransferRecommendation) = (
+            FfiConverterTypeFfiTransferStrategy.allocationSize(value.`strategy`) +
+            FfiConverterString.allocationSize(value.`sizeTier`) +
+            FfiConverterUInt.allocationSize(value.`estimatedBleChunks`) +
+            FfiConverterBoolean.allocationSize(value.`isOversized`)
+    )
+
+    override fun write(value: FfiTransferRecommendation, buf: ByteBuffer) {
+            FfiConverterTypeFfiTransferStrategy.write(value.`strategy`, buf)
+            FfiConverterString.write(value.`sizeTier`, buf)
+            FfiConverterUInt.write(value.`estimatedBleChunks`, buf)
+            FfiConverterBoolean.write(value.`isOversized`, buf)
+    }
+}
+
+
+
+/**
+ * Wi-Fi Direct transfer queue statistics.
+ */
+data class FfiWifiDirectStats (
+    var `pendingTransfers`: kotlin.UInt, 
+    var `totalPendingBytes`: kotlin.ULong, 
+    var `completedTransfers`: kotlin.ULong, 
+    var `failedTransfers`: kotlin.ULong, 
+    /**
+     * "disconnected", "connecting", "connected", "failed"
+     */
+    var `connectionState`: kotlin.String
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeFfiWifiDirectStats: FfiConverterRustBuffer<FfiWifiDirectStats> {
+    override fun read(buf: ByteBuffer): FfiWifiDirectStats {
+        return FfiWifiDirectStats(
+            FfiConverterUInt.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: FfiWifiDirectStats) = (
+            FfiConverterUInt.allocationSize(value.`pendingTransfers`) +
+            FfiConverterULong.allocationSize(value.`totalPendingBytes`) +
+            FfiConverterULong.allocationSize(value.`completedTransfers`) +
+            FfiConverterULong.allocationSize(value.`failedTransfers`) +
+            FfiConverterString.allocationSize(value.`connectionState`)
+    )
+
+    override fun write(value: FfiWifiDirectStats, buf: ByteBuffer) {
+            FfiConverterUInt.write(value.`pendingTransfers`, buf)
+            FfiConverterULong.write(value.`totalPendingBytes`, buf)
+            FfiConverterULong.write(value.`completedTransfers`, buf)
+            FfiConverterULong.write(value.`failedTransfers`, buf)
+            FfiConverterString.write(value.`connectionState`, buf)
+    }
+}
+
+
+
+/**
+ * APK verification result.
+ */
+
+enum class FfiApkVerifyResult {
+    
+    VALID,
+    INVALID_SIGNATURE,
+    UNTRUSTED_DEVELOPER;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeFfiApkVerifyResult: FfiConverterRustBuffer<FfiApkVerifyResult> {
+    override fun read(buf: ByteBuffer) = try {
+        FfiApkVerifyResult.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: FfiApkVerifyResult) = 4UL
+
+    override fun write(value: FfiApkVerifyResult, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
 
 enum class FfiRouteDecision {
     
@@ -3238,7 +4334,11 @@ enum class FfiRouteDecision {
     STORE,
     DROP_DUPLICATE,
     DROP_EXPIRED,
-    DROP_HOP_LIMIT;
+    DROP_HOP_LIMIT,
+    DROP_INVALID_SIGNATURE,
+    DROP_TTL_INFLATION,
+    DROP_HOP_COUNT_DECREASE,
+    DROP_SENDER_RATE_LIMIT;
     companion object
 }
 
@@ -3256,6 +4356,49 @@ public object FfiConverterTypeFfiRouteDecision: FfiConverterRustBuffer<FfiRouteD
     override fun allocationSize(value: FfiRouteDecision) = 4UL
 
     override fun write(value: FfiRouteDecision, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
+ * Transfer strategy recommendation for a message.
+ */
+
+enum class FfiTransferStrategy {
+    
+    /**
+     * Use BLE mesh relay (Spray-and-Wait).
+     */
+    MESH_RELAY,
+    /**
+     * Prefer direct peer-to-peer (Wi-Fi Direct), fall back to mesh if unavailable.
+     */
+    DIRECT_PREFERRED,
+    /**
+     * Require direct peer-to-peer. Too large for mesh relay.
+     */
+    DIRECT_REQUIRED;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeFfiTransferStrategy: FfiConverterRustBuffer<FfiTransferStrategy> {
+    override fun read(buf: ByteBuffer) = try {
+        FfiTransferStrategy.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: FfiTransferStrategy) = 4UL
+
+    override fun write(value: FfiTransferStrategy, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }

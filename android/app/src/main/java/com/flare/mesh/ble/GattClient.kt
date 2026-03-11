@@ -3,6 +3,7 @@ package com.flare.mesh.ble
 import android.annotation.SuppressLint
 import android.bluetooth.*
 import android.content.Context
+import android.os.Build
 import com.flare.mesh.util.Constants
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -80,11 +81,19 @@ class GattClient(private val context: Context) {
         }
 
         return try {
-            val writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-            val statusCode = gatt.writeCharacteristic(characteristic, data, writeType)
-            val success = statusCode == BluetoothStatusCodes.SUCCESS
-            if (!success) {
-                Timber.w("Write to %s returned status %d", address, statusCode)
+            val success = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                val statusCode = gatt.writeCharacteristic(characteristic, data, writeType)
+                if (statusCode != BluetoothStatusCodes.SUCCESS) {
+                    Timber.w("Write to %s returned status %d", address, statusCode)
+                }
+                statusCode == BluetoothStatusCodes.SUCCESS
+            } else {
+                @Suppress("DEPRECATION")
+                characteristic.value = data
+                characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                @Suppress("DEPRECATION")
+                gatt.writeCharacteristic(characteristic)
             }
             success
         } catch (e: SecurityException) {
@@ -204,10 +213,17 @@ class GattClient(private val context: Context) {
 
                     val cccd = notifyChar.getDescriptor(Constants.CCCD_UUID)
                     if (cccd != null) {
-                        gatt.writeDescriptor(
-                            cccd,
-                            BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE,
-                        )
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            gatt.writeDescriptor(
+                                cccd,
+                                BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE,
+                            )
+                        } else {
+                            @Suppress("DEPRECATION")
+                            cccd.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                            @Suppress("DEPRECATION")
+                            gatt.writeDescriptor(cccd)
+                        }
                     }
                 } catch (e: SecurityException) {
                     Timber.e(e, "Failed to enable notifications on %s", address)
@@ -227,7 +243,26 @@ class GattClient(private val context: Context) {
             _connectionState.tryEmit(ConnectionStateChange(address, true))
         }
 
+        // API 33+ callback
         override fun onCharacteristicChanged(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+            value: ByteArray,
+        ) {
+            handleCharacteristicChanged(gatt, characteristic, value)
+        }
+
+        // Pre-API 33 callback (deprecated but required for older devices)
+        @Deprecated("Required for API < 33")
+        override fun onCharacteristicChanged(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+        ) {
+            @Suppress("DEPRECATION")
+            handleCharacteristicChanged(gatt, characteristic, characteristic.value ?: return)
+        }
+
+        private fun handleCharacteristicChanged(
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic,
             value: ByteArray,
@@ -241,7 +276,28 @@ class GattClient(private val context: Context) {
             }
         }
 
+        // API 33+ callback
         override fun onCharacteristicRead(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+            value: ByteArray,
+            status: Int,
+        ) {
+            handleCharacteristicRead(gatt, characteristic, value, status)
+        }
+
+        // Pre-API 33 callback (deprecated but required for older devices)
+        @Deprecated("Required for API < 33")
+        override fun onCharacteristicRead(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+            status: Int,
+        ) {
+            @Suppress("DEPRECATION")
+            handleCharacteristicRead(gatt, characteristic, characteristic.value ?: return, status)
+        }
+
+        private fun handleCharacteristicRead(
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic,
             value: ByteArray,

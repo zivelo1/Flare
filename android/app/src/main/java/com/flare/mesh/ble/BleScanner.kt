@@ -2,6 +2,7 @@ package com.flare.mesh.ble
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.*
 import android.content.Context
@@ -9,8 +10,11 @@ import android.os.ParcelUuid
 import com.flare.mesh.data.model.MeshPeer
 import com.flare.mesh.data.model.TransportType
 import com.flare.mesh.util.Constants
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import timber.log.Timber
 import java.time.Instant
@@ -30,6 +34,10 @@ class BleScanner(context: Context) {
 
     private val _discoveredPeers = MutableStateFlow<Map<String, MeshPeer>>(emptyMap())
     val discoveredPeers: StateFlow<Map<String, MeshPeer>> = _discoveredPeers.asStateFlow()
+
+    /** Emits BluetoothDevice objects for newly discovered peers (first sighting only). */
+    private val _newPeerDevices = MutableSharedFlow<BluetoothDevice>(extraBufferCapacity = 16)
+    val newPeerDevices: SharedFlow<BluetoothDevice> = _newPeerDevices.asSharedFlow()
 
     private val _isScanning = MutableStateFlow(false)
     val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
@@ -160,10 +168,16 @@ class BleScanner(context: Context) {
         )
 
         val currentPeers = _discoveredPeers.value.toMutableMap()
+        val isNew = !currentPeers.containsKey(deviceId)
         currentPeers[deviceId] = peer
         _discoveredPeers.value = currentPeers
 
-        Timber.d("Discovered peer: %s (RSSI: %d, ~%.1fm)", deviceId, rssi, peer.estimatedDistanceMeters ?: -1f)
+        if (isNew) {
+            _newPeerDevices.tryEmit(device)
+            Timber.i("New peer discovered: %s (RSSI: %d, ~%.1fm)", deviceId, rssi, peer.estimatedDistanceMeters ?: -1f)
+        } else {
+            Timber.d("Discovered peer: %s (RSSI: %d, ~%.1fm)", deviceId, rssi, peer.estimatedDistanceMeters ?: -1f)
+        }
     }
 
     /**
