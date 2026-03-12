@@ -14,8 +14,8 @@ android {
         applicationId = "com.flare.mesh"
         minSdk = 26  // Android 8.0 — required for BLE features and Wi-Fi Aware
         targetSdk = 35
-        versionCode = 9
-        versionName = "0.9.0"
+        versionCode = 10
+        versionName = "0.9.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
