@@ -39,9 +39,16 @@ You can share it with someone nearby via Bluetooth — open **Settings > Share F
 
 ## How It Works
 
-```
-You ←──BLE──→ Stranger's ←──BLE──→ Another ←──BLE──→ Your
-                phone               phone           friend
+```mermaid
+graph LR
+    A["📱 You"] <-->|"BLE"| B["📱 Stranger's Phone"]
+    B <-->|"BLE"| C["📱 Another Phone"]
+    C <-->|"BLE"| D["📱 Your Friend"]
+
+    style A fill:#FF6B35,color:#fff,stroke:#FF6B35
+    style D fill:#FF6B35,color:#fff,stroke:#FF6B35
+    style B fill:#555,color:#fff
+    style C fill:#555,color:#fff
 ```
 
 1. **Install Flare** on your phone (Android or iPhone)
@@ -68,10 +75,16 @@ Your phone number, passphrase, and contacts **never leave your device**. Only a 
 
 Flare is designed to spread without app stores or internet access:
 
-```
-Person with     ──BLE──→  Friend      ──BLE──→  Friend's     ──BLE──→  ...
-internet                  (no internet)          friend
-downloads Flare           installs Flare         installs Flare
+```mermaid
+graph LR
+    A["📱 Has Internet<br/>Downloads Flare"] -->|"BLE"| B["📱 Friend<br/>No Internet"]
+    B -->|"BLE"| C["📱 Friend's Friend"]
+    C -->|"BLE"| D["📱 ..."]
+
+    style A fill:#FF6B35,color:#fff
+    style B fill:#2E8B57,color:#fff
+    style C fill:#2E8B57,color:#fff
+    style D fill:#2E8B57,color:#fff
 ```
 
 1. **One person** downloads Flare while they still have internet access (from a website, via Starlink, etc.)
@@ -96,22 +109,60 @@ The transfer is verified with Ed25519 developer signatures and SHA-256 hash to e
 
 ## Architecture
 
+```mermaid
+graph TB
+    subgraph "Your Phone"
+        A["Flare App"] --> B["Rust Core<br/>Crypto · Routing · Storage"]
+        B --> C["BLE GATT"]
+        B --> D["Wi-Fi Direct"]
+    end
+
+    subgraph "Relay Phone"
+        E["Flare App"] --> F["Rust Core"]
+        F --> G["BLE GATT"]
+    end
+
+    subgraph "Friend's Phone"
+        I["Flare App"] --> J["Rust Core"]
+        J --> K["BLE GATT"]
+    end
+
+    C <-->|"Encrypted"| G
+    G <-->|"Encrypted"| K
+
+    style A fill:#FF6B35,color:#fff
+    style E fill:#555,color:#fff
+    style I fill:#FF6B35,color:#fff
+    style B fill:#B7410E,color:#fff
+    style F fill:#555,color:#fff
+    style J fill:#B7410E,color:#fff
 ```
-┌───────────────────────────────────┐
-│   Shared Core (Rust)               │
-│   Crypto · Routing · Discovery     │
-│   Storage · Protocol               │
-├────────────────┬──────────────────┤
-│ Android        │ iOS               │
-│ Kotlin +       │ Swift +           │
-│ Jetpack        │ SwiftUI           │
-│ Compose        │                   │
-└────────────────┴──────────────────┘
+
+```mermaid
+sequenceDiagram
+    participant You
+    participant Rust as Rust Core
+    participant BLE as BLE Radio
+    participant Relay as Relay Phone
+    participant Friend as Friend's Phone
+
+    You->>Rust: Send "Hello"
+    Rust->>Rust: X25519 Key Agreement
+    Rust->>Rust: AES-256-GCM Encrypt
+    Rust->>Rust: Ed25519 Sign
+    Rust->>BLE: Chunk for BLE MTU
+    BLE->>Relay: BLE GATT Write
+    Note over Relay: Store & Forward<br/>(can't read message)
+    Relay->>Friend: BLE GATT Write
+    Friend->>Friend: Verify & Decrypt
+    Friend-->>You: Delivery ACK
 ```
 
 - **Rust core** — cryptography, mesh routing, Blind Rendezvous discovery, encrypted storage
 - **Android** — BLE GATT, Wi-Fi Direct, Material 3 UI
 - **iOS** — CoreBluetooth, Multipeer Connectivity, SwiftUI
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture diagrams including the security model, contact discovery flow, and power management tiers.
 
 ## Current Status
 
