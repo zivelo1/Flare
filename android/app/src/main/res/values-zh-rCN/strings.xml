@@ -49,7 +49,7 @@
 
     <!-- Settings -->
     <string name="settings_section_security">安全</string>
-    <string name="settings_duress_subtitle_configured">已配置 — 伪装数据库已激活</string>
+    <string name="settings_duress_subtitle_configured">已启用 — 锁定屏幕已激活</string>
     <string name="settings_duress_subtitle_not_configured">未配置 — 点击进行设置</string>
     <string name="settings_section_battery">电池 &amp; 性能</string>
     <string name="settings_power_subtitle_format">当前级别：%s</string>
@@ -75,27 +75,35 @@
     <string name="settings_language_title">语言</string>
     <string name="settings_language_subtitle">当前：%s</string>
 
-    <string name="settings_duress_title">胁迫 PIN</string>
     <string name="settings_power_title">电源管理</string>
     <string name="settings_about_title">关于 Flare</string>
 
-    <!-- Duress Settings -->
-    <string name="duress_title">胁迫 PIN</string>
-    <string name="duress_plausible_deniability">合理否认</string>
-    <string name="duress_explanation">如果您被迫解锁 Flare，输入胁迫 PIN 将打开一个包含无害消息的伪装数据库。您的真实对话将保持隐藏和加密状态。</string>
-    <string name="duress_active_title">胁迫 PIN 已激活</string>
-    <string name="duress_active_description">输入胁迫 PIN 时将显示伪装数据库。</string>
-    <string name="duress_remove_button">移除胁迫 PIN</string>
-    <string name="duress_passphrase_label">胁迫密码</string>
-    <string name="duress_confirm_label">确认密码</string>
-    <string name="duress_mismatch">密码不匹配</string>
-    <string name="duress_warning">请选择一个您在压力下也能记住的密码。它必须与您的主密码不同。如果忘记，将无法恢复。</string>
-    <string name="duress_set_button">设置胁迫 PIN</string>
-    <string name="duress_set_success">胁迫 PIN 设置成功</string>
-    <string name="duress_set_error">设置胁迫 PIN 失败，请重试。</string>
-    <string name="duress_remove_dialog_title">移除胁迫 PIN？</string>
-    <string name="duress_remove_dialog_message">这将禁用合理否认功能。任何强迫您解锁 Flare 的人都将看到您的真实对话。</string>
-    <string name="duress_remove_confirm">移除</string>
+    <!-- Destruction Settings -->
+    <string name="destruction_title">销毁码</string>
+    <string name="destruction_plausible_deniability">紧急数据清除</string>
+    <string name="destruction_explanation">如果您被迫解锁 Flare，输入销毁码将永久删除所有消息、联系人和您的身份。应用将显示为刚安装的状态。此操作无法撤销。</string>
+    <string name="destruction_active_title">销毁码已激活</string>
+    <string name="destruction_active_description">每次启动时都会显示锁定屏幕。输入销毁码将永久删除所有数据。</string>
+    <string name="destruction_remove_button">移除销毁码</string>
+    <string name="destruction_unlock_code_label">解锁码</string>
+    <string name="destruction_unlock_code_hint">正常打开应用的码</string>
+    <string name="destruction_code_label">销毁码</string>
+    <string name="destruction_code_hint">删除所有数据的码</string>
+    <string name="destruction_confirm_label">确认销毁码</string>
+    <string name="destruction_mismatch">销毁码不匹配</string>
+    <string name="destruction_codes_same">解锁码和销毁码必须不同</string>
+    <string name="destruction_warning">警告：销毁码将永久且不可逆地删除所有数据 — 消息、联系人和您的身份。无法恢复。请选择在极端压力下也能记住的码。</string>
+    <string name="destruction_set_button">激活销毁码</string>
+    <string name="destruction_set_success">销毁码已激活</string>
+    <string name="destruction_set_error">设置销毁码失败，请重试。</string>
+    <string name="destruction_remove_dialog_title">移除销毁码？</string>
+    <string name="destruction_remove_dialog_message">这将移除锁定屏幕和销毁码。任何能接触到您手机的人都可以打开 Flare 查看您的对话。</string>
+    <string name="destruction_remove_confirm">移除</string>
+    <string name="lock_screen_title">Flare</string>
+    <string name="lock_screen_enter_code">输入您的码以解锁</string>
+    <string name="lock_screen_code_label">码</string>
+    <string name="lock_screen_unlock">解锁</string>
+    <string name="lock_screen_wrong_code">码错误</string>
 
     <!-- Power Settings -->
     <string name="power_title">电源管理</string>
@@ -260,27 +268,11 @@
 
     <!-- APK Sharing -->
     <string name="apk_share_title">分享 Flare</string>
-    <string name="apk_receive_title">接收 Flare</string>
     <string name="apk_share_description">通过蓝牙与附近设备分享 Flare 应用</string>
     <string name="apk_share_version">版本 %s</string>
     <string name="apk_share_size">大小：%s</string>
     <string name="apk_share_hash">SHA-256：%s</string>
     <string name="apk_share_button">通过蓝牙分享</string>
-    <string name="apk_share_stop_button">停止分享</string>
-    <string name="apk_share_advertising">正在向附近设备广播…</string>
-    <string name="apk_share_transfer_progress">传输进度</string>
-    <string name="apk_share_requesting_devices">请求 Flare 的设备</string>
-    <string name="apk_share_no_requests">暂无请求</string>
-    <string name="apk_receive_scanning">正在扫描附近的 Flare 设备…</string>
-    <string name="apk_receive_available">可供下载</string>
-    <string name="apk_receive_version">版本：%s</string>
-    <string name="apk_receive_size">大小：%s</string>
-    <string name="apk_receive_verified">签名已验证</string>
-    <string name="apk_receive_unverified">签名未验证</string>
-    <string name="apk_receive_download">下载</string>
-    <string name="apk_receive_install">安装</string>
-    <string name="apk_receive_downloading">下载中…</string>
-    <string name="apk_receive_no_offers">未找到附近的 Flare 设备</string>
     <string name="apk_settings_share">分享 Flare 应用</string>
     <string name="apk_settings_share_subtitle">通过蓝牙将应用发送到附近设备</string>
 

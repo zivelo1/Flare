@@ -53,7 +53,6 @@
     <string name="profile_name_hint">How others see you</string>
 
     <!-- Settings -->
-    <string name="settings_duress_title">Destruction Code</string>
     <string name="settings_power_title">Power Management</string>
     <string name="settings_about_title">About Flare</string>
     <string name="settings_back">Back</string>

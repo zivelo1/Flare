@@ -49,7 +49,7 @@
 
     <!-- Settings -->
     <string name="settings_section_security">보안</string>
-    <string name="settings_duress_subtitle_configured">설정됨 — 위장 데이터베이스 활성</string>
+    <string name="settings_duress_subtitle_configured">활성 — 잠금 화면 사용 중</string>
     <string name="settings_duress_subtitle_not_configured">설정되지 않음 — 탭하여 설정</string>
     <string name="settings_section_battery">배터리 &amp; 성능</string>
     <string name="settings_power_subtitle_format">현재 등급: %s</string>
@@ -75,27 +75,35 @@
     <string name="settings_language_title">언어</string>
     <string name="settings_language_subtitle">현재: %s</string>
 
-    <string name="settings_duress_title">강압 PIN</string>
     <string name="settings_power_title">전원 관리</string>
     <string name="settings_about_title">Flare 정보</string>
 
-    <!-- Duress Settings -->
-    <string name="duress_title">강압 PIN</string>
-    <string name="duress_plausible_deniability">합리적 부인</string>
-    <string name="duress_explanation">Flare 잠금 해제를 강요당할 경우, 강압 PIN을 입력하면 무해한 메시지가 담긴 위장 데이터베이스가 열립니다. 실제 대화는 숨겨지고 암호화된 상태로 유지됩니다.</string>
-    <string name="duress_active_title">강압 PIN 활성</string>
-    <string name="duress_active_description">강압 PIN 입력 시 위장 데이터베이스가 표시됩니다.</string>
-    <string name="duress_remove_button">강압 PIN 제거</string>
-    <string name="duress_passphrase_label">강압 비밀번호</string>
-    <string name="duress_confirm_label">비밀번호 확인</string>
-    <string name="duress_mismatch">비밀번호가 일치하지 않습니다</string>
-    <string name="duress_warning">스트레스 상황에서도 기억할 수 있는 비밀번호를 선택하세요. 기본 비밀번호와 달라야 합니다. 잊어버리면 복구할 방법이 없습니다.</string>
-    <string name="duress_set_button">강압 PIN 설정</string>
-    <string name="duress_set_success">강압 PIN이 성공적으로 설정되었습니다</string>
-    <string name="duress_set_error">강압 PIN 설정에 실패했습니다. 다시 시도하세요.</string>
-    <string name="duress_remove_dialog_title">강압 PIN을 제거하시겠습니까?</string>
-    <string name="duress_remove_dialog_message">합리적 부인 기능이 비활성화됩니다. Flare 잠금 해제를 강요하는 사람이 실제 대화를 볼 수 있게 됩니다.</string>
-    <string name="duress_remove_confirm">제거</string>
+    <!-- Destruction Settings -->
+    <string name="destruction_title">파괴 코드</string>
+    <string name="destruction_plausible_deniability">긴급 데이터 삭제</string>
+    <string name="destruction_explanation">Flare 잠금 해제를 강요당할 경우, 파괴 코드를 입력하면 모든 메시지, 연락처 및 신원이 영구적으로 삭제됩니다. 앱은 새로 설치된 것처럼 표시됩니다. 이 작업은 되돌릴 수 없습니다.</string>
+    <string name="destruction_active_title">파괴 코드 활성</string>
+    <string name="destruction_active_description">매번 실행 시 잠금 화면이 표시됩니다. 파괴 코드를 입력하면 모든 데이터가 영구적으로 삭제됩니다.</string>
+    <string name="destruction_remove_button">파괴 코드 제거</string>
+    <string name="destruction_unlock_code_label">잠금 해제 코드</string>
+    <string name="destruction_unlock_code_hint">앱을 정상적으로 여는 코드</string>
+    <string name="destruction_code_label">파괴 코드</string>
+    <string name="destruction_code_hint">모든 것을 삭제하는 코드</string>
+    <string name="destruction_confirm_label">파괴 코드 확인</string>
+    <string name="destruction_mismatch">파괴 코드가 일치하지 않습니다</string>
+    <string name="destruction_codes_same">잠금 해제 코드와 파괴 코드는 달라야 합니다</string>
+    <string name="destruction_warning">경고: 파괴 코드는 모든 데이터를 영구적이고 되돌릴 수 없이 삭제합니다 — 메시지, 연락처 및 신원. 복구가 불가능합니다. 극심한 스트레스 상황에서도 기억할 수 있는 코드를 선택하세요.</string>
+    <string name="destruction_set_button">파괴 코드 활성화</string>
+    <string name="destruction_set_success">파괴 코드가 활성화되었습니다</string>
+    <string name="destruction_set_error">파괴 코드 설정에 실패했습니다. 다시 시도하세요.</string>
+    <string name="destruction_remove_dialog_title">파괴 코드를 제거하시겠습니까?</string>
+    <string name="destruction_remove_dialog_message">잠금 화면과 파괴 코드가 제거됩니다. 휴대폰에 접근할 수 있는 누구나 Flare를 열어 대화를 볼 수 있게 됩니다.</string>
+    <string name="destruction_remove_confirm">제거</string>
+    <string name="lock_screen_title">Flare</string>
+    <string name="lock_screen_enter_code">잠금 해제 코드를 입력하세요</string>
+    <string name="lock_screen_code_label">코드</string>
+    <string name="lock_screen_unlock">잠금 해제</string>
+    <string name="lock_screen_wrong_code">잘못된 코드</string>
 
     <!-- Power Settings -->
     <string name="power_title">전원 관리</string>
@@ -260,27 +268,11 @@
 
     <!-- APK Sharing -->
     <string name="apk_share_title">Flare 공유</string>
-    <string name="apk_receive_title">Flare 받기</string>
     <string name="apk_share_description">블루투스를 통해 근처 기기와 Flare 앱을 공유합니다</string>
     <string name="apk_share_version">버전 %s</string>
     <string name="apk_share_size">크기: %s</string>
     <string name="apk_share_hash">SHA-256: %s</string>
     <string name="apk_share_button">블루투스로 공유</string>
-    <string name="apk_share_stop_button">공유 중지</string>
-    <string name="apk_share_advertising">근처 기기에 브로드캐스트 중…</string>
-    <string name="apk_share_transfer_progress">전송 진행률</string>
-    <string name="apk_share_requesting_devices">Flare를 요청하는 기기</string>
-    <string name="apk_share_no_requests">아직 요청이 없습니다</string>
-    <string name="apk_receive_scanning">근처 Flare 기기를 스캔 중…</string>
-    <string name="apk_receive_available">다운로드 가능</string>
-    <string name="apk_receive_version">버전: %s</string>
-    <string name="apk_receive_size">크기: %s</string>
-    <string name="apk_receive_verified">서명 확인됨</string>
-    <string name="apk_receive_unverified">서명 미확인</string>
-    <string name="apk_receive_download">다운로드</string>
-    <string name="apk_receive_install">설치</string>
-    <string name="apk_receive_downloading">다운로드 중…</string>
-    <string name="apk_receive_no_offers">근처에 Flare 기기를 찾을 수 없습니다</string>
     <string name="apk_settings_share">Flare 앱 공유</string>
     <string name="apk_settings_share_subtitle">블루투스를 통해 근처 기기에 앱 전송</string>
 

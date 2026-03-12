@@ -49,7 +49,7 @@
 
     <!-- Settings -->
     <string name="settings_section_security">Seguridad</string>
-    <string name="settings_duress_subtitle_configured">Configurado — base de datos señuelo activa</string>
+    <string name="settings_duress_subtitle_configured">Activo — pantalla de bloqueo habilitada</string>
     <string name="settings_duress_subtitle_not_configured">No configurado — toca para configurar</string>
     <string name="settings_section_battery">Batería &amp; Rendimiento</string>
     <string name="settings_power_subtitle_format">Nivel actual: %s</string>
@@ -75,27 +75,35 @@
     <string name="settings_language_title">Idioma</string>
     <string name="settings_language_subtitle">Actual: %s</string>
 
-    <string name="settings_duress_title">PIN de emergencia</string>
     <string name="settings_power_title">Gestión de energía</string>
     <string name="settings_about_title">Acerca de Flare</string>
 
-    <!-- Duress Settings -->
-    <string name="duress_title">PIN de emergencia</string>
-    <string name="duress_plausible_deniability">Negación plausible</string>
-    <string name="duress_explanation">Si te obligan a desbloquear Flare, al ingresar el PIN de emergencia se abre una base de datos señuelo con mensajes inocentes. Tus conversaciones reales permanecen ocultas y cifradas.</string>
-    <string name="duress_active_title">PIN de emergencia activo</string>
-    <string name="duress_active_description">Se mostrará una base de datos señuelo cuando se ingrese el PIN de emergencia.</string>
-    <string name="duress_remove_button">Eliminar PIN de emergencia</string>
-    <string name="duress_passphrase_label">Contraseña de emergencia</string>
-    <string name="duress_confirm_label">Confirmar contraseña</string>
-    <string name="duress_mismatch">Las contraseñas no coinciden</string>
-    <string name="duress_warning">Elige una contraseña que puedas recordar bajo presión. Debe ser diferente a tu contraseña principal. Si la olvidas, no hay forma de recuperarla.</string>
-    <string name="duress_set_button">Establecer PIN de emergencia</string>
-    <string name="duress_set_success">PIN de emergencia establecido exitosamente</string>
-    <string name="duress_set_error">No se pudo establecer el PIN de emergencia. Inténtalo de nuevo.</string>
-    <string name="duress_remove_dialog_title">¿Eliminar PIN de emergencia?</string>
-    <string name="duress_remove_dialog_message">Esto desactivará la negación plausible. Cualquier persona que te obligue a desbloquear Flare verá tus conversaciones reales.</string>
-    <string name="duress_remove_confirm">Eliminar</string>
+    <!-- Destruction Settings -->
+    <string name="destruction_title">Código de destrucción</string>
+    <string name="destruction_plausible_deniability">Borrado de datos de emergencia</string>
+    <string name="destruction_explanation">Si te obligan a desbloquear Flare, al ingresar el código de destrucción se borran permanentemente todos los mensajes, contactos y tu identidad. La app aparecerá como recién instalada. Esto no se puede deshacer.</string>
+    <string name="destruction_active_title">Código de destrucción activo</string>
+    <string name="destruction_active_description">Una pantalla de bloqueo aparece en cada inicio. Al ingresar el código de destrucción se borran permanentemente todos los datos.</string>
+    <string name="destruction_remove_button">Eliminar código de destrucción</string>
+    <string name="destruction_unlock_code_label">Código de desbloqueo</string>
+    <string name="destruction_unlock_code_hint">Código para abrir la app normalmente</string>
+    <string name="destruction_code_label">Código de destrucción</string>
+    <string name="destruction_code_hint">Código que borra todo</string>
+    <string name="destruction_confirm_label">Confirmar código de destrucción</string>
+    <string name="destruction_mismatch">Los códigos de destrucción no coinciden</string>
+    <string name="destruction_codes_same">El código de desbloqueo y el código de destrucción deben ser diferentes</string>
+    <string name="destruction_warning">ADVERTENCIA: El código de destrucción borra permanente e irreversiblemente TODOS los datos — mensajes, contactos y tu identidad. No hay recuperación. Elige códigos que puedas recordar bajo estrés extremo.</string>
+    <string name="destruction_set_button">Activar código de destrucción</string>
+    <string name="destruction_set_success">Código de destrucción activado</string>
+    <string name="destruction_set_error">No se pudo establecer el código de destrucción. Inténtalo de nuevo.</string>
+    <string name="destruction_remove_dialog_title">¿Eliminar código de destrucción?</string>
+    <string name="destruction_remove_dialog_message">Esto elimina la pantalla de bloqueo y el código de destrucción. Cualquier persona con acceso a tu teléfono puede abrir Flare y ver tus conversaciones.</string>
+    <string name="destruction_remove_confirm">Eliminar</string>
+    <string name="lock_screen_title">Flare</string>
+    <string name="lock_screen_enter_code">Ingresa tu código para desbloquear</string>
+    <string name="lock_screen_code_label">Código</string>
+    <string name="lock_screen_unlock">Desbloquear</string>
+    <string name="lock_screen_wrong_code">Código incorrecto</string>
 
     <!-- Power Settings -->
     <string name="power_title">Gestión de energía</string>
@@ -260,27 +268,11 @@
 
     <!-- APK Sharing -->
     <string name="apk_share_title">Compartir Flare</string>
-    <string name="apk_receive_title">Recibir Flare</string>
     <string name="apk_share_description">Comparte la app Flare con dispositivos cercanos vía Bluetooth</string>
     <string name="apk_share_version">Versión %s</string>
     <string name="apk_share_size">Tamaño: %s</string>
     <string name="apk_share_hash">SHA-256: %s</string>
     <string name="apk_share_button">Compartir vía Bluetooth</string>
-    <string name="apk_share_stop_button">Dejar de compartir</string>
-    <string name="apk_share_advertising">Transmitiendo a dispositivos cercanos…</string>
-    <string name="apk_share_transfer_progress">Progreso de transferencia</string>
-    <string name="apk_share_requesting_devices">Dispositivos solicitando Flare</string>
-    <string name="apk_share_no_requests">Aún no hay solicitudes</string>
-    <string name="apk_receive_scanning">Buscando dispositivos Flare cercanos…</string>
-    <string name="apk_receive_available">Disponible para descargar</string>
-    <string name="apk_receive_version">Versión: %s</string>
-    <string name="apk_receive_size">Tamaño: %s</string>
-    <string name="apk_receive_verified">Firma verificada</string>
-    <string name="apk_receive_unverified">Firma no verificada</string>
-    <string name="apk_receive_download">Descargar</string>
-    <string name="apk_receive_install">Instalar</string>
-    <string name="apk_receive_downloading">Descargando…</string>
-    <string name="apk_receive_no_offers">No se encontraron dispositivos Flare cercanos</string>
     <string name="apk_settings_share">Compartir app Flare</string>
     <string name="apk_settings_share_subtitle">Enviar app a dispositivos cercanos vía Bluetooth</string>
 

@@ -49,7 +49,7 @@
 
     <!-- Settings -->
     <string name="settings_section_security">Безопасность</string>
-    <string name="settings_duress_subtitle_configured">Настроено — обманная база данных активна</string>
+    <string name="settings_duress_subtitle_configured">Активно — экран блокировки включён</string>
     <string name="settings_duress_subtitle_not_configured">Не настроено — нажмите для настройки</string>
     <string name="settings_section_battery">Батарея &amp; Производительность</string>
     <string name="settings_power_subtitle_format">Текущий уровень: %s</string>
@@ -75,27 +75,35 @@
     <string name="settings_language_title">Язык</string>
     <string name="settings_language_subtitle">Текущий: %s</string>
 
-    <string name="settings_duress_title">PIN под принуждением</string>
     <string name="settings_power_title">Управление питанием</string>
     <string name="settings_about_title">О Flare</string>
 
-    <!-- Duress Settings -->
-    <string name="duress_title">PIN под принуждением</string>
-    <string name="duress_plausible_deniability">Правдоподобное отрицание</string>
-    <string name="duress_explanation">Если вас принуждают разблокировать Flare, ввод PIN под принуждением открывает обманную базу данных с безобидными сообщениями. Ваши настоящие разговоры остаются скрытыми и зашифрованными.</string>
-    <string name="duress_active_title">PIN под принуждением активен</string>
-    <string name="duress_active_description">При вводе PIN под принуждением будет показана обманная база данных.</string>
-    <string name="duress_remove_button">Удалить PIN под принуждением</string>
-    <string name="duress_passphrase_label">Пароль под принуждением</string>
-    <string name="duress_confirm_label">Подтвердите пароль</string>
-    <string name="duress_mismatch">Пароли не совпадают</string>
-    <string name="duress_warning">Выберите пароль, который вы сможете вспомнить в стрессовой ситуации. Он должен отличаться от вашего основного пароля. Если вы его забудете, восстановить его будет невозможно.</string>
-    <string name="duress_set_button">Установить PIN под принуждением</string>
-    <string name="duress_set_success">PIN под принуждением успешно установлен</string>
-    <string name="duress_set_error">Не удалось установить PIN под принуждением. Попробуйте ещё раз.</string>
-    <string name="duress_remove_dialog_title">Удалить PIN под принуждением?</string>
-    <string name="duress_remove_dialog_message">Это отключит правдоподобное отрицание. Любой, кто заставит вас разблокировать Flare, увидит ваши настоящие разговоры.</string>
-    <string name="duress_remove_confirm">Удалить</string>
+    <!-- Destruction Settings -->
+    <string name="destruction_title">Код уничтожения</string>
+    <string name="destruction_plausible_deniability">Экстренное удаление данных</string>
+    <string name="destruction_explanation">Если вас принуждают разблокировать Flare, ввод кода уничтожения безвозвратно удаляет все сообщения, контакты и вашу личность. Приложение будет выглядеть как только что установленное. Это невозможно отменить.</string>
+    <string name="destruction_active_title">Код уничтожения активен</string>
+    <string name="destruction_active_description">Экран блокировки появляется при каждом запуске. Ввод кода уничтожения безвозвратно удаляет все данные.</string>
+    <string name="destruction_remove_button">Удалить код уничтожения</string>
+    <string name="destruction_unlock_code_label">Код разблокировки</string>
+    <string name="destruction_unlock_code_hint">Код для обычного открытия приложения</string>
+    <string name="destruction_code_label">Код уничтожения</string>
+    <string name="destruction_code_hint">Код, который удаляет все данные</string>
+    <string name="destruction_confirm_label">Подтвердите код уничтожения</string>
+    <string name="destruction_mismatch">Коды уничтожения не совпадают</string>
+    <string name="destruction_codes_same">Код разблокировки и код уничтожения должны различаться</string>
+    <string name="destruction_warning">ВНИМАНИЕ: Код уничтожения безвозвратно и необратимо удаляет ВСЕ данные — сообщения, контакты и вашу личность. Восстановление невозможно. Выберите коды, которые вы сможете вспомнить в экстремальных условиях.</string>
+    <string name="destruction_set_button">Активировать код уничтожения</string>
+    <string name="destruction_set_success">Код уничтожения активирован</string>
+    <string name="destruction_set_error">Не удалось установить код уничтожения. Попробуйте ещё раз.</string>
+    <string name="destruction_remove_dialog_title">Удалить код уничтожения?</string>
+    <string name="destruction_remove_dialog_message">Это удалит экран блокировки и код уничтожения. Любой, у кого есть доступ к вашему телефону, сможет открыть Flare и увидеть ваши разговоры.</string>
+    <string name="destruction_remove_confirm">Удалить</string>
+    <string name="lock_screen_title">Flare</string>
+    <string name="lock_screen_enter_code">Введите код для разблокировки</string>
+    <string name="lock_screen_code_label">Код</string>
+    <string name="lock_screen_unlock">Разблокировать</string>
+    <string name="lock_screen_wrong_code">Неверный код</string>
 
     <!-- Power Settings -->
     <string name="power_title">Управление питанием</string>
@@ -260,27 +268,11 @@
 
     <!-- APK Sharing -->
     <string name="apk_share_title">Поделиться Flare</string>
-    <string name="apk_receive_title">Получить Flare</string>
     <string name="apk_share_description">Поделитесь приложением Flare с ближайшими устройствами через Bluetooth</string>
     <string name="apk_share_version">Версия %s</string>
     <string name="apk_share_size">Размер: %s</string>
     <string name="apk_share_hash">SHA-256: %s</string>
     <string name="apk_share_button">Поделиться через Bluetooth</string>
-    <string name="apk_share_stop_button">Прекратить раздачу</string>
-    <string name="apk_share_advertising">Передача ближайшим устройствам…</string>
-    <string name="apk_share_transfer_progress">Прогресс передачи</string>
-    <string name="apk_share_requesting_devices">Устройства, запрашивающие Flare</string>
-    <string name="apk_share_no_requests">Пока нет запросов</string>
-    <string name="apk_receive_scanning">Поиск ближайших устройств Flare…</string>
-    <string name="apk_receive_available">Доступно для загрузки</string>
-    <string name="apk_receive_version">Версия: %s</string>
-    <string name="apk_receive_size">Размер: %s</string>
-    <string name="apk_receive_verified">Подпись подтверждена</string>
-    <string name="apk_receive_unverified">Подпись не подтверждена</string>
-    <string name="apk_receive_download">Скачать</string>
-    <string name="apk_receive_install">Установить</string>
-    <string name="apk_receive_downloading">Загрузка…</string>
-    <string name="apk_receive_no_offers">Ближайшие устройства Flare не найдены</string>
     <string name="apk_settings_share">Поделиться приложением Flare</string>
     <string name="apk_settings_share_subtitle">Отправить приложение ближайшим устройствам через Bluetooth</string>
 

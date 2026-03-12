@@ -48,12 +48,11 @@
     <string name="action_save">حفظ</string>
 
     <!-- Settings -->
-    <string name="settings_duress_title">رمز الإكراه</string>
     <string name="settings_power_title">إدارة الطاقة</string>
     <string name="settings_about_title">حول Flare</string>
     <string name="settings_back">رجوع</string>
     <string name="settings_section_security">الأمان</string>
-    <string name="settings_duress_subtitle_configured">مفعّل — قاعدة البيانات الوهمية نشطة</string>
+    <string name="settings_duress_subtitle_configured">مفعّل — شاشة القفل نشطة</string>
     <string name="settings_duress_subtitle_not_configured">غير مفعّل — انقر للإعداد</string>
     <string name="settings_section_battery">البطارية والأداء</string>
     <string name="settings_power_subtitle_format">المستوى الحالي: %s</string>
@@ -76,23 +75,32 @@
     <string name="settings_tier_low">توفير الطاقة</string>
     <string name="settings_tier_ultra_low">الحد الأدنى للطاقة</string>
 
-    <!-- Duress Settings -->
-    <string name="duress_title">رمز الإكراه</string>
-    <string name="duress_plausible_deniability">الإنكار المعقول</string>
-    <string name="duress_explanation">إذا أُجبرت على فتح Flare، فإن إدخال رمز الإكراه يفتح قاعدة بيانات وهمية تحتوي على رسائل عادية. تبقى محادثاتك الحقيقية مخفية ومشفرة.</string>
-    <string name="duress_active_title">رمز الإكراه مفعّل</string>
-    <string name="duress_active_description">ستُعرض قاعدة بيانات وهمية عند إدخال رمز الإكراه.</string>
-    <string name="duress_remove_button">إزالة رمز الإكراه</string>
-    <string name="duress_passphrase_label">عبارة مرور الإكراه</string>
-    <string name="duress_confirm_label">تأكيد عبارة المرور</string>
-    <string name="duress_mismatch">عبارتا المرور غير متطابقتين</string>
-    <string name="duress_warning">اختر عبارة مرور يمكنك تذكرها تحت الضغط. يجب أن تكون مختلفة عن عبارة المرور الرئيسية. إذا نسيتها، لا توجد طريقة لاستعادتها.</string>
-    <string name="duress_set_button">تعيين رمز الإكراه</string>
-    <string name="duress_set_success">تم تعيين رمز الإكراه بنجاح</string>
-    <string name="duress_set_error">فشل تعيين رمز الإكراه. يرجى المحاولة مرة أخرى.</string>
-    <string name="duress_remove_dialog_title">إزالة رمز الإكراه؟</string>
-    <string name="duress_remove_dialog_message">سيؤدي هذا إلى تعطيل الإنكار المعقول. أي شخص يجبرك على فتح Flare سيرى محادثاتك الحقيقية.</string>
-    <string name="duress_remove_confirm">إزالة</string>
+    <!-- Destruction Settings -->
+    <string name="destruction_title">رمز التدمير</string>
+    <string name="destruction_plausible_deniability">مسح البيانات الطارئ</string>
+    <string name="destruction_explanation">إذا أُجبرت على فتح Flare، فإن إدخال رمز التدمير يمحو نهائيًا جميع الرسائل وجهات الاتصال وهويتك. سيظهر التطبيق كأنه مثبّت حديثًا. لا يمكن التراجع عن هذا.</string>
+    <string name="destruction_active_title">رمز التدمير مفعّل</string>
+    <string name="destruction_active_description">ستظهر شاشة قفل عند كل تشغيل. إدخال رمز التدمير يمحو جميع البيانات نهائيًا.</string>
+    <string name="destruction_remove_button">إزالة رمز التدمير</string>
+    <string name="destruction_unlock_code_label">رمز الفتح</string>
+    <string name="destruction_unlock_code_hint">الرمز لفتح التطبيق بشكل طبيعي</string>
+    <string name="destruction_code_label">رمز التدمير</string>
+    <string name="destruction_code_hint">الرمز الذي يمحو كل شيء</string>
+    <string name="destruction_confirm_label">تأكيد رمز التدمير</string>
+    <string name="destruction_mismatch">رمزا التدمير غير متطابقين</string>
+    <string name="destruction_codes_same">يجب أن يكون رمز الفتح ورمز التدمير مختلفين</string>
+    <string name="destruction_warning">تحذير: رمز التدمير يمحو نهائيًا وبشكل لا رجعة فيه جميع البيانات — الرسائل وجهات الاتصال وهويتك. لا يمكن الاسترداد. اختر رموزًا يمكنك تذكرها تحت الضغط الشديد.</string>
+    <string name="destruction_set_button">تفعيل رمز التدمير</string>
+    <string name="destruction_set_success">تم تفعيل رمز التدمير</string>
+    <string name="destruction_set_error">فشل تعيين رمز التدمير. يرجى المحاولة مرة أخرى.</string>
+    <string name="destruction_remove_dialog_title">إزالة رمز التدمير؟</string>
+    <string name="destruction_remove_dialog_message">سيؤدي هذا إلى إزالة شاشة القفل ورمز التدمير. أي شخص يصل إلى هاتفك يمكنه فتح Flare ورؤية محادثاتك.</string>
+    <string name="destruction_remove_confirm">إزالة</string>
+    <string name="lock_screen_title">Flare</string>
+    <string name="lock_screen_enter_code">أدخل رمزك للفتح</string>
+    <string name="lock_screen_code_label">الرمز</string>
+    <string name="lock_screen_unlock">فتح</string>
+    <string name="lock_screen_wrong_code">رمز خاطئ</string>
 
     <!-- Power Settings -->
     <string name="power_title">إدارة الطاقة</string>
@@ -161,27 +169,11 @@
 
     <!-- APK Sharing -->
     <string name="apk_share_title">مشاركة Flare</string>
-    <string name="apk_receive_title">استقبال Flare</string>
     <string name="apk_share_description">مشاركة تطبيق Flare مع الأجهزة القريبة عبر البلوتوث</string>
     <string name="apk_share_version">الإصدار %s</string>
     <string name="apk_share_size">الحجم: %s</string>
     <string name="apk_share_hash">SHA-256: %s</string>
     <string name="apk_share_button">مشاركة عبر البلوتوث</string>
-    <string name="apk_share_stop_button">إيقاف المشاركة</string>
-    <string name="apk_share_advertising">جارٍ البث إلى الأجهزة القريبة…</string>
-    <string name="apk_share_transfer_progress">تقدم النقل</string>
-    <string name="apk_share_requesting_devices">أجهزة تطلب Flare</string>
-    <string name="apk_share_no_requests">لا توجد طلبات بعد</string>
-    <string name="apk_receive_scanning">جارٍ البحث عن أجهزة Flare قريبة…</string>
-    <string name="apk_receive_available">متاح للتنزيل</string>
-    <string name="apk_receive_version">الإصدار: %s</string>
-    <string name="apk_receive_size">الحجم: %s</string>
-    <string name="apk_receive_verified">تم التحقق من التوقيع</string>
-    <string name="apk_receive_unverified">لم يتم التحقق من التوقيع</string>
-    <string name="apk_receive_download">تنزيل</string>
-    <string name="apk_receive_install">تثبيت</string>
-    <string name="apk_receive_downloading">جارٍ التنزيل…</string>
-    <string name="apk_receive_no_offers">لم يتم العثور على أجهزة Flare قريبة</string>
     <string name="apk_settings_share">مشاركة تطبيق Flare</string>
     <string name="apk_settings_share_subtitle">إرسال التطبيق إلى الأجهزة القريبة عبر البلوتوث</string>
 

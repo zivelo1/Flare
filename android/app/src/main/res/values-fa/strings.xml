@@ -48,12 +48,11 @@
     <string name="action_save">ذخیره</string>
 
     <!-- تنظیمات -->
-    <string name="settings_duress_title">رمز اضطراری</string>
     <string name="settings_power_title">مدیریت مصرف باتری</string>
     <string name="settings_about_title">درباره Flare</string>
     <string name="settings_back">بازگشت</string>
     <string name="settings_section_security">امنیت</string>
-    <string name="settings_duress_subtitle_configured">پیکربندی شده — پایگاه داده پوششی فعال</string>
+    <string name="settings_duress_subtitle_configured">فعال — صفحه قفل فعال است</string>
     <string name="settings_duress_subtitle_not_configured">پیکربندی نشده — برای تنظیم لمس کنید</string>
     <string name="settings_section_battery">باتری و عملکرد</string>
     <string name="settings_power_subtitle_format">سطح فعلی: %s</string>
@@ -76,23 +75,32 @@
     <string name="settings_tier_low">کم‌مصرف</string>
     <string name="settings_tier_ultra_low">بسیار کم‌مصرف</string>
 
-    <!-- رمز اضطراری -->
-    <string name="duress_title">رمز اضطراری</string>
-    <string name="duress_plausible_deniability">انکارپذیری قابل قبول</string>
-    <string name="duress_explanation">اگر مجبور به باز کردن Flare شدید، وارد کردن رمز اضطراری یک پایگاه داده پوششی با پیام‌های بی‌ضرر باز می‌کند. گفتگوهای واقعی شما مخفی و رمزنگاری‌شده باقی می‌مانند.</string>
-    <string name="duress_active_title">رمز اضطراری فعال</string>
-    <string name="duress_active_description">هنگام وارد کردن رمز اضطراری، پایگاه داده پوششی نمایش داده می‌شود.</string>
-    <string name="duress_remove_button">حذف رمز اضطراری</string>
-    <string name="duress_passphrase_label">عبارت عبور اضطراری</string>
-    <string name="duress_confirm_label">تأیید عبارت عبور</string>
-    <string name="duress_mismatch">عبارات عبور مطابقت ندارند</string>
-    <string name="duress_warning">عبارت عبوری انتخاب کنید که بتوانید در شرایط فشار به خاطر بیاورید. باید با عبارت عبور اصلی شما متفاوت باشد. اگر آن را فراموش کنید، راهی برای بازیابی وجود ندارد.</string>
-    <string name="duress_set_button">تنظیم رمز اضطراری</string>
-    <string name="duress_set_success">رمز اضطراری با موفقیت تنظیم شد</string>
-    <string name="duress_set_error">تنظیم رمز اضطراری ناموفق بود. لطفاً دوباره تلاش کنید.</string>
-    <string name="duress_remove_dialog_title">حذف رمز اضطراری؟</string>
-    <string name="duress_remove_dialog_message">این کار انکارپذیری را غیرفعال می‌کند. هر کسی که شما را مجبور به باز کردن Flare کند، گفتگوهای واقعی شما را خواهد دید.</string>
-    <string name="duress_remove_confirm">حذف</string>
+    <!-- تنظیمات تخریب -->
+    <string name="destruction_title">رمز تخریب</string>
+    <string name="destruction_plausible_deniability">پاک‌سازی اضطراری داده‌ها</string>
+    <string name="destruction_explanation">اگر مجبور به باز کردن Flare شدید، وارد کردن رمز تخریب تمام پیام‌ها، مخاطبین و هویت شما را برای همیشه پاک می‌کند. برنامه به حالت تازه نصب‌شده ظاهر می‌شود. این عمل غیرقابل بازگشت است.</string>
+    <string name="destruction_active_title">رمز تخریب فعال</string>
+    <string name="destruction_active_description">صفحه قفل در هر بار اجرا نمایش داده می‌شود. وارد کردن رمز تخریب تمام داده‌ها را برای همیشه پاک می‌کند.</string>
+    <string name="destruction_remove_button">حذف رمز تخریب</string>
+    <string name="destruction_unlock_code_label">رمز باز کردن</string>
+    <string name="destruction_unlock_code_hint">رمز برای باز کردن عادی برنامه</string>
+    <string name="destruction_code_label">رمز تخریب</string>
+    <string name="destruction_code_hint">رمزی که همه چیز را پاک می‌کند</string>
+    <string name="destruction_confirm_label">تأیید رمز تخریب</string>
+    <string name="destruction_mismatch">رمزهای تخریب مطابقت ندارند</string>
+    <string name="destruction_codes_same">رمز باز کردن و رمز تخریب باید متفاوت باشند</string>
+    <string name="destruction_warning">هشدار: رمز تخریب تمام داده‌ها را به طور دائم و غیرقابل بازگشت پاک می‌کند — پیام‌ها، مخاطبین و هویت شما. بازیابی ممکن نیست. رمزهایی را انتخاب کنید که بتوانید در شرایط فشار شدید به خاطر بیاورید.</string>
+    <string name="destruction_set_button">فعال‌سازی رمز تخریب</string>
+    <string name="destruction_set_success">رمز تخریب فعال شد</string>
+    <string name="destruction_set_error">تنظیم رمز تخریب ناموفق بود. لطفاً دوباره تلاش کنید.</string>
+    <string name="destruction_remove_dialog_title">حذف رمز تخریب؟</string>
+    <string name="destruction_remove_dialog_message">این کار صفحه قفل و رمز تخریب را حذف می‌کند. هر کسی که به تلفن شما دسترسی دارد می‌تواند Flare را باز کرده و گفتگوهای شما را ببیند.</string>
+    <string name="destruction_remove_confirm">حذف</string>
+    <string name="lock_screen_title">Flare</string>
+    <string name="lock_screen_enter_code">رمز خود را برای باز کردن وارد کنید</string>
+    <string name="lock_screen_code_label">رمز</string>
+    <string name="lock_screen_unlock">باز کردن</string>
+    <string name="lock_screen_wrong_code">رمز اشتباه</string>
 
     <!-- مدیریت مصرف باتری -->
     <string name="power_title">مدیریت مصرف باتری</string>
@@ -161,27 +169,11 @@
 
     <!-- اشتراک‌گذاری APK -->
     <string name="apk_share_title">اشتراک‌گذاری Flare</string>
-    <string name="apk_receive_title">دریافت Flare</string>
     <string name="apk_share_description">اشتراک‌گذاری برنامه Flare با دستگاه‌های نزدیک از طریق بلوتوث</string>
     <string name="apk_share_version">نسخه %s</string>
     <string name="apk_share_size">حجم: %s</string>
     <string name="apk_share_hash">SHA-256: %s</string>
     <string name="apk_share_button">اشتراک‌گذاری از طریق بلوتوث</string>
-    <string name="apk_share_stop_button">توقف اشتراک‌گذاری</string>
-    <string name="apk_share_advertising">در حال پخش به دستگاه‌های نزدیک…</string>
-    <string name="apk_share_transfer_progress">پیشرفت انتقال</string>
-    <string name="apk_share_requesting_devices">دستگاه‌هایی که Flare را درخواست کرده‌اند</string>
-    <string name="apk_share_no_requests">هنوز درخواستی نیست</string>
-    <string name="apk_receive_scanning">در حال اسکن دستگاه‌های Flare نزدیک…</string>
-    <string name="apk_receive_available">آماده دانلود</string>
-    <string name="apk_receive_version">نسخه: %s</string>
-    <string name="apk_receive_size">حجم: %s</string>
-    <string name="apk_receive_verified">امضا تأیید شد</string>
-    <string name="apk_receive_unverified">امضا تأیید نشد</string>
-    <string name="apk_receive_download">دانلود</string>
-    <string name="apk_receive_install">نصب</string>
-    <string name="apk_receive_downloading">در حال دانلود…</string>
-    <string name="apk_receive_no_offers">دستگاه Flare نزدیکی یافت نشد</string>
     <string name="apk_settings_share">اشتراک‌گذاری برنامه Flare</string>
     <string name="apk_settings_share_subtitle">ارسال برنامه به دستگاه‌های نزدیک از طریق بلوتوث</string>
 
