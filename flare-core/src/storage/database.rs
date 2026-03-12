@@ -749,7 +749,10 @@ mod tests {
     fn test_derive_key_different_passphrases_different_keys() {
         let key1 = FlareDatabase::derive_key("passphrase-a").unwrap();
         let key2 = FlareDatabase::derive_key("passphrase-b").unwrap();
-        assert_ne!(key1, key2, "Different passphrases must produce different keys");
+        assert_ne!(
+            key1, key2,
+            "Different passphrases must produce different keys"
+        );
     }
 
     #[test]
