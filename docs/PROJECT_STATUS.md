@@ -275,6 +275,7 @@
 - **Gradle wrapper (`gradlew`)** was missing from the repo — generated during this phase. **Fixed.**
 - **SQLCipher cross-compilation** required switching from `bundled-sqlcipher` to `bundled-sqlcipher-vendored-openssl` in Cargo.toml to bundle OpenSSL source for Android NDK builds. **Fixed.**
 - **UniFFI metadata stripped** — `strip = true` in release profile removed UniFFI metadata from .so. Changed to `strip = "debuginfo"`. **Fixed.**
+- **Crash on update from pre-v0.8:** Old `derive_key()` used random salt, making databases encrypted with an irrecoverable key. New deterministic salt produces a different key, so old DB can't be opened. **Fixed:** `FlareRepository.initialize()` catches the error, deletes the old DB, and creates a fresh one. One-time migration — all future updates preserve data.
 
 ## Phase Overview
 | Phase | Scope | Status |
