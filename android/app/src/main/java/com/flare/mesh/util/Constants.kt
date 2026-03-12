@@ -224,6 +224,18 @@ object Constants {
     /** Key for persisting the user's display name. */
     const val KEY_DISPLAY_NAME: String = "user_display_name"
 
+    /** Key for persisting dark mode preference. */
+    const val KEY_DARK_MODE: String = "dark_mode"
+
+    /** Dark mode option: follow system setting. */
+    const val DARK_MODE_SYSTEM: String = "system"
+
+    /** Dark mode option: always light. */
+    const val DARK_MODE_LIGHT: String = "light"
+
+    /** Dark mode option: always dark. */
+    const val DARK_MODE_DARK: String = "dark"
+
     /** Language code for system default. */
     const val LANGUAGE_SYSTEM_DEFAULT: String = "system"
 

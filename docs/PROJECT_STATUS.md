@@ -1,8 +1,8 @@
 # Flare — Project Status
 
-## Current Phase: Phase 7 — Security Hardening
+## Current Phase: Phase 9 — UI Polish (Android)
 **Strategy:** Android-first. In target markets (Iran, Syria, Yemen, Sudan, Myanmar, Cuba, Venezuela, Ethiopia), Android has 85-98% market share. iOS deferred to backlog.
-**Previous:** Phase 6A device testing verified — encrypted BLE mesh messaging working on 2 physical Android devices.
+**Previous:** Phase 8 localization (6 languages), Phase 6A device testing verified — encrypted BLE mesh messaging working on 2 physical Android devices.
 
 ## What's Done
 
@@ -247,8 +247,12 @@
 - [x] **Profile name** — editable display name in Settings, persisted via SharedPreferences
 - [ ] RTL layout testing (Farsi/Arabic) — chat bubbles, navigation direction
 
-### Phase 9 — UI Polish (Android)
-- [ ] **Dark mode toggle** — user-selectable light/dark/system in Settings (dark mode rendering already implemented)
+### Phase 9 — UI Polish (Android) (Complete)
+- [x] **Dark mode toggle** — user-selectable light/dark/system in Settings with AlertDialog and RadioButton options, activity recreate on change
+- [x] **Version display** — BuildConfig.VERSION_NAME shown in Settings About section
+- [x] **Language confirmation dialog** — OK/Cancel approval before switching language (prevents accidental changes)
+- [x] **AppCompatActivity migration** — MainActivity uses AppCompatActivity for proper locale switching via AppCompatDelegate
+- [x] **Voice recording permission fix** — permission check at composition time via ContextCompat.checkSelfPermission
 - [ ] **Emoji picker** — in-chat emoji selector for quick access beyond system keyboard
 
 ### Phase 10 — Android Release
@@ -289,7 +293,7 @@
 | 6A — Device Testing | Android APK build, cross-compilation, device install, BLE mesh verified | **Complete** (2 devices, encrypted chat working) |
 | 7 — Security Hardening | Crypto review, DB key fix, rendezvous DH fix, payload sig fix, TTL guard fix | **Complete** (5 vulnerabilities fixed, 193 tests) |
 | 8 — Localization & UX (Android) | 6 languages, language selector, contact rename, broadcast, profile | **Complete** |
-| 9 — UI Polish (Android) | Dark mode toggle, emoji picker | Planned |
+| 9 — UI Polish (Android) | Dark mode toggle, version display, language confirm dialog, voice fix | **Complete** |
 | 10 — Android Release | Battery/memory profiling, signed APK, F-Droid, GitHub Release | Planned |
 | Backlog — iOS | iOS device testing, App Store ($99/yr), iOS localization | Deferred |
 

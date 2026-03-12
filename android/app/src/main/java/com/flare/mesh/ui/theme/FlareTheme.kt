@@ -1,14 +1,17 @@
 package com.flare.mesh.ui.theme
 
+import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.flare.mesh.util.Constants
 
 // Flare brand colors
 private val FlareOrange = Color(0xFFFF6B35)
@@ -115,7 +118,15 @@ val FlareTypography = Typography(
 
 @Composable
 fun FlareTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = run {
+        val context = LocalContext.current
+        val prefs = remember { context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE) }
+        when (prefs.getString(Constants.KEY_DARK_MODE, Constants.DARK_MODE_SYSTEM)) {
+            Constants.DARK_MODE_LIGHT -> false
+            Constants.DARK_MODE_DARK -> true
+            else -> isSystemInDarkTheme()
+        }
+    },
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit,
 ) {

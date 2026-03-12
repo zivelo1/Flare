@@ -50,7 +50,13 @@ fun VoiceRecordButton(
     var amplitudes by remember { mutableStateOf(List(Constants.VOICE_WAVEFORM_BAR_COUNT) { 0f }) }
     var recorderRef by remember { mutableStateOf<MediaRecorder?>(null) }
     var outputFileRef by remember { mutableStateOf<File?>(null) }
-    var hasPermission by remember { mutableStateOf(false) }
+    var hasPermission by remember {
+        mutableStateOf(
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                context, Manifest.permission.RECORD_AUDIO
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        )
+    }
 
     val errorMessage = stringResource(R.string.voice_record_error)
     val tooShortMessage = stringResource(R.string.voice_record_too_short)

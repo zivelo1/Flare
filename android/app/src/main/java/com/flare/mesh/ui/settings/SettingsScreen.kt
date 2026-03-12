@@ -1,5 +1,6 @@
 package com.flare.mesh.ui.settings
 
+import android.app.Activity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -7,15 +8,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flare.mesh.BuildConfig
 import com.flare.mesh.R
 import com.flare.mesh.util.Constants
 import com.flare.mesh.viewmodel.SettingsViewModel
@@ -136,13 +138,20 @@ fun SettingsScreen(
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
+            // ── Display Section ──────────────────────────────────────
+            SettingsSectionHeader(stringResource(R.string.settings_section_display))
+
+            DarkModeSettingsItem()
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
             // ── About Section ────────────────────────────────────────
             SettingsSectionHeader(stringResource(R.string.settings_section_about))
 
             SettingsItem(
                 icon = Icons.Filled.Info,
                 title = stringResource(R.string.app_name),
-                subtitle = stringResource(R.string.settings_about_subtitle),
+                subtitle = "Version ${BuildConfig.VERSION_NAME} — ${stringResource(R.string.settings_about_subtitle)}",
                 onClick = {},
             )
 
@@ -330,6 +339,85 @@ private fun DeviceInfoCard(
                 fontWeight = FontWeight.Medium,
             )
         }
+    }
+}
+
+@Composable
+private fun DarkModeSettingsItem() {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences(Constants.PREFS_NAME, android.content.Context.MODE_PRIVATE) }
+    var currentMode by remember { mutableStateOf(prefs.getString(Constants.KEY_DARK_MODE, Constants.DARK_MODE_SYSTEM) ?: Constants.DARK_MODE_SYSTEM) }
+    var showDialog by remember { mutableStateOf(false) }
+
+    val subtitle = when (currentMode) {
+        Constants.DARK_MODE_LIGHT -> stringResource(R.string.settings_dark_mode_light)
+        Constants.DARK_MODE_DARK -> stringResource(R.string.settings_dark_mode_dark)
+        else -> stringResource(R.string.settings_dark_mode_system)
+    }
+
+    SettingsItem(
+        icon = Icons.Filled.DarkMode,
+        title = stringResource(R.string.settings_dark_mode_title),
+        subtitle = subtitle,
+        onClick = { showDialog = true },
+    )
+
+    if (showDialog) {
+        val options = listOf(
+            Constants.DARK_MODE_SYSTEM to stringResource(R.string.settings_dark_mode_system),
+            Constants.DARK_MODE_LIGHT to stringResource(R.string.settings_dark_mode_light),
+            Constants.DARK_MODE_DARK to stringResource(R.string.settings_dark_mode_dark),
+        )
+
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(stringResource(R.string.settings_dark_mode_title)) },
+            text = {
+                Column {
+                    options.forEach { (value, label) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    if (value != currentMode) {
+                                        currentMode = value
+                                        prefs.edit().putString(Constants.KEY_DARK_MODE, value).apply()
+                                        showDialog = false
+                                        // Recreate activity to apply theme change across the entire app
+                                        (context as? Activity)?.recreate()
+                                    } else {
+                                        showDialog = false
+                                    }
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(
+                                selected = currentMode == value,
+                                onClick = {
+                                    if (value != currentMode) {
+                                        currentMode = value
+                                        prefs.edit().putString(Constants.KEY_DARK_MODE, value).apply()
+                                        showDialog = false
+                                        (context as? Activity)?.recreate()
+                                    } else {
+                                        showDialog = false
+                                    }
+                                },
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = label, style = MaterialTheme.typography.bodyLarge)
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
     }
 }
 

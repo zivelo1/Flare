@@ -280,6 +280,13 @@
     <string name="broadcast_no_contacts">No contacts to broadcast to. Add contacts first.</string>
     <string name="broadcast_security_notice">Broadcast messages are signed but not encrypted. Anyone who receives the message can read it.</string>
 
+    <!-- Display Settings -->
+    <string name="settings_section_display">Display</string>
+    <string name="settings_dark_mode_title">Dark Mode</string>
+    <string name="settings_dark_mode_system">System Default</string>
+    <string name="settings_dark_mode_light">Light</string>
+    <string name="settings_dark_mode_dark">Dark</string>
+
     <!-- Language Settings -->
     <string name="settings_section_language">Language</string>
     <string name="settings_language_title">Language</string>
@@ -294,4 +301,8 @@
     <string name="language_chinese">中文 (Chinese)</string>
     <string name="language_korean">한국어 (Korean)</string>
     <string name="language_restart_notice">Changing the language may require restarting the app.</string>
+    <string name="language_confirm_title">Change Language?</string>
+    <string name="language_confirm_message">Switch to %1$s? The app will restart to apply the change.</string>
+    <string name="language_confirm_ok">OK</string>
+
 </resources>

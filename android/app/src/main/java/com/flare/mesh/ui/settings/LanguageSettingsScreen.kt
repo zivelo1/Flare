@@ -30,6 +30,7 @@ fun LanguageSettingsScreen(
     val context = LocalContext.current
     val currentLocale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
     var selectedLanguage by remember { mutableStateOf(getCurrentLanguageCode(context)) }
+    var pendingLanguage by remember { mutableStateOf<Constants.LanguageOption?>(null) }
 
     Scaffold(
         topBar = {
@@ -65,8 +66,9 @@ fun LanguageSettingsScreen(
                 val isSelected = selectedLanguage == lang.code
                 ListItem(
                     modifier = Modifier.clickable {
-                        selectedLanguage = lang.code
-                        setAppLanguage(context, lang.code)
+                        if (lang.code != selectedLanguage) {
+                            pendingLanguage = lang
+                        }
                     },
                     headlineContent = {
                         Text(
@@ -90,6 +92,31 @@ fun LanguageSettingsScreen(
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp))
             }
         }
+    }
+
+    // Confirmation dialog
+    pendingLanguage?.let { lang ->
+        val langName = lang.nativeName ?: stringResource(lang.nameRes)
+        AlertDialog(
+            onDismissRequest = { pendingLanguage = null },
+            confirmButton = {
+                TextButton(onClick = {
+                    selectedLanguage = lang.code
+                    pendingLanguage = null
+                    onNavigateBack()
+                    setAppLanguage(context, lang.code)
+                }) {
+                    Text(stringResource(R.string.language_confirm_ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingLanguage = null }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+            title = { Text(stringResource(R.string.language_confirm_title)) },
+            text = { Text(stringResource(R.string.language_confirm_message, langName)) },
+        )
     }
 }
 
