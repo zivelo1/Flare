@@ -874,6 +874,10 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -907,6 +911,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_flare_core_fn_method_flarenode_add_trusted_developer_key(`ptr`: Pointer,`publicKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_flare_core_fn_method_flarenode_build_broadcast_message(`ptr`: Pointer,`plaintextPayload`: RustBuffer.ByValue,`contentType`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_build_group_messages(`ptr`: Pointer,`groupId`: RustBuffer.ByValue,`encryptedPayloads`: RustBuffer.ByValue,`memberDeviceIds`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_build_mesh_message(`ptr`: Pointer,`recipientDeviceId`: RustBuffer.ByValue,`encryptedPayload`: RustBuffer.ByValue,`contentType`: Byte,uniffi_out_err: UniffiRustCallStatus, 
@@ -1029,6 +1035,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_flare_core_fn_method_flarenode_trusted_developer_key_count(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
+    fun uniffi_flare_core_fn_method_flarenode_update_contact_display_name(`ptr`: Pointer,`deviceId`: RustBuffer.ByValue,`displayName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
     fun uniffi_flare_core_fn_method_flarenode_update_delivery_status(`ptr`: Pointer,`messageId`: RustBuffer.ByValue,`status`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_flare_core_fn_method_flarenode_verify_apk_signature(`ptr`: Pointer,`apkHash`: RustBuffer.ByValue,`signatureBytes`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -1183,6 +1191,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_add_trusted_developer_key(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_build_broadcast_message(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_build_group_messages(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_build_mesh_message(
@@ -1305,6 +1315,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_trusted_developer_key_count(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_update_contact_display_name(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_update_delivery_status(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_verify_apk_signature(
@@ -1365,6 +1377,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_add_trusted_developer_key() != 54447.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_build_broadcast_message() != 54817.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_build_group_messages() != 30329.toShort()) {
@@ -1548,6 +1563,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_trusted_developer_key_count() != 38597.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_update_contact_display_name() != 14839.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_update_delivery_status() != 16495.toShort()) {
@@ -2014,6 +2032,13 @@ public interface FlareNodeInterface {
     fun `addTrustedDeveloperKey`(`publicKey`: kotlin.ByteArray)
     
     /**
+     * Builds a broadcast mesh message (sent to all peers).
+     * The payload is NOT encrypted — broadcasts are signed but readable by all.
+     * content_type: same as build_mesh_message.
+     */
+    fun `buildBroadcastMessage`(`plaintextPayload`: kotlin.ByteArray, `contentType`: kotlin.UByte): FfiMeshMessage
+    
+    /**
      * Sends a group message by encrypting it individually for each member.
      * Returns the serialized mesh messages (one per member, excluding self).
      */
@@ -2361,6 +2386,12 @@ public interface FlareNodeInterface {
     fun `trustedDeveloperKeyCount`(): kotlin.UInt
     
     /**
+     * Updates the display name of an existing contact.
+     * Returns true if the contact was found and updated, false if not found.
+     */
+    fun `updateContactDisplayName`(`deviceId`: kotlin.String, `displayName`: kotlin.String): kotlin.Boolean
+    
+    /**
      * Updates the delivery status of a stored message.
      */
     fun `updateDeliveryStatus`(`messageId`: kotlin.String, `status`: kotlin.UByte)
@@ -2581,6 +2612,24 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
 }
     }
     
+    
+
+    
+    /**
+     * Builds a broadcast mesh message (sent to all peers).
+     * The payload is NOT encrypted — broadcasts are signed but readable by all.
+     * content_type: same as build_mesh_message.
+     */
+    @Throws(FlareException::class)override fun `buildBroadcastMessage`(`plaintextPayload`: kotlin.ByteArray, `contentType`: kotlin.UByte): FfiMeshMessage {
+            return FfiConverterTypeFfiMeshMessage.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_build_broadcast_message(
+        it, FfiConverterByteArray.lower(`plaintextPayload`),FfiConverterUByte.lower(`contentType`),_status)
+}
+    }
+    )
+    }
     
 
     
@@ -3551,6 +3600,23 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_trusted_developer_key_count(
         it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Updates the display name of an existing contact.
+     * Returns true if the contact was found and updated, false if not found.
+     */
+    @Throws(FlareException::class)override fun `updateContactDisplayName`(`deviceId`: kotlin.String, `displayName`: kotlin.String): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_update_contact_display_name(
+        it, FfiConverterString.lower(`deviceId`),FfiConverterString.lower(`displayName`),_status)
 }
     }
     )

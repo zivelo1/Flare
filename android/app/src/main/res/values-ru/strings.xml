@@ -58,7 +58,7 @@
     <string name="settings_storage_relay">Ретрансляция</string>
     <string name="settings_storage_waiting">Ожидание</string>
     <string name="settings_storage_total">Всего</string>
-    <string name="settings_storage_usage_format">%.1f МБ / %.0f МБ использовано</string>
+    <string name="settings_storage_usage_format">%1$.1f МБ / %2$.0f МБ использовано</string>
     <string name="settings_section_device">Устройство</string>
     <string name="settings_device_id">ID устройства</string>
     <string name="settings_safety_number">Код безопасности</string>
@@ -106,8 +106,8 @@
     <string name="power_tier_active">АКТИВЕН</string>
     <string name="power_high_description">Почти непрерывное сканирование. Максимальная скорость обнаружения. Используется при активном обмене данными (макс. %ds).</string>
     <string name="power_balanced_description">Сканирование с рабочим циклом 25%%. Хороший баланс между обнаружением и батареей. Переключается на низкое энергопотребление после %ds без узлов.</string>
-    <string name="power_low_description">Пакетный режим — сканирование %ds каждые %ds (~17%% активности).</string>
-    <string name="power_ultralow_description">Минимальное сканирование — %ds каждые %ds (~5%% активности). Включается при заряде ниже %d%%.</string>
+    <string name="power_low_description">Пакетный режим — сканирование %1$ds каждые %2$ds (~17%% активности).</string>
+    <string name="power_ultralow_description">Минимальное сканирование — %1$ds каждые %2$ds (~5%% активности). Включается при заряде ниже %3$d%%.</string>
     <string name="power_auto_adjust">Flare автоматически регулирует уровень энергопотребления на основе активности сети, наличия узлов и уровня заряда батареи. Высокий уровень отключается при заряде ниже %d%%.</string>
 
     <!-- Conversation List -->
@@ -186,7 +186,7 @@
     <string name="chat_status_failed">Ошибка</string>
 
     <!-- Network -->
-    <string name="network_connected_count">%d подключено, %d обнаружено</string>
+    <string name="network_connected_count">%1$d подключено, %2$d обнаружено</string>
     <string name="network_discovered_count">%d устройств найдено, подключение…</string>
     <string name="network_scanning_status">Поиск ближайших устройств</string>
     <string name="network_stat_connected">Подключено</string>

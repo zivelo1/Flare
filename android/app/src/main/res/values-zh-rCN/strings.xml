@@ -58,7 +58,7 @@
     <string name="settings_storage_relay">中继</string>
     <string name="settings_storage_waiting">等待中</string>
     <string name="settings_storage_total">总计</string>
-    <string name="settings_storage_usage_format">%.1f MB / %.0f MB 已使用</string>
+    <string name="settings_storage_usage_format">%1$.1f MB / %2$.0f MB 已使用</string>
     <string name="settings_section_device">设备</string>
     <string name="settings_device_id">设备 ID</string>
     <string name="settings_safety_number">安全码</string>
@@ -106,8 +106,8 @@
     <string name="power_tier_active">激活</string>
     <string name="power_high_description">近乎持续扫描。最大发现速度。在活跃数据交换期间使用（最长 %d秒）。</string>
     <string name="power_balanced_description">25%% 占空比扫描。发现与电池之间的良好平衡。无节点 %d秒后切换至低功耗。</string>
-    <string name="power_low_description">突发模式 — 每 %d秒扫描 %d秒（约 17%% 活跃）。</string>
-    <string name="power_ultralow_description">最低扫描 — 每 %d秒扫描 %d秒（约 5%% 活跃）。电量低于 %d%% 时激活。</string>
+    <string name="power_low_description">突发模式 — 每 %1$d秒扫描 %2$d秒（约 17%% 活跃）。</string>
+    <string name="power_ultralow_description">最低扫描 — 每 %1$d秒扫描 %2$d秒（约 5%% 活跃）。电量低于 %3$d%% 时激活。</string>
     <string name="power_auto_adjust">Flare 根据网络活动、节点存在和电池电量自动调整功耗级别。电量低于 %d%% 时禁用高性能级别。</string>
 
     <!-- Conversation List -->
@@ -186,7 +186,7 @@
     <string name="chat_status_failed">失败</string>
 
     <!-- Network -->
-    <string name="network_connected_count">%d 已连接，%d 已发现</string>
+    <string name="network_connected_count">%1$d 已连接，%2$d 已发现</string>
     <string name="network_discovered_count">发现 %d 个设备，正在连接…</string>
     <string name="network_scanning_status">正在扫描附近设备</string>
     <string name="network_stat_connected">已连接</string>

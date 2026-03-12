@@ -67,7 +67,7 @@
     <string name="settings_storage_relay">Relay</string>
     <string name="settings_storage_waiting">Waiting</string>
     <string name="settings_storage_total">Total</string>
-    <string name="settings_storage_usage_format">%.1f MB / %.0f MB used</string>
+    <string name="settings_storage_usage_format">%1$.1f MB / %2$.0f MB used</string>
     <string name="settings_section_device">Device</string>
     <string name="settings_device_id">Device ID</string>
     <string name="settings_safety_number">Safety Number</string>
@@ -108,8 +108,8 @@
     <string name="power_tier_active">ACTIVE</string>
     <string name="power_high_description">Near-continuous scanning. Maximum discovery speed. Used during active data exchange (max %ds).</string>
     <string name="power_balanced_description">25%% duty cycle scanning. Good balance of discovery and battery. Drops to Low Power after %ds without peers.</string>
-    <string name="power_low_description">Burst mode — scans %ds every %ds (~17%% active).</string>
-    <string name="power_ultralow_description">Minimal scanning — %ds every %ds (~5%% active). Activated below %d%% battery.</string>
+    <string name="power_low_description">Burst mode — scans %1$ds every %2$ds (~17%% active).</string>
+    <string name="power_ultralow_description">Minimal scanning — %1$ds every %2$ds (~5%% active). Activated below %3$d%% battery.</string>
     <string name="power_auto_adjust">Flare automatically adjusts the power tier based on network activity, peer presence, and battery level. High tier is disabled below %d%% battery.</string>
 
     <!-- Groups -->
@@ -197,7 +197,7 @@
     <!-- Network -->
     <string name="network_nearby_devices">Nearby Devices</string>
     <string name="network_scanning">Scanning for Flare devices…</string>
-    <string name="network_connected_count">%d connected, %d discovered</string>
+    <string name="network_connected_count">%1$d connected, %2$d discovered</string>
     <string name="network_discovered_count">%d devices found, connecting…</string>
     <string name="network_scanning_status">Scanning for nearby devices</string>
     <string name="network_stat_connected">Connected</string>

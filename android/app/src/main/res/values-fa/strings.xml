@@ -62,7 +62,7 @@
     <string name="settings_storage_relay">رله</string>
     <string name="settings_storage_waiting">در انتظار</string>
     <string name="settings_storage_total">کل</string>
-    <string name="settings_storage_usage_format">%.1f مگابایت / %.0f مگابایت استفاده شده</string>
+    <string name="settings_storage_usage_format">%1$.1f مگابایت / %2$.0f مگابایت استفاده شده</string>
     <string name="settings_section_device">دستگاه</string>
     <string name="settings_device_id">شناسه دستگاه</string>
     <string name="settings_safety_number">شماره امنیتی</string>
@@ -103,8 +103,8 @@
     <string name="power_tier_active">فعال</string>
     <string name="power_high_description">اسکن تقریباً مداوم. حداکثر سرعت کشف. در حین تبادل داده فعال استفاده می‌شود (حداکثر %d ثانیه).</string>
     <string name="power_balanced_description">اسکن با چرخه کاری ۲۵٪. تعادل خوب بین کشف و باتری. پس از %d ثانیه بدون دستگاه، به کم‌مصرف تغییر می‌کند.</string>
-    <string name="power_low_description">حالت انفجاری — %d ثانیه اسکن هر %d ثانیه (~۱۷٪ فعال).</string>
-    <string name="power_ultralow_description">حداقل اسکن — %d ثانیه هر %d ثانیه (~۵٪ فعال). در زیر %d٪ باتری فعال می‌شود.</string>
+    <string name="power_low_description">حالت انفجاری — %1$d ثانیه اسکن هر %2$d ثانیه (~۱۷٪ فعال).</string>
+    <string name="power_ultralow_description">حداقل اسکن — %1$d ثانیه هر %2$d ثانیه (~۵٪ فعال). در زیر %3$d٪ باتری فعال می‌شود.</string>
     <string name="power_auto_adjust">Flare به طور خودکار سطح مصرف را بر اساس فعالیت شبکه، حضور دستگاه‌ها و سطح باتری تنظیم می‌کند. سطح بالا در زیر %d٪ باتری غیرفعال می‌شود.</string>
 
     <!-- گروه‌ها -->
@@ -192,7 +192,7 @@
     <!-- شبکه -->
     <string name="network_nearby_devices">دستگاه‌های نزدیک</string>
     <string name="network_scanning">در حال اسکن دستگاه‌های Flare…</string>
-    <string name="network_connected_count">%d متصل، %d کشف شده</string>
+    <string name="network_connected_count">%1$d متصل، %2$d کشف شده</string>
     <string name="network_discovered_count">%d دستگاه یافت شد، در حال اتصال…</string>
     <string name="network_scanning_status">در حال اسکن دستگاه‌های نزدیک</string>
     <string name="network_stat_connected">متصل</string>

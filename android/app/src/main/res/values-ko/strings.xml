@@ -58,7 +58,7 @@
     <string name="settings_storage_relay">중계</string>
     <string name="settings_storage_waiting">대기 중</string>
     <string name="settings_storage_total">전체</string>
-    <string name="settings_storage_usage_format">%.1f MB / %.0f MB 사용됨</string>
+    <string name="settings_storage_usage_format">%1$.1f MB / %2$.0f MB 사용됨</string>
     <string name="settings_section_device">기기</string>
     <string name="settings_device_id">기기 ID</string>
     <string name="settings_safety_number">안전 번호</string>
@@ -106,8 +106,8 @@
     <string name="power_tier_active">활성</string>
     <string name="power_high_description">거의 연속적인 스캔. 최대 검색 속도. 활성 데이터 교환 중 사용 (최대 %d초).</string>
     <string name="power_balanced_description">25%% 듀티 사이클 스캔. 검색과 배터리의 좋은 균형. 피어 없이 %d초 후 저전력으로 전환.</string>
-    <string name="power_low_description">버스트 모드 — %d초마다 %d초 스캔 (약 17%% 활성).</string>
-    <string name="power_ultralow_description">최소 스캔 — %d초마다 %d초 스캔 (약 5%% 활성). 배터리 %d%% 이하에서 활성화.</string>
+    <string name="power_low_description">버스트 모드 — %1$d초마다 %2$d초 스캔 (약 17%% 활성).</string>
+    <string name="power_ultralow_description">최소 스캔 — %1$d초마다 %2$d초 스캔 (약 5%% 활성). 배터리 %3$d%% 이하에서 활성화.</string>
     <string name="power_auto_adjust">Flare는 네트워크 활동, 피어 존재 여부, 배터리 수준에 따라 전력 등급을 자동 조정합니다. 배터리 %d%% 이하에서 고성능 등급은 비활성화됩니다.</string>
 
     <!-- Conversation List -->
@@ -186,7 +186,7 @@
     <string name="chat_status_failed">실패</string>
 
     <!-- Network -->
-    <string name="network_connected_count">%d개 연결, %d개 발견</string>
+    <string name="network_connected_count">%1$d개 연결, %2$d개 발견</string>
     <string name="network_discovered_count">%d개 기기 발견, 연결 중…</string>
     <string name="network_scanning_status">근처 기기를 스캔 중</string>
     <string name="network_stat_connected">연결됨</string>

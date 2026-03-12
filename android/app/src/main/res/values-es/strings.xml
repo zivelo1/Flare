@@ -58,7 +58,7 @@
     <string name="settings_storage_relay">Retransmisión</string>
     <string name="settings_storage_waiting">En espera</string>
     <string name="settings_storage_total">Total</string>
-    <string name="settings_storage_usage_format">%.1f MB / %.0f MB usados</string>
+    <string name="settings_storage_usage_format">%1$.1f MB / %2$.0f MB usados</string>
     <string name="settings_section_device">Dispositivo</string>
     <string name="settings_device_id">ID del dispositivo</string>
     <string name="settings_safety_number">Número de seguridad</string>
@@ -106,8 +106,8 @@
     <string name="power_tier_active">ACTIVO</string>
     <string name="power_high_description">Escaneo casi continuo. Máxima velocidad de descubrimiento. Se usa durante el intercambio activo de datos (máx. %ds).</string>
     <string name="power_balanced_description">Escaneo con ciclo de trabajo del 25%%. Buen equilibrio entre descubrimiento y batería. Baja a bajo consumo después de %ds sin pares.</string>
-    <string name="power_low_description">Modo ráfaga — escanea %ds cada %ds (~17%% activo).</string>
-    <string name="power_ultralow_description">Escaneo mínimo — %ds cada %ds (~5%% activo). Se activa por debajo del %d%% de batería.</string>
+    <string name="power_low_description">Modo ráfaga — escanea %1$ds cada %2$ds (~17%% activo).</string>
+    <string name="power_ultralow_description">Escaneo mínimo — %1$ds cada %2$ds (~5%% activo). Se activa por debajo del %3$d%% de batería.</string>
     <string name="power_auto_adjust">Flare ajusta automáticamente el nivel de energía según la actividad de la red, la presencia de pares y el nivel de batería. El nivel alto se desactiva por debajo del %d%% de batería.</string>
 
     <!-- Conversation List -->
@@ -186,7 +186,7 @@
     <string name="chat_status_failed">Fallido</string>
 
     <!-- Network -->
-    <string name="network_connected_count">%d conectados, %d descubiertos</string>
+    <string name="network_connected_count">%1$d conectados, %2$d descubiertos</string>
     <string name="network_discovered_count">%d dispositivos encontrados, conectando…</string>
     <string name="network_scanning_status">Buscando dispositivos cercanos</string>
     <string name="network_stat_connected">Conectado</string>
