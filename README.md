@@ -25,7 +25,7 @@ No servers. No accounts. No phone number required. Just install and start messag
 On the roadmap. Android is the priority — in the countries where Flare is needed most (Iran, Syria, Yemen, Sudan, Myanmar, Cuba, Venezuela), Android has 85-98% market share.
 
 ### Already have Flare?
-You can share it with someone nearby via Bluetooth — open **Settings > Share Flare App** in the app. The entire app transfers phone-to-phone, no internet needed.
+You can share it with someone nearby — open **Settings > Share Flare App** in the app. Send the APK file directly via Nearby Share, Bluetooth, WhatsApp, or any messaging app. Or share a download link.
 
 ## Who Is This For?
 
@@ -88,13 +88,12 @@ graph LR
 ```
 
 1. **One person** downloads Flare while they still have internet access (from a website, via Starlink, etc.)
-2. **They open Flare** — the app automatically advertises itself to nearby phones via Bluetooth, including its version and a verification hash
-3. **A nearby person** without internet receives the offer and accepts it
-4. **Flare transfers itself** phone-to-phone — the entire app, in small verified chunks, no internet needed
-5. **The new user installs Flare** and immediately becomes part of the mesh — they can now message AND share the app further
-6. **Each new user repeats the process** — Flare spreads virally, person to person, across an entire city or region
+2. **They open Settings > Share Flare App** — the app shares itself via Nearby Share, Bluetooth, or any available channel
+3. **A nearby person** receives the APK file and installs it (standard Android sideloading)
+4. **The new user opens Flare** and immediately becomes part of the mesh — they can now message AND share the app further
+5. **Each new user repeats the process** — Flare spreads person to person, across an entire city or region
 
-The transfer is verified with Ed25519 developer signatures and SHA-256 hash to ensure the app hasn't been tampered with. A trusted developer key store maintains a chain of trust from the first install, with support for key rotation. On Android, this works via standard APK sideloading. iOS distribution options are being evaluated.
+The APK includes a SHA-256 hash for integrity verification. The Rust core supports Ed25519 developer signatures and a trusted key store for chain-of-trust verification. On Android, this works via standard APK sideloading.
 
 ## Key Features
 
@@ -201,13 +200,15 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture diagr
 - **Splash screen** — animated flame icon with brand gradient
 - **Chat animations** — entrance animations on new messages, haptic feedback on send/receive
 - **Mesh visualization** — animated Canvas topology showing connected peers with RSSI-based line thickness
-- **Voice recording** — hold-to-record with live waveform, .m4a output via MediaRecorder
-- **Image capture** — camera capture with preview sheet before sending
-- **APK sharing** — share/receive screens with version, SHA-256 hash, transfer progress, developer signature verification
+- **Voice messages** — hold-to-record, Base64-encoded audio over mesh, in-chat playback with MediaPlayer
+- **Image messages** — camera/gallery photos scaled and compressed, Base64-encoded, rendered in chat bubbles
+- **APK sharing** — share the app file via Nearby Share, Bluetooth, or any messaging app (Settings > Share Flare App)
+- **KeyExchange protocol** — scanning someone's QR automatically sends your keys back, so they can message you immediately
 - **Localization** — 6 languages (Farsi, Arabic, Spanish, Russian, Chinese, Korean) with runtime language switching and confirmation dialog
 - **Dark mode** — user-selectable light/dark/system theme toggle in Settings
 - **Broadcast messaging** — send a message to all contacts at once
 - **Contact rename** — long-press to rename any contact
+- **Contact deletion** — long-press to delete a contact and all chat history
 - **Profile name** — editable display name in Settings
 
 **iOS App** (Swift + SwiftUI):

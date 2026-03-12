@@ -257,6 +257,9 @@
 - [x] **Image message sending** — scaled/compressed JPEG, Base64-encoded, rendered in chat bubbles
 - [x] **Contact deletion** — cascading delete (messages → conversations → contact) with confirmation dialog
 - [x] **CI fix** — x86_64-linux-android OpenSSL cross-compilation (RANLIB env var)
+- [x] **KeyExchange protocol** — QR scan auto-sends sender's public keys to scanned contact, enabling immediate two-way messaging without mutual QR scan
+- [x] **APK sharing via system intent** — share app file via Nearby Share, Bluetooth, WhatsApp, etc. (replaced non-functional BLE transfer stubs)
+- [x] **content_type in FfiMeshMessage** — Rust FFI now exposes message content type for routing KeyExchange, voice, image messages
 - [ ] **Emoji picker** — in-chat emoji selector for quick access beyond system keyboard
 
 ### Phase 10 — Android Release
@@ -284,6 +287,10 @@
 - **SQLCipher cross-compilation** required switching from `bundled-sqlcipher` to `bundled-sqlcipher-vendored-openssl` in Cargo.toml to bundle OpenSSL source for Android NDK builds. **Fixed.**
 - **UniFFI metadata stripped** — `strip = true` in release profile removed UniFFI metadata from .so. Changed to `strip = "debuginfo"`. **Fixed.**
 - **Crash on update from pre-v0.8:** Old `derive_key()` used random salt, making databases encrypted with an irrecoverable key. New deterministic salt produces a different key, so old DB can't be opened. **Fixed:** `FlareRepository.initialize()` catches the error, deletes the old DB, and creates a fresh one. One-time migration — all future updates preserve data.
+- **One-way QR bug:** User A scans User B's QR and sends a message, but B cannot decrypt (B doesn't have A's keys). **Fixed:** KeyExchange protocol — scanning a QR automatically sends the scanner's public keys to the scanned contact via a KeyExchange mesh message (content_type=4). The receiver auto-adds the sender as an unverified contact.
+- **Voice/image messages not received:** Media messages (voice, image) sent as file paths instead of encoded binary data. **Fixed:** Base64-encode media bytes, prefix with `flare:voice:` or `flare:image:`, send through text encryption pipeline. Receiver detects prefix and renders audio player or image.
+- **CI x86_64 cross-compilation failure:** OpenSSL build failed with `x86_64-linux-android-ranlib: not found`. **Fixed:** Added `RANLIB_*` environment variable pointing to NDK's `llvm-ranlib` in GitHub Actions workflow.
+- **APK sharing screens were stubs:** Share/receive screens had no backend integration (BLE advertising code was placeholder). **Fixed:** Replaced with functional Android system share intent (Nearby Share, Bluetooth, messaging apps) using FileProvider.
 
 ## Phase Overview
 | Phase | Scope | Status |
@@ -297,7 +304,7 @@
 | 6A — Device Testing | Android APK build, cross-compilation, device install, BLE mesh verified | **Complete** (2 devices, encrypted chat working) |
 | 7 — Security Hardening | Crypto review, DB key fix, rendezvous DH fix, payload sig fix, TTL guard fix | **Complete** (5 vulnerabilities fixed, 193 tests) |
 | 8 — Localization & UX (Android) | 6 languages, language selector, contact rename, broadcast, profile | **Complete** |
-| 9 — UI Polish (Android) | Dark mode, voice/image sending, contact deletion, CI fix | **Complete** |
+| 9 — UI Polish (Android) | Dark mode, voice/image, contact deletion, KeyExchange, APK sharing, CI fix | **Complete** |
 | 10 — Android Release | Battery/memory profiling, signed APK, F-Droid, GitHub Release | Planned |
 | Backlog — iOS | iOS device testing, App Store ($99/yr), iOS localization | Deferred |
 
