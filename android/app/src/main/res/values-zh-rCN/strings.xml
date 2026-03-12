@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Flare</string>
+    <string name="mesh_service_channel_name">Mesh 网络</string>
+    <string name="mesh_service_channel_description">保持 Flare mesh 网络活跃</string>
+    <string name="mesh_notification_title">Flare mesh 网络已激活</string>
+    <string name="mesh_notification_text_format">已连接 %d 个节点</string>
+    <string name="mesh_notification_text_no_peers">正在搜索附近设备…</string>
+    <string name="chat_hint">输入消息…</string>
+    <string name="no_conversations">暂无对话。\n附近的 Flare 用户将显示在此处。</string>
+    <string name="contacts_empty">暂无联系人。\n扫描二维码以添加联系人。</string>
+    <string name="tab_chats">聊天</string>
+    <string name="tab_contacts">联系人</string>
+    <string name="tab_network">网络</string>
+    <string name="settings_title">设置</string>
+    <string name="permission_bluetooth_title">需要蓝牙权限</string>
+    <string name="permission_bluetooth_message">Flare 需要蓝牙与附近设备通信。不使用互联网或蜂窝网络。</string>
+    <string name="action_grant_permission">授予权限</string>
+    <string name="action_send">发送</string>
+    <string name="action_scan_qr">扫描二维码</string>
+    <string name="action_show_qr">显示我的二维码</string>
+    <string name="verified_badge">已验证</string>
+    <string name="unverified_badge">未验证</string>
+    <string name="network_status_active">Mesh 网络已激活</string>
+    <string name="network_status_inactive">Mesh 网络未激活</string>
+    <string name="peer_count_format">附近 %d 个节点</string>
+    <string name="qr_my_code_title">我的 Flare 二维码</string>
+    <string name="qr_my_code_subtitle">让您的联系人扫描此二维码</string>
+    <string name="qr_scanner_title">扫描二维码</string>
+    <string name="qr_scanner_instruction">将摄像头对准 Flare 二维码</string>
+    <string name="qr_contact_added">联系人添加成功</string>
+    <string name="qr_invalid_code">无效的 Flare 二维码</string>
+    <string name="qr_camera_permission_needed">扫描二维码需要相机权限</string>
+    <string name="qr_safety_number_label">安全码</string>
+    <string name="qr_share_code">分享二维码</string>
+    <string name="share_identity_button">分享我的身份链接</string>
+    <string name="share_identity_chooser_title">分享 Flare 身份</string>
+    <string name="share_identity_message">在 Flare 上添加我（加密 mesh 通讯）：\n%1$s\n\n还没有 Flare？前往 https://github.com/zivelo1/Flare 下载</string>
+    <string name="share_identity_hint">通过短信、微信或任何应用发送此链接。\n您的朋友点击即可将您添加为联系人。</string>
+    <string name="deep_link_contact_added">已从分享链接添加联系人</string>
+    <string name="deep_link_invalid">无效的 Flare 身份链接</string>
+    <string name="action_close">关闭</string>
+    <string name="action_done">完成</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_back">返回</string>
+    <string name="action_save">保存</string>
+    <string name="action_show">显示</string>
+    <string name="action_hide">隐藏</string>
+
+    <!-- Settings -->
+    <string name="settings_section_security">安全</string>
+    <string name="settings_duress_subtitle_configured">已配置 — 伪装数据库已激活</string>
+    <string name="settings_duress_subtitle_not_configured">未配置 — 点击进行设置</string>
+    <string name="settings_section_battery">电池 &amp; 性能</string>
+    <string name="settings_power_subtitle_format">当前级别：%s</string>
+    <string name="settings_section_storage">存储</string>
+    <string name="settings_storage_own">自有</string>
+    <string name="settings_storage_relay">中继</string>
+    <string name="settings_storage_waiting">等待中</string>
+    <string name="settings_storage_total">总计</string>
+    <string name="settings_storage_usage_format">%.1f MB / %.0f MB 已使用</string>
+    <string name="settings_section_device">设备</string>
+    <string name="settings_device_id">设备 ID</string>
+    <string name="settings_safety_number">安全码</string>
+    <string name="settings_section_sharing">分享</string>
+    <string name="settings_section_about">关于</string>
+    <string name="settings_about_subtitle">加密 mesh 通讯 — 无需互联网</string>
+    <string name="settings_open_source">开源</string>
+    <string name="settings_license">基于 GPLv3 许可证</string>
+    <string name="settings_tier_high">高性能</string>
+    <string name="settings_tier_balanced">均衡</string>
+    <string name="settings_tier_low">低功耗</string>
+    <string name="settings_tier_ultra_low">超低功耗</string>
+    <string name="settings_section_language">语言</string>
+    <string name="settings_language_title">语言</string>
+    <string name="settings_language_subtitle">当前：%s</string>
+
+    <string name="settings_duress_title">胁迫 PIN</string>
+    <string name="settings_power_title">电源管理</string>
+    <string name="settings_about_title">关于 Flare</string>
+
+    <!-- Duress Settings -->
+    <string name="duress_title">胁迫 PIN</string>
+    <string name="duress_plausible_deniability">合理否认</string>
+    <string name="duress_explanation">如果您被迫解锁 Flare，输入胁迫 PIN 将打开一个包含无害消息的伪装数据库。您的真实对话将保持隐藏和加密状态。</string>
+    <string name="duress_active_title">胁迫 PIN 已激活</string>
+    <string name="duress_active_description">输入胁迫 PIN 时将显示伪装数据库。</string>
+    <string name="duress_remove_button">移除胁迫 PIN</string>
+    <string name="duress_passphrase_label">胁迫密码</string>
+    <string name="duress_confirm_label">确认密码</string>
+    <string name="duress_mismatch">密码不匹配</string>
+    <string name="duress_warning">请选择一个您在压力下也能记住的密码。它必须与您的主密码不同。如果忘记，将无法恢复。</string>
+    <string name="duress_set_button">设置胁迫 PIN</string>
+    <string name="duress_set_success">胁迫 PIN 设置成功</string>
+    <string name="duress_set_error">设置胁迫 PIN 失败，请重试。</string>
+    <string name="duress_remove_dialog_title">移除胁迫 PIN？</string>
+    <string name="duress_remove_dialog_message">这将禁用合理否认功能。任何强迫您解锁 Flare 的人都将看到您的真实对话。</string>
+    <string name="duress_remove_confirm">移除</string>
+
+    <!-- Power Settings -->
+    <string name="power_title">电源管理</string>
+    <string name="power_current_tier">当前级别</string>
+    <string name="power_battery_saver">省电模式</string>
+    <string name="power_battery_saver_subtitle">强制使用超低功耗级别</string>
+    <string name="power_how_tiers_work">功耗级别工作原理</string>
+    <string name="power_tier_active">激活</string>
+    <string name="power_high_description">近乎持续扫描。最大发现速度。在活跃数据交换期间使用（最长 %d秒）。</string>
+    <string name="power_balanced_description">25%% 占空比扫描。发现与电池之间的良好平衡。无节点 %d秒后切换至低功耗。</string>
+    <string name="power_low_description">突发模式 — 每 %d秒扫描 %d秒（约 17%% 活跃）。</string>
+    <string name="power_ultralow_description">最低扫描 — 每 %d秒扫描 %d秒（约 5%% 活跃）。电量低于 %d%% 时激活。</string>
+    <string name="power_auto_adjust">Flare 根据网络活动、节点存在和电池电量自动调整功耗级别。电量低于 %d%% 时禁用高性能级别。</string>
+
+    <!-- Conversation List -->
+    <string name="conversation_groups">群组</string>
+    <string name="conversation_devices_nearby_format">附近 %d 个设备</string>
+
+    <!-- Contacts -->
+    <string name="contacts_find">查找联系人</string>
+    <string name="contacts_devices_nearby_format">附近 %d 个 Flare 设备</string>
+    <string name="contacts_last_seen_now">刚刚</string>
+    <string name="contacts_last_seen_minutes">%d分钟前</string>
+    <string name="contacts_last_seen_hours">%d小时前</string>
+    <string name="contacts_last_seen_days">%d天前</string>
+
+    <!-- Find Contact -->
+    <string name="find_contact_title">查找联系人</string>
+    <string name="find_contact_subtitle">选择查找联系人的方式</string>
+    <string name="find_shared_phrase_title">共享短语</string>
+    <string name="find_shared_phrase_desc">输入只有您和朋友知道的短语。共同的回忆、一个地方、一个只有你们懂的笑话。最安全的选项。</string>
+    <string name="find_recommended">推荐</string>
+    <string name="find_share_link_title">分享身份链接</string>
+    <string name="find_share_link_desc">通过短信、微信或任何应用发送您的 Flare 身份。任意距离均可使用 — 无需 mesh 网络。</string>
+    <string name="find_qr_title">扫描二维码</string>
+    <string name="find_qr_desc">面对面时扫描联系人的二维码。最高安全性 — 零网络暴露。</string>
+    <string name="find_phone_title">手机号码</string>
+    <string name="find_phone_desc">通过手机号码搜索。双方都必须输入对方的号码。对资金充足的对手安全性较低。</string>
+    <string name="find_import_title">导入联系人</string>
+    <string name="find_import_desc">导入手机联系人以自动查找同样使用 Flare 的朋友。需要 READ_CONTACTS 权限。</string>
+
+    <!-- Shared Phrase Search -->
+    <string name="phrase_search_title">共享短语</string>
+    <string name="phrase_search_instructions">输入只有您和朋友知道的短语。可以是共同的回忆、你们都去过的地方，或任何你们之间独特的事物。</string>
+    <string name="phrase_search_label">共享短语</string>
+    <string name="phrase_search_placeholder">例如：外婆家门前的桂花树</string>
+    <string name="phrase_search_hint">您的朋友必须在他们的 Flare 应用中输入完全相同的短语。大小写和多余空格不影响。</string>
+    <string name="phrase_search_button">搜索 mesh 网络</string>
+    <string name="phrase_searching">正在搜索 mesh 网络…</string>
+    <string name="phrase_searching_desc">正在向附近设备广播您的会合令牌。这可能需要几分钟、几小时或几天，取决于与您朋友的 mesh 连接情况。</string>
+    <string name="phrase_searching_privacy">您的短语永远不会离开此设备。仅广播数学指纹 — 无法被逆向还原。</string>
+    <string name="phrase_cancel">取消搜索</string>
+    <string name="phrase_found">找到联系人！</string>
+    <string name="phrase_found_via">通过 %s 找到</string>
+    <string name="phrase_add_contact">添加联系人</string>
+
+    <!-- Phone Search -->
+    <string name="phone_search_title">手机号码搜索</string>
+    <string name="phone_security_notice">安全提示</string>
+    <string name="phone_security_warning">知道您手机号码的资金充足的对手可能会确定您正在联系的人。如果您担心政府监控，请使用"共享短语"。</string>
+    <string name="phone_your_number">您的手机号码</string>
+    <string name="phone_your_placeholder">+86 138 1234 5678</string>
+    <string name="phone_their_number">对方的手机号码</string>
+    <string name="phone_their_placeholder">+86 139 8765 4321</string>
+    <string name="phone_accept_risk">我了解安全限制</string>
+    <string name="phone_searching_desc">两个手机号码被组合成一个令牌。只有知道两个号码的人才能匹配。</string>
+    <string name="phone_instructions">您的朋友也必须在他们的应用中输入您的手机号码。任何手机号码都不会通过网络发送。</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">无需互联网</string>
+    <string name="onboarding_desc_1">Flare 通过蓝牙在手机之间发送消息。无服务器、无 Wi-Fi、无蜂窝服务。您的消息通过其他 Flare 用户逐跳传递，直到到达您的联系人。</string>
+    <string name="onboarding_title_2">端到端加密</string>
+    <string name="onboarding_desc_2">每条消息在离开您的手机前都会被加密。中间没有人能读取您的消息 — 即使是转发消息的手机用户也不能。</string>
+    <string name="onboarding_title_3">找到您的朋友</string>
+    <string name="onboarding_desc_3">输入您和朋友都知道的共享短语 — 一段回忆、一个地方、一个只有你们懂的笑话。Flare 在 mesh 网络中搜索并安全地连接你们。</string>
+    <string name="onboarding_title_4">为安全而设计</string>
+    <string name="onboarding_desc_4">如果您被迫解锁，胁迫 PIN 会打开伪装数据库。无需账户、无需手机号码、无追踪。您的隐私受到设计层面的保护。</string>
+
+    <!-- Chat -->
+    <string name="chat_peer_prefix">节点 %s</string>
+    <string name="chat_empty_prompt">发送消息以开始对话。\n消息采用端到端加密。</string>
+    <string name="chat_via_mesh">通过 mesh</string>
+    <string name="chat_back">返回</string>
+    <string name="chat_status_sending">发送中</string>
+    <string name="chat_status_sent">已发送</string>
+    <string name="chat_status_delivered">已送达</string>
+    <string name="chat_status_read">已读</string>
+    <string name="chat_status_failed">失败</string>
+
+    <!-- Network -->
+    <string name="network_connected_count">%d 已连接，%d 已发现</string>
+    <string name="network_discovered_count">发现 %d 个设备，正在连接…</string>
+    <string name="network_scanning_status">正在扫描附近设备</string>
+    <string name="network_stat_connected">已连接</string>
+    <string name="network_stat_queued">排队中</string>
+    <string name="network_stat_relayed">已中继</string>
+    <string name="network_device_prefix">设备 %s</string>
+    <string name="network_transport_ble">低功耗蓝牙</string>
+    <string name="network_transport_wifi_direct">Wi-Fi 直连</string>
+    <string name="network_transport_wifi_aware">Wi-Fi 感知</string>
+    <string name="network_badge_connected">已连接</string>
+
+    <!-- Contact Rename -->
+    <string name="rename_contact_title">重命名联系人</string>
+    <string name="rename_contact_hint">输入此联系人的新名称</string>
+    <string name="rename_contact_label">显示名称</string>
+
+    <!-- Broadcast -->
+    <string name="broadcast_title">广播消息</string>
+    <string name="broadcast_subtitle">发送给所有联系人</string>
+    <string name="broadcast_hint">输入您的广播消息…</string>
+    <string name="broadcast_send">发送广播</string>
+    <string name="broadcast_confirm_title">发送广播？</string>
+    <string name="broadcast_confirm_message">此消息将发送给所有 %d 个联系人。广播消息未加密。</string>
+    <string name="broadcast_confirm_send">发送给所有人</string>
+    <string name="broadcast_sent">广播已发送给 %d 个联系人</string>
+    <string name="broadcast_no_contacts">没有可广播的联系人。请先添加联系人。</string>
+    <string name="broadcast_security_notice">广播消息已签名但未加密。收到消息的任何人都可以阅读。</string>
+
+    <!-- Language Settings -->
+    <string name="language_title">语言</string>
+    <string name="language_system_default">系统默认</string>
+    <string name="language_english">English</string>
+    <string name="language_farsi">فارسی (Farsi)</string>
+    <string name="language_arabic">العربية (Arabic)</string>
+    <string name="language_spanish">Español (Spanish)</string>
+    <string name="language_russian">Русский (Russian)</string>
+    <string name="language_chinese">中文 (Chinese)</string>
+    <string name="language_korean">한국어 (Korean)</string>
+    <string name="language_restart_notice">更改语言可能需要重启应用。</string>
+
+    <!-- Splash -->
+    <string name="splash_app_name">Flare</string>
+    <string name="splash_tagline">Mesh 通讯，无处不在</string>
+
+    <!-- Groups -->
+    <string name="groups_title">群组</string>
+    <string name="groups_create">创建群组</string>
+    <string name="groups_empty">暂无群组</string>
+    <string name="groups_empty_hint">创建群组以同时向多个联系人发送消息。</string>
+    <string name="onboarding_skip">跳过</string>
+    <string name="onboarding_next">下一步</string>
+    <string name="onboarding_back">返回</string>
+    <string name="onboarding_get_started">开始使用</string>
+
+    <!-- Voice Recording -->
+    <string name="voice_record_hold">按住录音</string>
+    <string name="voice_recording">录音中…</string>
+    <string name="voice_record_release">松开发送</string>
+    <string name="voice_record_cancel">滑动取消</string>
+    <string name="voice_record_permission_needed">录制语音消息需要麦克风权限</string>
+    <string name="voice_record_error">录音失败</string>
+    <string name="voice_record_too_short">录音太短</string>
+
+    <!-- Image Capture -->
+    <string name="image_capture">拍照</string>
+    <string name="image_preview_title">发送照片</string>
+    <string name="image_send">发送</string>
+    <string name="image_cancel">取消</string>
+    <string name="image_capture_error">拍照失败</string>
+    <string name="image_permission_needed">拍照需要相机权限</string>
+
+    <!-- APK Sharing -->
+    <string name="apk_share_title">分享 Flare</string>
+    <string name="apk_receive_title">接收 Flare</string>
+    <string name="apk_share_description">通过蓝牙与附近设备分享 Flare 应用</string>
+    <string name="apk_share_version">版本 %s</string>
+    <string name="apk_share_size">大小：%s</string>
+    <string name="apk_share_hash">SHA-256：%s</string>
+    <string name="apk_share_button">通过蓝牙分享</string>
+    <string name="apk_share_stop_button">停止分享</string>
+    <string name="apk_share_advertising">正在向附近设备广播…</string>
+    <string name="apk_share_transfer_progress">传输进度</string>
+    <string name="apk_share_requesting_devices">请求 Flare 的设备</string>
+    <string name="apk_share_no_requests">暂无请求</string>
+    <string name="apk_receive_scanning">正在扫描附近的 Flare 设备…</string>
+    <string name="apk_receive_available">可供下载</string>
+    <string name="apk_receive_version">版本：%s</string>
+    <string name="apk_receive_size">大小：%s</string>
+    <string name="apk_receive_verified">签名已验证</string>
+    <string name="apk_receive_unverified">签名未验证</string>
+    <string name="apk_receive_download">下载</string>
+    <string name="apk_receive_install">安装</string>
+    <string name="apk_receive_downloading">下载中…</string>
+    <string name="apk_receive_no_offers">未找到附近的 Flare 设备</string>
+    <string name="apk_settings_share">分享 Flare 应用</string>
+    <string name="apk_settings_share_subtitle">通过蓝牙将应用发送到附近设备</string>
+
+    <!-- Mesh Visualization -->
+    <string name="mesh_visualization_you">我</string>
+    <string name="mesh_visualization_title">Mesh 拓扑</string>
+    <string name="network_nearby_devices">附近设备</string>
+    <string name="network_scanning">正在搜索 Flare 设备…</string>
+</resources>

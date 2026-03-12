@@ -278,6 +278,63 @@ class FlareRepository private constructor(private val node: FlareNode) {
         }
     }
 
+    /**
+     * Updates the display name of an existing contact.
+     * Returns true if the contact was found and updated.
+     */
+    suspend fun updateContactDisplayName(deviceId: String, displayName: String): Boolean =
+        withContext(Dispatchers.IO) {
+            val result = node.updateContactDisplayName(deviceId, displayName)
+            if (result) {
+                refreshContacts()
+            }
+            result
+        }
+
+    /**
+     * Sends a broadcast message to all contacts.
+     * Broadcasts are signed but NOT encrypted — readable by all recipients.
+     * Returns the number of contacts the message was sent to.
+     */
+    suspend fun sendBroadcast(plaintext: String): Int = withContext(Dispatchers.IO) {
+        val contacts = node.listContacts()
+        if (contacts.isEmpty()) return@withContext 0
+
+        // Build broadcast mesh message (signed, not encrypted)
+        val meshMsg = node.buildBroadcastMessage(plaintext.toByteArray(Charsets.UTF_8), 1u)
+
+        // Store locally as an outgoing message for each contact
+        val messageId = UUID.randomUUID().toString()
+        contacts.forEach { contact ->
+            node.storeChatMessage(FfiChatMessage(
+                messageId = "${messageId}-${contact.deviceId.take(8)}",
+                conversationId = contact.deviceId,
+                senderDeviceId = getDeviceId(),
+                content = plaintext,
+                timestampMs = Instant.now().toEpochMilli(),
+                isOutgoing = true,
+                deliveryStatus = DeliveryStatus.SENT.ordinal.toUByte(),
+            ))
+
+            // Also send individually encrypted for privacy
+            try {
+                val encrypted = node.createEncryptedMessage(
+                    contact.deviceId, contact.agreementPublicKey, plaintext,
+                )
+                val individualMsg = node.buildMeshMessage(contact.deviceId, encrypted, 1u)
+                node.queueOutboundMessage(
+                    "${messageId}-${contact.deviceId.take(8)}",
+                    contact.deviceId,
+                    encrypted,
+                )
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to send broadcast to %s", contact.deviceId.take(12))
+            }
+        }
+
+        contacts.size
+    }
+
     // ── Neighborhood Detection ──────────────────────────────────────
 
     /**

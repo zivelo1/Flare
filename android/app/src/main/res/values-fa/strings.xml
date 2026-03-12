@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Flare</string>
+    <string name="mesh_service_channel_name">شبکه مش</string>
+    <string name="mesh_service_channel_description">شبکه مش Flare را فعال نگه می‌دارد</string>
+    <string name="mesh_notification_title">مش Flare فعال است</string>
+    <string name="mesh_notification_text_format">متصل به %d دستگاه</string>
+    <string name="mesh_notification_text_no_peers">در حال جستجوی دستگاه‌های نزدیک…</string>
+    <string name="chat_hint">پیام بنویسید…</string>
+    <string name="no_conversations">هنوز گفتگویی ندارید.\nکاربران Flare نزدیک شما اینجا نمایش داده می‌شوند.</string>
+    <string name="contacts_empty">هنوز مخاطبی ندارید.\nبرای افزودن مخاطب، کد QR را اسکن کنید.</string>
+    <string name="tab_chats">گفتگوها</string>
+    <string name="tab_contacts">مخاطبین</string>
+    <string name="tab_network">شبکه</string>
+    <string name="settings_title">تنظیمات</string>
+    <string name="permission_bluetooth_title">بلوتوث لازم است</string>
+    <string name="permission_bluetooth_message">Flare برای ارتباط با دستگاه‌های نزدیک به بلوتوث نیاز دارد. از اینترنت یا سرویس تلفن همراه استفاده نمی‌شود.</string>
+    <string name="action_grant_permission">اعطای مجوز</string>
+    <string name="action_send">ارسال</string>
+    <string name="action_scan_qr">اسکن کد QR</string>
+    <string name="action_show_qr">نمایش QR من</string>
+    <string name="verified_badge">تأیید شده</string>
+    <string name="unverified_badge">تأیید نشده</string>
+    <string name="network_status_active">مش فعال</string>
+    <string name="network_status_inactive">مش غیرفعال</string>
+    <string name="peer_count_format">%d دستگاه نزدیک</string>
+    <string name="qr_my_code_title">کد QR من در Flare</string>
+    <string name="qr_my_code_subtitle">مخاطبتان این کد را اسکن کند</string>
+    <string name="qr_scanner_title">اسکن کد QR</string>
+    <string name="qr_scanner_instruction">دوربین را به سمت کد QR Flare بگیرید</string>
+    <string name="qr_contact_added">مخاطب با موفقیت اضافه شد</string>
+    <string name="qr_invalid_code">کد QR معتبر Flare نیست</string>
+    <string name="qr_camera_permission_needed">برای اسکن کد QR به مجوز دوربین نیاز است</string>
+    <string name="qr_safety_number_label">شماره امنیتی</string>
+    <string name="qr_share_code">اشتراک‌گذاری کد QR</string>
+    <string name="share_identity_button">اشتراک‌گذاری لینک هویت من</string>
+    <string name="share_identity_chooser_title">اشتراک‌گذاری هویت Flare</string>
+    <string name="share_identity_message">مرا در Flare اضافه کنید (پیام‌رسان رمزنگاری‌شده مش):\n%1$s\n\nFlare ندارید؟ از اینجا دریافت کنید: https://github.com/zivelo1/Flare</string>
+    <string name="share_identity_hint">این لینک را از طریق پیامک، واتساپ یا هر برنامه‌ای ارسال کنید.\nدوستتان با لمس آن شما را به مخاطبین اضافه می‌کند.</string>
+    <string name="deep_link_contact_added">مخاطب از لینک مشترک اضافه شد</string>
+    <string name="deep_link_invalid">لینک هویت Flare نامعتبر است</string>
+    <string name="action_close">بستن</string>
+    <string name="action_done">انجام شد</string>
+    <string name="action_cancel">لغو</string>
+    <string name="action_show">نمایش</string>
+    <string name="action_hide">مخفی</string>
+    <string name="action_back">بازگشت</string>
+    <string name="action_save">ذخیره</string>
+
+    <!-- تنظیمات -->
+    <string name="settings_duress_title">رمز اضطراری</string>
+    <string name="settings_power_title">مدیریت مصرف باتری</string>
+    <string name="settings_about_title">درباره Flare</string>
+    <string name="settings_back">بازگشت</string>
+    <string name="settings_section_security">امنیت</string>
+    <string name="settings_duress_subtitle_configured">پیکربندی شده — پایگاه داده پوششی فعال</string>
+    <string name="settings_duress_subtitle_not_configured">پیکربندی نشده — برای تنظیم لمس کنید</string>
+    <string name="settings_section_battery">باتری و عملکرد</string>
+    <string name="settings_power_subtitle_format">سطح فعلی: %s</string>
+    <string name="settings_section_storage">حافظه</string>
+    <string name="settings_storage_own">شخصی</string>
+    <string name="settings_storage_relay">رله</string>
+    <string name="settings_storage_waiting">در انتظار</string>
+    <string name="settings_storage_total">کل</string>
+    <string name="settings_storage_usage_format">%.1f مگابایت / %.0f مگابایت استفاده شده</string>
+    <string name="settings_section_device">دستگاه</string>
+    <string name="settings_device_id">شناسه دستگاه</string>
+    <string name="settings_safety_number">شماره امنیتی</string>
+    <string name="settings_section_sharing">اشتراک‌گذاری</string>
+    <string name="settings_section_about">درباره</string>
+    <string name="settings_about_subtitle">پیام‌رسان رمزنگاری‌شده مش — بدون نیاز به اینترنت</string>
+    <string name="settings_open_source">متن‌باز</string>
+    <string name="settings_license">تحت مجوز GPLv3</string>
+    <string name="settings_tier_high">عملکرد بالا</string>
+    <string name="settings_tier_balanced">متعادل</string>
+    <string name="settings_tier_low">کم‌مصرف</string>
+    <string name="settings_tier_ultra_low">بسیار کم‌مصرف</string>
+
+    <!-- رمز اضطراری -->
+    <string name="duress_title">رمز اضطراری</string>
+    <string name="duress_plausible_deniability">انکارپذیری قابل قبول</string>
+    <string name="duress_explanation">اگر مجبور به باز کردن Flare شدید، وارد کردن رمز اضطراری یک پایگاه داده پوششی با پیام‌های بی‌ضرر باز می‌کند. گفتگوهای واقعی شما مخفی و رمزنگاری‌شده باقی می‌مانند.</string>
+    <string name="duress_active_title">رمز اضطراری فعال</string>
+    <string name="duress_active_description">هنگام وارد کردن رمز اضطراری، پایگاه داده پوششی نمایش داده می‌شود.</string>
+    <string name="duress_remove_button">حذف رمز اضطراری</string>
+    <string name="duress_passphrase_label">عبارت عبور اضطراری</string>
+    <string name="duress_confirm_label">تأیید عبارت عبور</string>
+    <string name="duress_mismatch">عبارات عبور مطابقت ندارند</string>
+    <string name="duress_warning">عبارت عبوری انتخاب کنید که بتوانید در شرایط فشار به خاطر بیاورید. باید با عبارت عبور اصلی شما متفاوت باشد. اگر آن را فراموش کنید، راهی برای بازیابی وجود ندارد.</string>
+    <string name="duress_set_button">تنظیم رمز اضطراری</string>
+    <string name="duress_set_success">رمز اضطراری با موفقیت تنظیم شد</string>
+    <string name="duress_set_error">تنظیم رمز اضطراری ناموفق بود. لطفاً دوباره تلاش کنید.</string>
+    <string name="duress_remove_dialog_title">حذف رمز اضطراری؟</string>
+    <string name="duress_remove_dialog_message">این کار انکارپذیری را غیرفعال می‌کند. هر کسی که شما را مجبور به باز کردن Flare کند، گفتگوهای واقعی شما را خواهد دید.</string>
+    <string name="duress_remove_confirm">حذف</string>
+
+    <!-- مدیریت مصرف باتری -->
+    <string name="power_title">مدیریت مصرف باتری</string>
+    <string name="power_current_tier">سطح فعلی</string>
+    <string name="power_battery_saver">صرفه‌جویی باتری</string>
+    <string name="power_battery_saver_subtitle">سطح بسیار کم‌مصرف را اجباری می‌کند</string>
+    <string name="power_how_tiers_work">نحوه کار سطوح مصرف</string>
+    <string name="power_tier_active">فعال</string>
+    <string name="power_high_description">اسکن تقریباً مداوم. حداکثر سرعت کشف. در حین تبادل داده فعال استفاده می‌شود (حداکثر %d ثانیه).</string>
+    <string name="power_balanced_description">اسکن با چرخه کاری ۲۵٪. تعادل خوب بین کشف و باتری. پس از %d ثانیه بدون دستگاه، به کم‌مصرف تغییر می‌کند.</string>
+    <string name="power_low_description">حالت انفجاری — %d ثانیه اسکن هر %d ثانیه (~۱۷٪ فعال).</string>
+    <string name="power_ultralow_description">حداقل اسکن — %d ثانیه هر %d ثانیه (~۵٪ فعال). در زیر %d٪ باتری فعال می‌شود.</string>
+    <string name="power_auto_adjust">Flare به طور خودکار سطح مصرف را بر اساس فعالیت شبکه، حضور دستگاه‌ها و سطح باتری تنظیم می‌کند. سطح بالا در زیر %d٪ باتری غیرفعال می‌شود.</string>
+
+    <!-- گروه‌ها -->
+    <string name="groups_title">گروه‌ها</string>
+    <string name="groups_create">ایجاد گروه</string>
+    <string name="groups_empty">هنوز گروهی ندارید</string>
+    <string name="groups_empty_hint">یک گروه بسازید تا به چند مخاطب همزمان پیام بدهید.</string>
+
+    <!-- معرفی اولیه -->
+    <string name="onboarding_skip">رد شدن</string>
+    <string name="onboarding_next">بعدی</string>
+    <string name="onboarding_back">قبلی</string>
+    <string name="onboarding_get_started">شروع کنید</string>
+    <string name="onboarding_title_1">بدون نیاز به اینترنت</string>
+    <string name="onboarding_desc_1">Flare پیام‌ها را از طریق بلوتوث بین گوشی‌ها ارسال می‌کند. بدون سرور، بدون وای‌فای، بدون سرویس تلفن همراه. پیام‌های شما از طریق کاربران دیگر Flare عبور می‌کنند تا به مخاطبتان برسند.</string>
+    <string name="onboarding_title_2">رمزنگاری سرتاسری</string>
+    <string name="onboarding_desc_2">هر پیام قبل از خروج از گوشی شما رمزنگاری می‌شود. هیچ‌کس در بین مسیر نمی‌تواند پیام‌های شما را بخواند — حتی افرادی که گوشی‌هایشان آن‌ها را رله می‌کنند.</string>
+    <string name="onboarding_title_3">دوستانتان را پیدا کنید</string>
+    <string name="onboarding_desc_3">عبارت مشترکی وارد کنید که شما و دوستتان هر دو می‌دانید — یک خاطره، یک مکان، یک شوخی بین خودتان. Flare مش را جستجو می‌کند و شما را به صورت امن متصل می‌کند.</string>
+    <string name="onboarding_title_4">طراحی شده برای امنیت</string>
+    <string name="onboarding_desc_4">رمز اضطراری یک پایگاه داده جعلی باز می‌کند اگر مجبور به باز کردن شوید. بدون حساب کاربری، بدون نیاز به شماره تلفن، بدون ردیابی. حریم خصوصی شما با طراحی محافظت شده است.</string>
+
+    <!-- صفحه آغازین -->
+    <string name="splash_app_name">Flare</string>
+    <string name="splash_tagline">پیام‌رسان مش، همه‌جا</string>
+
+    <!-- گفتگو -->
+    <string name="chat_empty_prompt">پیامی بفرستید تا گفتگو شروع شود.\nپیام‌ها به صورت سرتاسری رمزنگاری شده‌اند.</string>
+    <string name="chat_via_mesh">از طریق مش</string>
+    <string name="chat_back">بازگشت</string>
+    <string name="chat_status_sending">در حال ارسال</string>
+    <string name="chat_status_sent">ارسال شد</string>
+    <string name="chat_status_delivered">تحویل داده شد</string>
+    <string name="chat_status_read">خوانده شد</string>
+    <string name="chat_status_failed">ناموفق</string>
+    <string name="chat_peer_prefix">دستگاه %s</string>
+
+    <!-- ضبط صدا -->
+    <string name="voice_record_hold">نگه دارید برای ضبط</string>
+    <string name="voice_recording">در حال ضبط…</string>
+    <string name="voice_record_release">رها کنید برای ارسال</string>
+    <string name="voice_record_cancel">بکشید برای لغو</string>
+    <string name="voice_record_permission_needed">برای ضبط پیام صوتی به مجوز میکروفون نیاز است</string>
+    <string name="voice_record_error">ضبط صدا ناموفق بود</string>
+    <string name="voice_record_too_short">ضبط خیلی کوتاه است</string>
+
+    <!-- گرفتن عکس -->
+    <string name="image_capture">عکس بگیرید</string>
+    <string name="image_preview_title">ارسال عکس</string>
+    <string name="image_send">ارسال</string>
+    <string name="image_cancel">لغو</string>
+    <string name="image_capture_error">گرفتن عکس ناموفق بود</string>
+    <string name="image_permission_needed">برای گرفتن عکس به مجوز دوربین نیاز است</string>
+
+    <!-- اشتراک‌گذاری APK -->
+    <string name="apk_share_title">اشتراک‌گذاری Flare</string>
+    <string name="apk_receive_title">دریافت Flare</string>
+    <string name="apk_share_description">اشتراک‌گذاری برنامه Flare با دستگاه‌های نزدیک از طریق بلوتوث</string>
+    <string name="apk_share_version">نسخه %s</string>
+    <string name="apk_share_size">حجم: %s</string>
+    <string name="apk_share_hash">SHA-256: %s</string>
+    <string name="apk_share_button">اشتراک‌گذاری از طریق بلوتوث</string>
+    <string name="apk_share_stop_button">توقف اشتراک‌گذاری</string>
+    <string name="apk_share_advertising">در حال پخش به دستگاه‌های نزدیک…</string>
+    <string name="apk_share_transfer_progress">پیشرفت انتقال</string>
+    <string name="apk_share_requesting_devices">دستگاه‌هایی که Flare را درخواست کرده‌اند</string>
+    <string name="apk_share_no_requests">هنوز درخواستی نیست</string>
+    <string name="apk_receive_scanning">در حال اسکن دستگاه‌های Flare نزدیک…</string>
+    <string name="apk_receive_available">آماده دانلود</string>
+    <string name="apk_receive_version">نسخه: %s</string>
+    <string name="apk_receive_size">حجم: %s</string>
+    <string name="apk_receive_verified">امضا تأیید شد</string>
+    <string name="apk_receive_unverified">امضا تأیید نشد</string>
+    <string name="apk_receive_download">دانلود</string>
+    <string name="apk_receive_install">نصب</string>
+    <string name="apk_receive_downloading">در حال دانلود…</string>
+    <string name="apk_receive_no_offers">دستگاه Flare نزدیکی یافت نشد</string>
+    <string name="apk_settings_share">اشتراک‌گذاری برنامه Flare</string>
+    <string name="apk_settings_share_subtitle">ارسال برنامه به دستگاه‌های نزدیک از طریق بلوتوث</string>
+
+    <!-- نمایش مش -->
+    <string name="mesh_visualization_you">شما</string>
+    <string name="mesh_visualization_title">توپولوژی مش</string>
+
+    <!-- شبکه -->
+    <string name="network_nearby_devices">دستگاه‌های نزدیک</string>
+    <string name="network_scanning">در حال اسکن دستگاه‌های Flare…</string>
+    <string name="network_connected_count">%d متصل، %d کشف شده</string>
+    <string name="network_discovered_count">%d دستگاه یافت شد، در حال اتصال…</string>
+    <string name="network_scanning_status">در حال اسکن دستگاه‌های نزدیک</string>
+    <string name="network_stat_connected">متصل</string>
+    <string name="network_stat_queued">در صف</string>
+    <string name="network_stat_relayed">رله شده</string>
+    <string name="network_device_prefix">دستگاه %s</string>
+    <string name="network_transport_ble">بلوتوث LE</string>
+    <string name="network_transport_wifi_direct">وای‌فای مستقیم</string>
+    <string name="network_transport_wifi_aware">وای‌فای آگاه</string>
+    <string name="network_badge_connected">متصل</string>
+
+    <!-- لیست گفتگوها -->
+    <string name="conversation_groups">گروه‌ها</string>
+    <string name="conversation_devices_nearby_format">%d دستگاه نزدیک</string>
+
+    <!-- مخاطبین -->
+    <string name="contacts_find">یافتن مخاطب</string>
+    <string name="contacts_devices_nearby_format">%d دستگاه Flare نزدیک</string>
+    <string name="contacts_last_seen_now">همین الان</string>
+    <string name="contacts_last_seen_minutes">%d دقیقه پیش</string>
+    <string name="contacts_last_seen_hours">%d ساعت پیش</string>
+    <string name="contacts_last_seen_days">%d روز پیش</string>
+
+    <!-- یافتن مخاطب -->
+    <string name="find_contact_title">یافتن مخاطب</string>
+    <string name="find_contact_subtitle">روش یافتن مخاطبتان را انتخاب کنید</string>
+    <string name="find_shared_phrase_title">عبارت مشترک</string>
+    <string name="find_shared_phrase_desc">عبارتی وارد کنید که فقط شما و دوستتان می‌دانید. یک خاطره مشترک، یک مکان، یک شوخی بین خودتان. امن‌ترین روش.</string>
+    <string name="find_recommended">پیشنهادی</string>
+    <string name="find_share_link_title">اشتراک‌گذاری لینک هویت</string>
+    <string name="find_share_link_desc">هویت Flare خود را از طریق پیامک، واتساپ یا هر برنامه‌ای ارسال کنید. در هر فاصله‌ای کار می‌کند — نیازی به مش نیست.</string>
+    <string name="find_qr_title">اسکن کد QR</string>
+    <string name="find_qr_desc">کد QR مخاطبتان را هنگام ملاقات حضوری اسکن کنید. حداکثر امنیت — بدون نوردهی شبکه.</string>
+    <string name="find_phone_title">شماره تلفن</string>
+    <string name="find_phone_desc">جستجو با شماره تلفن. هر دو طرف باید شماره یکدیگر را وارد کنند. امنیت کمتر در برابر دشمنان قدرتمند.</string>
+    <string name="find_import_title">وارد کردن مخاطبین</string>
+    <string name="find_import_desc">مخاطبین تلفن خود را وارد کنید تا به طور خودکار دوستانی را پیدا کنید که از Flare استفاده می‌کنند. نیاز به مجوز خواندن مخاطبین.</string>
+
+    <!-- جستجوی عبارت مشترک -->
+    <string name="phrase_search_title">عبارت مشترک</string>
+    <string name="phrase_search_instructions">عبارتی وارد کنید که فقط شما و دوستتان می‌دانید. می‌تواند یک خاطره مشترک، مکانی که هر دو رفته‌اید، یا هر چیز منحصربه‌فرد بین شما باشد.</string>
+    <string name="phrase_search_label">عبارت مشترک</string>
+    <string name="phrase_search_placeholder">مثلاً خانه مادربزرگ در خیابان حافظ</string>
+    <string name="phrase_search_hint">دوستتان باید دقیقاً همان عبارت را در برنامه Flare خود وارد کند. بزرگ و کوچک بودن حروف و فاصله‌های اضافی مهم نیست.</string>
+    <string name="phrase_search_button">جستجوی مش</string>
+    <string name="phrase_searching">در حال جستجوی شبکه مش…</string>
+    <string name="phrase_searching_desc">توکن ملاقات شما به دستگاه‌های نزدیک پخش می‌شود. بسته به اتصال مش به دوستتان، ممکن است دقایق، ساعات یا روزها طول بکشد.</string>
+    <string name="phrase_searching_privacy">عبارت شما هرگز از این دستگاه خارج نمی‌شود. فقط یک اثر انگشت ریاضی پخش می‌شود که قابل بازگشت نیست.</string>
+    <string name="phrase_cancel">لغو جستجو</string>
+    <string name="phrase_found">مخاطب پیدا شد!</string>
+    <string name="phrase_found_via">از طریق %s پیدا شد</string>
+    <string name="phrase_add_contact">افزودن مخاطب</string>
+
+    <!-- جستجو با شماره تلفن -->
+    <string name="phone_search_title">جستجو با شماره تلفن</string>
+    <string name="phone_security_notice">هشدار امنیتی</string>
+    <string name="phone_security_warning">یک دشمن قدرتمند که شماره تلفن شما را می‌داند، ممکن است بتواند تعیین کند که می‌خواهید با چه کسی تماس بگیرید. اگر نگران نظارت دولتی هستید، از «عبارت مشترک» استفاده کنید.</string>
+    <string name="phone_your_number">شماره تلفن شما</string>
+    <string name="phone_your_placeholder">+98 912 123 4567</string>
+    <string name="phone_their_number">شماره تلفن طرف مقابل</string>
+    <string name="phone_their_placeholder">+98 912 987 6543</string>
+    <string name="phone_accept_risk">محدودیت‌های امنیتی را درک می‌کنم</string>
+    <string name="phone_searching_desc">هر دو شماره تلفن در یک توکن واحد ترکیب می‌شوند. فقط کسی که هر دو شماره را بداند می‌تواند آن را مطابقت دهد.</string>
+    <string name="phone_instructions">دوستتان نیز باید شماره تلفن شما را در برنامه خود وارد کند. هیچ شماره تلفنی از طریق شبکه ارسال نمی‌شود.</string>
+
+    <!-- تغییر نام مخاطب -->
+    <string name="rename_contact_title">تغییر نام مخاطب</string>
+    <string name="rename_contact_hint">نام جدیدی برای این مخاطب وارد کنید</string>
+    <string name="rename_contact_label">نام نمایشی</string>
+
+    <!-- پیام همگانی -->
+    <string name="broadcast_title">پیام همگانی</string>
+    <string name="broadcast_subtitle">ارسال به همه مخاطبین</string>
+    <string name="broadcast_hint">پیام همگانی خود را بنویسید…</string>
+    <string name="broadcast_send">ارسال همگانی</string>
+    <string name="broadcast_confirm_title">ارسال همگانی؟</string>
+    <string name="broadcast_confirm_message">این پیام به همه %d مخاطب ارسال خواهد شد. پیام‌های همگانی رمزنگاری نشده‌اند.</string>
+    <string name="broadcast_confirm_send">ارسال به همه</string>
+    <string name="broadcast_sent">پیام همگانی به %d مخاطب ارسال شد</string>
+    <string name="broadcast_no_contacts">مخاطبی برای ارسال همگانی وجود ندارد. ابتدا مخاطب اضافه کنید.</string>
+    <string name="broadcast_security_notice">پیام‌های همگانی امضا شده‌اند اما رمزنگاری نشده‌اند. هر کسی که پیام را دریافت کند می‌تواند آن را بخواند.</string>
+
+    <!-- تنظیمات زبان -->
+    <string name="settings_section_language">زبان</string>
+    <string name="settings_language_title">زبان</string>
+    <string name="settings_language_subtitle">فعلی: %s</string>
+    <string name="language_title">زبان</string>
+    <string name="language_system_default">پیش‌فرض سیستم</string>
+    <string name="language_english">English (انگلیسی)</string>
+    <string name="language_farsi">فارسی</string>
+    <string name="language_arabic">العربية (عربی)</string>
+    <string name="language_spanish">Español (اسپانیایی)</string>
+    <string name="language_russian">Русский (روسی)</string>
+    <string name="language_chinese">中文 (چینی)</string>
+    <string name="language_korean">한국어 (کره‌ای)</string>
+    <string name="language_restart_notice">تغییر زبان ممکن است نیاز به راه‌اندازی مجدد برنامه داشته باشد.</string>
+</resources>

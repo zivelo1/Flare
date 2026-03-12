@@ -22,6 +22,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.flare.mesh.R
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flare.mesh.ui.chat.BroadcastScreen
 import com.flare.mesh.ui.chat.ConversationListScreen
 import com.flare.mesh.ui.chat.ChatScreen
 import com.flare.mesh.ui.contacts.ContactsScreen
@@ -36,7 +37,9 @@ import com.flare.mesh.ui.onboarding.OnboardingScreen
 import com.flare.mesh.ui.settings.DuressSettingsScreen
 import com.flare.mesh.ui.settings.NetworkScreen
 import com.flare.mesh.ui.settings.PowerSettingsScreen
+import com.flare.mesh.ui.settings.LanguageSettingsScreen
 import com.flare.mesh.ui.settings.SettingsScreen
+import com.flare.mesh.util.Constants
 import com.flare.mesh.ui.sharing.ApkReceiveScreen
 import com.flare.mesh.ui.sharing.ApkShareScreen
 import com.flare.mesh.ui.splash.SplashScreen
@@ -60,8 +63,8 @@ sealed class Screen(
 private val bottomNavItems = listOf(Screen.Chats, Screen.Contacts, Screen.Network)
 
 /** Key for persisting onboarding completion in SharedPreferences. */
-private const val PREFS_NAME = "flare_prefs"
-private const val KEY_ONBOARDING_COMPLETE = "onboarding_complete"
+private val PREFS_NAME = Constants.PREFS_NAME
+private val KEY_ONBOARDING_COMPLETE = Constants.KEY_ONBOARDING_COMPLETE
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -165,6 +168,9 @@ fun FlareNavHost(
                     onNavigateToGroups = {
                         navController.navigate("groups")
                     },
+                    onNavigateToBroadcast = {
+                        navController.navigate("broadcast")
+                    },
                 )
             }
 
@@ -256,6 +262,7 @@ fun FlareNavHost(
                     onNavigateToDuress = { navController.navigate("settings-duress") },
                     onNavigateToPower = { navController.navigate("settings-power") },
                     onNavigateToApkShare = { navController.navigate("apk-share") },
+                    onNavigateToLanguage = { navController.navigate("settings-language") },
                 )
             }
 
@@ -267,6 +274,12 @@ fun FlareNavHost(
 
             composable("settings-power") {
                 PowerSettingsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                )
+            }
+
+            composable("settings-language") {
+                LanguageSettingsScreen(
                     onNavigateBack = { navController.popBackStack() },
                 )
             }
@@ -288,6 +301,13 @@ fun FlareNavHost(
                     onGroupCreated = { groupId ->
                         navController.popBackStack("groups", false)
                     },
+                )
+            }
+
+            // ── Broadcast ──────────────────────────────────────────
+            composable("broadcast") {
+                BroadcastScreen(
+                    onNavigateBack = { navController.popBackStack() },
                 )
             }
 

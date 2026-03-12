@@ -44,6 +44,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     val meshStatus: StateFlow<MeshStatus> = MeshService.meshStatus
     val isServiceRunning: StateFlow<Boolean> = MeshService.isRunning
 
+    val broadcastContacts: StateFlow<List<Contact>> = repository.contacts
+
+    private val _broadcastResult = MutableStateFlow<Int?>(null)
+    val broadcastResult: StateFlow<Int?> = _broadcastResult.asStateFlow()
+
     init {
         viewModelScope.launch {
             repository.contacts.collect { contacts ->
@@ -144,6 +149,24 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         triggerIncomingVibration()
 
         updateConversationList(repository.contacts.value)
+    }
+
+    /**
+     * Sends a broadcast message to all contacts.
+     */
+    fun sendBroadcast(text: String) {
+        if (text.isBlank()) return
+        viewModelScope.launch {
+            try {
+                val count = repository.sendBroadcast(text.trim())
+                _broadcastResult.value = count
+                updateConversationList(repository.contacts.value)
+                Timber.i("Broadcast sent to %d contacts", count)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to send broadcast")
+                _broadcastResult.value = 0
+            }
+        }
     }
 
     /**

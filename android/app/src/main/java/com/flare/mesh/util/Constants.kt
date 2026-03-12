@@ -1,5 +1,6 @@
 package com.flare.mesh.util
 
+import com.flare.mesh.R
 import java.util.UUID
 
 /**
@@ -208,4 +209,42 @@ object Constants {
 
     /** Maximum line width for strong signal in mesh visualization. */
     const val MESH_VIS_MAX_LINE_WIDTH_DP: Float = 4f
+
+    // ── Language & Preferences ────────────────────────────────────────
+
+    /** SharedPreferences file name. */
+    const val PREFS_NAME: String = "flare_prefs"
+
+    /** Key for persisting language preference. */
+    const val KEY_LANGUAGE: String = "app_language"
+
+    /** Key for persisting onboarding completion. */
+    const val KEY_ONBOARDING_COMPLETE: String = "onboarding_complete"
+
+    /** Key for persisting the user's display name. */
+    const val KEY_DISPLAY_NAME: String = "user_display_name"
+
+    /** Language code for system default. */
+    const val LANGUAGE_SYSTEM_DEFAULT: String = "system"
+
+    /** Broadcast recipient constant — all 0xFF (matches Rust BROADCAST_DEVICE_ID). */
+    const val BROADCAST_DEVICE_ID: String = "ffffffffffffffffffffffffffffffff"
+
+    /** Supported languages with their resource IDs and native names. */
+    data class LanguageOption(
+        val code: String,
+        val nameRes: Int,
+        val nativeName: String? = null,
+    )
+
+    val SUPPORTED_LANGUAGES = listOf(
+        LanguageOption(LANGUAGE_SYSTEM_DEFAULT, R.string.language_system_default),
+        LanguageOption("en", R.string.language_english, "English"),
+        LanguageOption("fa", R.string.language_farsi, "فارسی"),
+        LanguageOption("ar", R.string.language_arabic, "العربية"),
+        LanguageOption("es", R.string.language_spanish, "Español"),
+        LanguageOption("ru", R.string.language_russian, "Русский"),
+        LanguageOption("zh", R.string.language_chinese, "中文"),
+        LanguageOption("ko", R.string.language_korean, "한국어"),
+    )
 }

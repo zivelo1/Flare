@@ -14,7 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.flare.mesh.R
 
 /**
  * Entry screen for finding contacts via different discovery methods.
@@ -38,10 +40,10 @@ fun FindContactScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Find a Contact") },
+                title = { Text(stringResource(R.string.find_contact_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
             )
@@ -55,7 +57,7 @@ fun FindContactScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                text = "Choose how to find your contact",
+                text = stringResource(R.string.find_contact_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

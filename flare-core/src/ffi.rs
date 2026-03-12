@@ -589,6 +589,67 @@ impl FlareNode {
             .map_err(|e| FlareError::StorageError { msg: e.to_string() })
     }
 
+    /// Updates the display name of an existing contact.
+    /// Returns true if the contact was found and updated, false if not found.
+    pub fn update_contact_display_name(
+        &self,
+        device_id: String,
+        display_name: String,
+    ) -> Result<bool, FlareError> {
+        let did = DeviceId::from_hex(&device_id)
+            .map_err(|e| FlareError::InvalidInput { msg: e.to_string() })?;
+        let db = self.db.lock().expect("db lock");
+        db.update_contact_display_name(&did, &display_name)
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })
+    }
+
+    /// Builds a broadcast mesh message (sent to all peers).
+    /// The payload is NOT encrypted — broadcasts are signed but readable by all.
+    /// content_type: same as build_mesh_message.
+    pub fn build_broadcast_message(
+        &self,
+        plaintext_payload: Vec<u8>,
+        content_type: u8,
+    ) -> Result<FfiMeshMessage, FlareError> {
+        let ct = match content_type {
+            0x01 => ContentType::Text,
+            0x02 => ContentType::VoiceMessage,
+            0x03 => ContentType::Image,
+            0x07 => ContentType::GroupMessage,
+            _ => {
+                return Err(FlareError::InvalidInput {
+                    msg: format!("Unsupported broadcast content type: {}", content_type),
+                })
+            }
+        };
+
+        let msg = MessageBuilder::broadcast(self.identity.device_id().clone())
+            .content_type(ct)
+            .payload(plaintext_payload)
+            .build(|data| self.identity.sign(data));
+
+        let payload = msg.payload.clone();
+        let serialized = msg
+            .to_bytes()
+            .map_err(|e| FlareError::SerializationError { msg: e.to_string() })?;
+
+        let message_id_hex = msg
+            .message_id
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect::<String>();
+
+        Ok(FfiMeshMessage {
+            serialized,
+            message_id: message_id_hex,
+            sender_id: msg.sender_id.to_hex(),
+            recipient_id: msg.recipient_id.to_hex(),
+            hop_count: msg.hop_count,
+            max_hops: msg.max_hops,
+            payload,
+        })
+    }
+
     /// Lists all contacts.
     pub fn list_contacts(&self) -> Result<Vec<FfiContact>, FlareError> {
         let db = self.db.lock().expect("db lock");

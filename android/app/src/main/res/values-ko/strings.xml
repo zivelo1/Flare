@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Flare</string>
+    <string name="mesh_service_channel_name">Mesh 네트워크</string>
+    <string name="mesh_service_channel_description">Flare mesh 네트워크를 활성 상태로 유지합니다</string>
+    <string name="mesh_notification_title">Flare mesh 네트워크 활성</string>
+    <string name="mesh_notification_text_format">%d개 피어에 연결됨</string>
+    <string name="mesh_notification_text_no_peers">근처 기기를 검색 중…</string>
+    <string name="chat_hint">메시지를 입력하세요…</string>
+    <string name="no_conversations">아직 대화가 없습니다.\n근처의 Flare 사용자가 여기에 표시됩니다.</string>
+    <string name="contacts_empty">아직 연락처가 없습니다.\nQR 코드를 스캔하여 연락처를 추가하세요.</string>
+    <string name="tab_chats">채팅</string>
+    <string name="tab_contacts">연락처</string>
+    <string name="tab_network">네트워크</string>
+    <string name="settings_title">설정</string>
+    <string name="permission_bluetooth_title">블루투스 필요</string>
+    <string name="permission_bluetooth_message">Flare는 근처 기기와 통신하기 위해 블루투스가 필요합니다. 인터넷이나 이동통신 서비스는 사용되지 않습니다.</string>
+    <string name="action_grant_permission">권한 허용</string>
+    <string name="action_send">보내기</string>
+    <string name="action_scan_qr">QR 코드 스캔</string>
+    <string name="action_show_qr">내 QR 코드 보기</string>
+    <string name="verified_badge">인증됨</string>
+    <string name="unverified_badge">미인증</string>
+    <string name="network_status_active">Mesh 네트워크 활성</string>
+    <string name="network_status_inactive">Mesh 네트워크 비활성</string>
+    <string name="peer_count_format">근처 %d개 피어</string>
+    <string name="qr_my_code_title">내 Flare QR 코드</string>
+    <string name="qr_my_code_subtitle">연락처에게 이 코드를 스캔하게 하세요</string>
+    <string name="qr_scanner_title">QR 코드 스캔</string>
+    <string name="qr_scanner_instruction">카메라를 Flare QR 코드에 맞추세요</string>
+    <string name="qr_contact_added">연락처가 성공적으로 추가되었습니다</string>
+    <string name="qr_invalid_code">유효하지 않은 Flare QR 코드입니다</string>
+    <string name="qr_camera_permission_needed">QR 코드를 스캔하려면 카메라 권한이 필요합니다</string>
+    <string name="qr_safety_number_label">안전 번호</string>
+    <string name="qr_share_code">QR 코드 공유</string>
+    <string name="share_identity_button">내 신원 링크 공유</string>
+    <string name="share_identity_chooser_title">Flare 신원 공유</string>
+    <string name="share_identity_message">Flare에서 저를 추가하세요 (암호화된 mesh 메시징):\n%1$s\n\nFlare가 없으신가요? https://github.com/zivelo1/Flare 에서 받으세요</string>
+    <string name="share_identity_hint">이 링크를 SMS, 카카오톡 또는 아무 앱으로 보내세요.\n친구가 탭하면 연락처로 추가됩니다.</string>
+    <string name="deep_link_contact_added">공유 링크에서 연락처가 추가되었습니다</string>
+    <string name="deep_link_invalid">유효하지 않은 Flare 신원 링크</string>
+    <string name="action_close">닫기</string>
+    <string name="action_done">완료</string>
+    <string name="action_cancel">취소</string>
+    <string name="action_back">뒤로</string>
+    <string name="action_save">저장</string>
+    <string name="action_show">표시</string>
+    <string name="action_hide">숨기기</string>
+
+    <!-- Settings -->
+    <string name="settings_section_security">보안</string>
+    <string name="settings_duress_subtitle_configured">설정됨 — 위장 데이터베이스 활성</string>
+    <string name="settings_duress_subtitle_not_configured">설정되지 않음 — 탭하여 설정</string>
+    <string name="settings_section_battery">배터리 &amp; 성능</string>
+    <string name="settings_power_subtitle_format">현재 등급: %s</string>
+    <string name="settings_section_storage">저장소</string>
+    <string name="settings_storage_own">자체</string>
+    <string name="settings_storage_relay">중계</string>
+    <string name="settings_storage_waiting">대기 중</string>
+    <string name="settings_storage_total">전체</string>
+    <string name="settings_storage_usage_format">%.1f MB / %.0f MB 사용됨</string>
+    <string name="settings_section_device">기기</string>
+    <string name="settings_device_id">기기 ID</string>
+    <string name="settings_safety_number">안전 번호</string>
+    <string name="settings_section_sharing">공유</string>
+    <string name="settings_section_about">정보</string>
+    <string name="settings_about_subtitle">암호화된 mesh 메시징 — 인터넷 불필요</string>
+    <string name="settings_open_source">오픈 소스</string>
+    <string name="settings_license">GPLv3 라이선스</string>
+    <string name="settings_tier_high">고성능</string>
+    <string name="settings_tier_balanced">균형</string>
+    <string name="settings_tier_low">저전력</string>
+    <string name="settings_tier_ultra_low">초저전력</string>
+    <string name="settings_section_language">언어</string>
+    <string name="settings_language_title">언어</string>
+    <string name="settings_language_subtitle">현재: %s</string>
+
+    <string name="settings_duress_title">강압 PIN</string>
+    <string name="settings_power_title">전원 관리</string>
+    <string name="settings_about_title">Flare 정보</string>
+
+    <!-- Duress Settings -->
+    <string name="duress_title">강압 PIN</string>
+    <string name="duress_plausible_deniability">합리적 부인</string>
+    <string name="duress_explanation">Flare 잠금 해제를 강요당할 경우, 강압 PIN을 입력하면 무해한 메시지가 담긴 위장 데이터베이스가 열립니다. 실제 대화는 숨겨지고 암호화된 상태로 유지됩니다.</string>
+    <string name="duress_active_title">강압 PIN 활성</string>
+    <string name="duress_active_description">강압 PIN 입력 시 위장 데이터베이스가 표시됩니다.</string>
+    <string name="duress_remove_button">강압 PIN 제거</string>
+    <string name="duress_passphrase_label">강압 비밀번호</string>
+    <string name="duress_confirm_label">비밀번호 확인</string>
+    <string name="duress_mismatch">비밀번호가 일치하지 않습니다</string>
+    <string name="duress_warning">스트레스 상황에서도 기억할 수 있는 비밀번호를 선택하세요. 기본 비밀번호와 달라야 합니다. 잊어버리면 복구할 방법이 없습니다.</string>
+    <string name="duress_set_button">강압 PIN 설정</string>
+    <string name="duress_set_success">강압 PIN이 성공적으로 설정되었습니다</string>
+    <string name="duress_set_error">강압 PIN 설정에 실패했습니다. 다시 시도하세요.</string>
+    <string name="duress_remove_dialog_title">강압 PIN을 제거하시겠습니까?</string>
+    <string name="duress_remove_dialog_message">합리적 부인 기능이 비활성화됩니다. Flare 잠금 해제를 강요하는 사람이 실제 대화를 볼 수 있게 됩니다.</string>
+    <string name="duress_remove_confirm">제거</string>
+
+    <!-- Power Settings -->
+    <string name="power_title">전원 관리</string>
+    <string name="power_current_tier">현재 등급</string>
+    <string name="power_battery_saver">배터리 절약</string>
+    <string name="power_battery_saver_subtitle">초저전력 등급을 강제 적용합니다</string>
+    <string name="power_how_tiers_work">전력 등급 작동 방식</string>
+    <string name="power_tier_active">활성</string>
+    <string name="power_high_description">거의 연속적인 스캔. 최대 검색 속도. 활성 데이터 교환 중 사용 (최대 %d초).</string>
+    <string name="power_balanced_description">25%% 듀티 사이클 스캔. 검색과 배터리의 좋은 균형. 피어 없이 %d초 후 저전력으로 전환.</string>
+    <string name="power_low_description">버스트 모드 — %d초마다 %d초 스캔 (약 17%% 활성).</string>
+    <string name="power_ultralow_description">최소 스캔 — %d초마다 %d초 스캔 (약 5%% 활성). 배터리 %d%% 이하에서 활성화.</string>
+    <string name="power_auto_adjust">Flare는 네트워크 활동, 피어 존재 여부, 배터리 수준에 따라 전력 등급을 자동 조정합니다. 배터리 %d%% 이하에서 고성능 등급은 비활성화됩니다.</string>
+
+    <!-- Conversation List -->
+    <string name="conversation_groups">그룹</string>
+    <string name="conversation_devices_nearby_format">근처 %d개 기기</string>
+
+    <!-- Contacts -->
+    <string name="contacts_find">연락처 찾기</string>
+    <string name="contacts_devices_nearby_format">근처 Flare 기기 %d개</string>
+    <string name="contacts_last_seen_now">방금</string>
+    <string name="contacts_last_seen_minutes">%d분 전</string>
+    <string name="contacts_last_seen_hours">%d시간 전</string>
+    <string name="contacts_last_seen_days">%d일 전</string>
+
+    <!-- Find Contact -->
+    <string name="find_contact_title">연락처 찾기</string>
+    <string name="find_contact_subtitle">연락처를 찾는 방법을 선택하세요</string>
+    <string name="find_shared_phrase_title">공유 문구</string>
+    <string name="find_shared_phrase_desc">나와 친구만 아는 문구를 입력하세요. 함께한 추억, 장소, 둘만의 농담. 가장 안전한 옵션입니다.</string>
+    <string name="find_recommended">추천</string>
+    <string name="find_share_link_title">신원 링크 공유</string>
+    <string name="find_share_link_desc">SMS, 카카오톡 또는 아무 앱으로 Flare 신원을 보내세요. 거리에 상관없이 작동 — mesh 네트워크 불필요.</string>
+    <string name="find_qr_title">QR 코드 스캔</string>
+    <string name="find_qr_desc">직접 만났을 때 상대방의 QR 코드를 스캔하세요. 최고 수준의 보안 — 네트워크 노출 없음.</string>
+    <string name="find_phone_title">전화번호</string>
+    <string name="find_phone_desc">전화번호로 검색합니다. 양쪽 모두 상대방의 번호를 입력해야 합니다. 자금력이 풍부한 적대자에 대해 보안이 낮습니다.</string>
+    <string name="find_import_title">연락처 가져오기</string>
+    <string name="find_import_desc">전화 연락처를 가져와 Flare를 사용하는 친구를 자동으로 찾습니다. READ_CONTACTS 권한이 필요합니다.</string>
+
+    <!-- Shared Phrase Search -->
+    <string name="phrase_search_title">공유 문구</string>
+    <string name="phrase_search_instructions">나와 친구만 아는 문구를 입력하세요. 함께한 추억, 둘이 방문했던 장소, 또는 둘 사이의 고유한 것이면 됩니다.</string>
+    <string name="phrase_search_label">공유 문구</string>
+    <string name="phrase_search_placeholder">예: 할머니댁 앞 느티나무</string>
+    <string name="phrase_search_hint">친구가 Flare 앱에서 정확히 같은 문구를 입력해야 합니다. 대소문자와 추가 공백은 상관없습니다.</string>
+    <string name="phrase_search_button">Mesh 네트워크 검색</string>
+    <string name="phrase_searching">Mesh 네트워크 검색 중…</string>
+    <string name="phrase_searching_desc">근처 기기에 랑데부 토큰을 전송 중입니다. 친구와의 mesh 연결 상태에 따라 몇 분, 몇 시간 또는 며칠이 걸릴 수 있습니다.</string>
+    <string name="phrase_searching_privacy">문구는 이 기기를 절대 떠나지 않습니다. 수학적 지문만 전송되며 — 되돌릴 수 없습니다.</string>
+    <string name="phrase_cancel">검색 취소</string>
+    <string name="phrase_found">연락처를 찾았습니다!</string>
+    <string name="phrase_found_via">%s을(를) 통해 발견</string>
+    <string name="phrase_add_contact">연락처 추가</string>
+
+    <!-- Phone Search -->
+    <string name="phone_search_title">전화번호 검색</string>
+    <string name="phone_security_notice">보안 공지</string>
+    <string name="phone_security_warning">당신의 전화번호를 아는 자금력이 풍부한 적대자가 당신이 연락하려는 사람을 파악할 수 있습니다. 정부 감시가 우려되면 \"공유 문구\"를 사용하세요.</string>
+    <string name="phone_your_number">내 전화번호</string>
+    <string name="phone_your_placeholder">+82 10 1234 5678</string>
+    <string name="phone_their_number">상대방 전화번호</string>
+    <string name="phone_their_placeholder">+82 10 9876 5432</string>
+    <string name="phone_accept_risk">보안 제한 사항을 이해합니다</string>
+    <string name="phone_searching_desc">두 전화번호가 하나의 토큰으로 결합됩니다. 두 번호를 모두 아는 사람만 매칭할 수 있습니다.</string>
+    <string name="phone_instructions">친구도 자신의 앱에서 당신의 전화번호를 입력해야 합니다. 어떤 전화번호도 네트워크를 통해 전송되지 않습니다.</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">인터넷 불필요</string>
+    <string name="onboarding_desc_1">Flare는 블루투스를 사용하여 폰에서 폰으로 메시지를 전송합니다. 서버 없음, Wi-Fi 없음, 이동통신 없음. 메시지는 다른 Flare 사용자를 거쳐 연락처에 도달합니다.</string>
+    <string name="onboarding_title_2">종단간 암호화</string>
+    <string name="onboarding_desc_2">모든 메시지는 폰에서 나가기 전에 암호화됩니다. 중간에 있는 누구도 메시지를 읽을 수 없습니다 — 메시지를 중계하는 폰의 사용자도 마찬가지입니다.</string>
+    <string name="onboarding_title_3">친구를 찾으세요</string>
+    <string name="onboarding_desc_3">나와 친구가 아는 공유 문구를 입력하세요 — 추억, 장소, 둘만의 농담. Flare가 mesh 네트워크를 검색하여 안전하게 연결합니다.</string>
+    <string name="onboarding_title_4">안전을 위한 설계</string>
+    <string name="onboarding_desc_4">강압 PIN은 잠금 해제를 강요받을 때 가짜 데이터베이스를 엽니다. 계정 없음, 전화번호 불필요, 추적 없음. 프라이버시는 설계로 보호됩니다.</string>
+
+    <!-- Chat -->
+    <string name="chat_peer_prefix">피어 %s</string>
+    <string name="chat_empty_prompt">대화를 시작하려면 메시지를 보내세요.\n메시지는 종단간 암호화됩니다.</string>
+    <string name="chat_via_mesh">mesh 경유</string>
+    <string name="chat_back">뒤로</string>
+    <string name="chat_status_sending">보내는 중</string>
+    <string name="chat_status_sent">보냄</string>
+    <string name="chat_status_delivered">전달됨</string>
+    <string name="chat_status_read">읽음</string>
+    <string name="chat_status_failed">실패</string>
+
+    <!-- Network -->
+    <string name="network_connected_count">%d개 연결, %d개 발견</string>
+    <string name="network_discovered_count">%d개 기기 발견, 연결 중…</string>
+    <string name="network_scanning_status">근처 기기를 스캔 중</string>
+    <string name="network_stat_connected">연결됨</string>
+    <string name="network_stat_queued">대기열</string>
+    <string name="network_stat_relayed">중계됨</string>
+    <string name="network_device_prefix">기기 %s</string>
+    <string name="network_transport_ble">블루투스 LE</string>
+    <string name="network_transport_wifi_direct">Wi-Fi Direct</string>
+    <string name="network_transport_wifi_aware">Wi-Fi Aware</string>
+    <string name="network_badge_connected">연결됨</string>
+
+    <!-- Contact Rename -->
+    <string name="rename_contact_title">연락처 이름 변경</string>
+    <string name="rename_contact_hint">이 연락처의 새 이름을 입력하세요</string>
+    <string name="rename_contact_label">표시 이름</string>
+
+    <!-- Broadcast -->
+    <string name="broadcast_title">방송 메시지</string>
+    <string name="broadcast_subtitle">모든 연락처에 보내기</string>
+    <string name="broadcast_hint">방송 메시지를 입력하세요…</string>
+    <string name="broadcast_send">방송 보내기</string>
+    <string name="broadcast_confirm_title">방송을 보내시겠습니까?</string>
+    <string name="broadcast_confirm_message">이 메시지가 %d명의 모든 연락처에 전송됩니다. 방송 메시지는 암호화되지 않습니다.</string>
+    <string name="broadcast_confirm_send">전체 발송</string>
+    <string name="broadcast_sent">%d명의 연락처에 방송 전송 완료</string>
+    <string name="broadcast_no_contacts">방송할 연락처가 없습니다. 먼저 연락처를 추가하세요.</string>
+    <string name="broadcast_security_notice">방송 메시지는 서명되지만 암호화되지 않습니다. 메시지를 받는 누구나 읽을 수 있습니다.</string>
+
+    <!-- Language Settings -->
+    <string name="language_title">언어</string>
+    <string name="language_system_default">시스템 기본값</string>
+    <string name="language_english">English</string>
+    <string name="language_farsi">فارسی (Farsi)</string>
+    <string name="language_arabic">العربية (Arabic)</string>
+    <string name="language_spanish">Español (Spanish)</string>
+    <string name="language_russian">Русский (Russian)</string>
+    <string name="language_chinese">中文 (Chinese)</string>
+    <string name="language_korean">한국어 (Korean)</string>
+    <string name="language_restart_notice">언어를 변경하면 앱을 다시 시작해야 할 수 있습니다.</string>
+
+    <!-- Splash -->
+    <string name="splash_app_name">Flare</string>
+    <string name="splash_tagline">어디서나 mesh 메시징</string>
+
+    <!-- Groups -->
+    <string name="groups_title">그룹</string>
+    <string name="groups_create">그룹 만들기</string>
+    <string name="groups_empty">아직 그룹이 없습니다</string>
+    <string name="groups_empty_hint">그룹을 만들어 여러 연락처에 한 번에 메시지를 보내세요.</string>
+    <string name="onboarding_skip">건너뛰기</string>
+    <string name="onboarding_next">다음</string>
+    <string name="onboarding_back">뒤로</string>
+    <string name="onboarding_get_started">시작하기</string>
+
+    <!-- Voice Recording -->
+    <string name="voice_record_hold">길게 눌러 녹음</string>
+    <string name="voice_recording">녹음 중…</string>
+    <string name="voice_record_release">손을 떼면 전송</string>
+    <string name="voice_record_cancel">밀어서 취소</string>
+    <string name="voice_record_permission_needed">음성 메시지를 녹음하려면 마이크 권한이 필요합니다</string>
+    <string name="voice_record_error">오디오 녹음에 실패했습니다</string>
+    <string name="voice_record_too_short">녹음이 너무 짧습니다</string>
+
+    <!-- Image Capture -->
+    <string name="image_capture">사진 촬영</string>
+    <string name="image_preview_title">사진 보내기</string>
+    <string name="image_send">보내기</string>
+    <string name="image_cancel">취소</string>
+    <string name="image_capture_error">사진 촬영에 실패했습니다</string>
+    <string name="image_permission_needed">사진을 촬영하려면 카메라 권한이 필요합니다</string>
+
+    <!-- APK Sharing -->
+    <string name="apk_share_title">Flare 공유</string>
+    <string name="apk_receive_title">Flare 받기</string>
+    <string name="apk_share_description">블루투스를 통해 근처 기기와 Flare 앱을 공유합니다</string>
+    <string name="apk_share_version">버전 %s</string>
+    <string name="apk_share_size">크기: %s</string>
+    <string name="apk_share_hash">SHA-256: %s</string>
+    <string name="apk_share_button">블루투스로 공유</string>
+    <string name="apk_share_stop_button">공유 중지</string>
+    <string name="apk_share_advertising">근처 기기에 브로드캐스트 중…</string>
+    <string name="apk_share_transfer_progress">전송 진행률</string>
+    <string name="apk_share_requesting_devices">Flare를 요청하는 기기</string>
+    <string name="apk_share_no_requests">아직 요청이 없습니다</string>
+    <string name="apk_receive_scanning">근처 Flare 기기를 스캔 중…</string>
+    <string name="apk_receive_available">다운로드 가능</string>
+    <string name="apk_receive_version">버전: %s</string>
+    <string name="apk_receive_size">크기: %s</string>
+    <string name="apk_receive_verified">서명 확인됨</string>
+    <string name="apk_receive_unverified">서명 미확인</string>
+    <string name="apk_receive_download">다운로드</string>
+    <string name="apk_receive_install">설치</string>
+    <string name="apk_receive_downloading">다운로드 중…</string>
+    <string name="apk_receive_no_offers">근처에 Flare 기기를 찾을 수 없습니다</string>
+    <string name="apk_settings_share">Flare 앱 공유</string>
+    <string name="apk_settings_share_subtitle">블루투스를 통해 근처 기기에 앱 전송</string>
+
+    <!-- Mesh Visualization -->
+    <string name="mesh_visualization_you">나</string>
+    <string name="mesh_visualization_title">Mesh 토폴로지</string>
+    <string name="network_nearby_devices">근처 기기</string>
+    <string name="network_scanning">Flare 기기를 검색 중…</string>
+</resources>

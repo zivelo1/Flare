@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Flare</string>
+    <string name="mesh_service_channel_name">Red mesh</string>
+    <string name="mesh_service_channel_description">Mantiene activa la red mesh de Flare</string>
+    <string name="mesh_notification_title">Red mesh de Flare activa</string>
+    <string name="mesh_notification_text_format">Conectado a %d pares</string>
+    <string name="mesh_notification_text_no_peers">Buscando dispositivos cercanos…</string>
+    <string name="chat_hint">Escribe un mensaje…</string>
+    <string name="no_conversations">Aún no hay conversaciones.\nLos usuarios de Flare cercanos aparecerán aquí.</string>
+    <string name="contacts_empty">Aún no hay contactos.\nEscanea un código QR para agregar un contacto.</string>
+    <string name="tab_chats">Chats</string>
+    <string name="tab_contacts">Contactos</string>
+    <string name="tab_network">Red</string>
+    <string name="settings_title">Configuración</string>
+    <string name="permission_bluetooth_title">Se requiere Bluetooth</string>
+    <string name="permission_bluetooth_message">Flare necesita Bluetooth para comunicarse con dispositivos cercanos. No se usa internet ni servicio celular.</string>
+    <string name="action_grant_permission">Otorgar permiso</string>
+    <string name="action_send">Enviar</string>
+    <string name="action_scan_qr">Escanear código QR</string>
+    <string name="action_show_qr">Mostrar mi QR</string>
+    <string name="verified_badge">Verificado</string>
+    <string name="unverified_badge">No verificado</string>
+    <string name="network_status_active">Red mesh activa</string>
+    <string name="network_status_inactive">Red mesh inactiva</string>
+    <string name="peer_count_format">%d pares cercanos</string>
+    <string name="qr_my_code_title">Mi código QR de Flare</string>
+    <string name="qr_my_code_subtitle">Deja que tu contacto escanee este código</string>
+    <string name="qr_scanner_title">Escanear código QR</string>
+    <string name="qr_scanner_instruction">Apunta la cámara hacia un código QR de Flare</string>
+    <string name="qr_contact_added">Contacto agregado exitosamente</string>
+    <string name="qr_invalid_code">No es un código QR de Flare válido</string>
+    <string name="qr_camera_permission_needed">Se necesita permiso de cámara para escanear códigos QR</string>
+    <string name="qr_safety_number_label">Número de seguridad</string>
+    <string name="qr_share_code">Compartir código QR</string>
+    <string name="share_identity_button">Compartir mi enlace de identidad</string>
+    <string name="share_identity_chooser_title">Compartir identidad de Flare</string>
+    <string name="share_identity_message">Agrégame en Flare (mensajería mesh cifrada):\n%1$s\n\n¿No tienes Flare? Descárgalo en https://github.com/zivelo1/Flare</string>
+    <string name="share_identity_hint">Envía este enlace por SMS, WhatsApp o cualquier app.\nTu amigo lo toca para agregarte como contacto.</string>
+    <string name="deep_link_contact_added">Contacto agregado desde enlace compartido</string>
+    <string name="deep_link_invalid">Enlace de identidad de Flare no válido</string>
+    <string name="action_close">Cerrar</string>
+    <string name="action_done">Listo</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_back">Atrás</string>
+    <string name="action_save">Guardar</string>
+    <string name="action_show">Mostrar</string>
+    <string name="action_hide">Ocultar</string>
+
+    <!-- Settings -->
+    <string name="settings_section_security">Seguridad</string>
+    <string name="settings_duress_subtitle_configured">Configurado — base de datos señuelo activa</string>
+    <string name="settings_duress_subtitle_not_configured">No configurado — toca para configurar</string>
+    <string name="settings_section_battery">Batería &amp; Rendimiento</string>
+    <string name="settings_power_subtitle_format">Nivel actual: %s</string>
+    <string name="settings_section_storage">Almacenamiento</string>
+    <string name="settings_storage_own">Propio</string>
+    <string name="settings_storage_relay">Retransmisión</string>
+    <string name="settings_storage_waiting">En espera</string>
+    <string name="settings_storage_total">Total</string>
+    <string name="settings_storage_usage_format">%.1f MB / %.0f MB usados</string>
+    <string name="settings_section_device">Dispositivo</string>
+    <string name="settings_device_id">ID del dispositivo</string>
+    <string name="settings_safety_number">Número de seguridad</string>
+    <string name="settings_section_sharing">Compartir</string>
+    <string name="settings_section_about">Acerca de</string>
+    <string name="settings_about_subtitle">Mensajería mesh cifrada — no se requiere internet</string>
+    <string name="settings_open_source">Código abierto</string>
+    <string name="settings_license">Licenciado bajo GPLv3</string>
+    <string name="settings_tier_high">Alto rendimiento</string>
+    <string name="settings_tier_balanced">Equilibrado</string>
+    <string name="settings_tier_low">Bajo consumo</string>
+    <string name="settings_tier_ultra_low">Ultra bajo</string>
+    <string name="settings_section_language">Idioma</string>
+    <string name="settings_language_title">Idioma</string>
+    <string name="settings_language_subtitle">Actual: %s</string>
+
+    <string name="settings_duress_title">PIN de emergencia</string>
+    <string name="settings_power_title">Gestión de energía</string>
+    <string name="settings_about_title">Acerca de Flare</string>
+
+    <!-- Duress Settings -->
+    <string name="duress_title">PIN de emergencia</string>
+    <string name="duress_plausible_deniability">Negación plausible</string>
+    <string name="duress_explanation">Si te obligan a desbloquear Flare, al ingresar el PIN de emergencia se abre una base de datos señuelo con mensajes inocentes. Tus conversaciones reales permanecen ocultas y cifradas.</string>
+    <string name="duress_active_title">PIN de emergencia activo</string>
+    <string name="duress_active_description">Se mostrará una base de datos señuelo cuando se ingrese el PIN de emergencia.</string>
+    <string name="duress_remove_button">Eliminar PIN de emergencia</string>
+    <string name="duress_passphrase_label">Contraseña de emergencia</string>
+    <string name="duress_confirm_label">Confirmar contraseña</string>
+    <string name="duress_mismatch">Las contraseñas no coinciden</string>
+    <string name="duress_warning">Elige una contraseña que puedas recordar bajo presión. Debe ser diferente a tu contraseña principal. Si la olvidas, no hay forma de recuperarla.</string>
+    <string name="duress_set_button">Establecer PIN de emergencia</string>
+    <string name="duress_set_success">PIN de emergencia establecido exitosamente</string>
+    <string name="duress_set_error">No se pudo establecer el PIN de emergencia. Inténtalo de nuevo.</string>
+    <string name="duress_remove_dialog_title">¿Eliminar PIN de emergencia?</string>
+    <string name="duress_remove_dialog_message">Esto desactivará la negación plausible. Cualquier persona que te obligue a desbloquear Flare verá tus conversaciones reales.</string>
+    <string name="duress_remove_confirm">Eliminar</string>
+
+    <!-- Power Settings -->
+    <string name="power_title">Gestión de energía</string>
+    <string name="power_current_tier">Nivel actual</string>
+    <string name="power_battery_saver">Ahorro de batería</string>
+    <string name="power_battery_saver_subtitle">Fuerza el nivel de energía ultra bajo</string>
+    <string name="power_how_tiers_work">Cómo funcionan los niveles de energía</string>
+    <string name="power_tier_active">ACTIVO</string>
+    <string name="power_high_description">Escaneo casi continuo. Máxima velocidad de descubrimiento. Se usa durante el intercambio activo de datos (máx. %ds).</string>
+    <string name="power_balanced_description">Escaneo con ciclo de trabajo del 25%%. Buen equilibrio entre descubrimiento y batería. Baja a bajo consumo después de %ds sin pares.</string>
+    <string name="power_low_description">Modo ráfaga — escanea %ds cada %ds (~17%% activo).</string>
+    <string name="power_ultralow_description">Escaneo mínimo — %ds cada %ds (~5%% activo). Se activa por debajo del %d%% de batería.</string>
+    <string name="power_auto_adjust">Flare ajusta automáticamente el nivel de energía según la actividad de la red, la presencia de pares y el nivel de batería. El nivel alto se desactiva por debajo del %d%% de batería.</string>
+
+    <!-- Conversation List -->
+    <string name="conversation_groups">Grupos</string>
+    <string name="conversation_devices_nearby_format">%d dispositivos cercanos</string>
+
+    <!-- Contacts -->
+    <string name="contacts_find">Buscar contacto</string>
+    <string name="contacts_devices_nearby_format">%d dispositivos Flare cercanos</string>
+    <string name="contacts_last_seen_now">Justo ahora</string>
+    <string name="contacts_last_seen_minutes">hace %dm</string>
+    <string name="contacts_last_seen_hours">hace %dh</string>
+    <string name="contacts_last_seen_days">hace %dd</string>
+
+    <!-- Find Contact -->
+    <string name="find_contact_title">Buscar un contacto</string>
+    <string name="find_contact_subtitle">Elige cómo encontrar a tu contacto</string>
+    <string name="find_shared_phrase_title">Frase compartida</string>
+    <string name="find_shared_phrase_desc">Ingresa una frase que solo tú y tu amigo conozcan. Un recuerdo compartido, un lugar, un chiste interno. La opción más segura.</string>
+    <string name="find_recommended">Recomendado</string>
+    <string name="find_share_link_title">Compartir enlace de identidad</string>
+    <string name="find_share_link_desc">Envía tu identidad de Flare por SMS, WhatsApp o cualquier app. Funciona a cualquier distancia — no se necesita la red mesh.</string>
+    <string name="find_qr_title">Escanear código QR</string>
+    <string name="find_qr_desc">Escanea el código QR de tu contacto cuando se encuentren en persona. Máxima seguridad — cero exposición en la red.</string>
+    <string name="find_phone_title">Número de teléfono</string>
+    <string name="find_phone_desc">Buscar por número de teléfono. Ambas partes deben ingresar el número del otro. Menos seguro contra adversarios con muchos recursos.</string>
+    <string name="find_import_title">Importar contactos</string>
+    <string name="find_import_desc">Importa los contactos de tu teléfono para encontrar automáticamente amigos que también usan Flare. Requiere permiso READ_CONTACTS.</string>
+
+    <!-- Shared Phrase Search -->
+    <string name="phrase_search_title">Frase compartida</string>
+    <string name="phrase_search_instructions">Ingresa una frase que solo tú y tu amigo conozcan. Puede ser un recuerdo compartido, un lugar que ambos visitaron o algo único entre ustedes.</string>
+    <string name="phrase_search_label">Frase compartida</string>
+    <string name="phrase_search_placeholder">ej., la casa de la abuela en la calle bolívar</string>
+    <string name="phrase_search_hint">Tu amigo debe ingresar la MISMA frase exacta en su app de Flare. Las mayúsculas y los espacios extra no importan.</string>
+    <string name="phrase_search_button">Buscar en la red mesh</string>
+    <string name="phrase_searching">Buscando en la red mesh…</string>
+    <string name="phrase_searching_desc">Transmitiendo tu token de encuentro a dispositivos cercanos. Esto puede tomar minutos, horas o días dependiendo de la conectividad mesh con tu amigo.</string>
+    <string name="phrase_searching_privacy">Tu frase nunca sale de este dispositivo. Solo se transmite una huella matemática — no se puede revertir.</string>
+    <string name="phrase_cancel">Cancelar búsqueda</string>
+    <string name="phrase_found">¡Contacto encontrado!</string>
+    <string name="phrase_found_via">Encontrado vía %s</string>
+    <string name="phrase_add_contact">Agregar contacto</string>
+
+    <!-- Phone Search -->
+    <string name="phone_search_title">Búsqueda por número de teléfono</string>
+    <string name="phone_security_notice">Aviso de seguridad</string>
+    <string name="phone_security_warning">Un adversario con muchos recursos que conozca TU número de teléfono podría determinar a quién intentas contactar. Usa \"Frase compartida\" si te preocupa la vigilancia gubernamental.</string>
+    <string name="phone_your_number">Tu número de teléfono</string>
+    <string name="phone_your_placeholder">+58 412 123 4567</string>
+    <string name="phone_their_number">Su número de teléfono</string>
+    <string name="phone_their_placeholder">+58 414 987 6543</string>
+    <string name="phone_accept_risk">Entiendo las limitaciones de seguridad</string>
+    <string name="phone_searching_desc">Ambos números de teléfono se combinan en un solo token. Solo alguien que conozca ambos números puede hacer la coincidencia.</string>
+    <string name="phone_instructions">Tu amigo también debe ingresar TU número de teléfono en su app. Ningún número de teléfono se envía por la red.</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">No se necesita internet</string>
+    <string name="onboarding_desc_1">Flare envía mensajes de teléfono a teléfono usando Bluetooth. Sin servidores, sin Wi-Fi, sin servicio celular. Tus mensajes saltan a través de otros usuarios de Flare hasta llegar a tu contacto.</string>
+    <string name="onboarding_title_2">Cifrado de extremo a extremo</string>
+    <string name="onboarding_desc_2">Cada mensaje se cifra en tu teléfono antes de salir. Nadie en el medio puede leer tus mensajes — ni siquiera las personas cuyos teléfonos los retransmiten.</string>
+    <string name="onboarding_title_3">Encuentra a tus amigos</string>
+    <string name="onboarding_desc_3">Ingresa una frase compartida que tú y tu amigo conozcan — un recuerdo, un lugar, un chiste interno. Flare busca en la red mesh y los conecta de forma segura.</string>
+    <string name="onboarding_title_4">Diseñado para la seguridad</string>
+    <string name="onboarding_desc_4">El PIN de emergencia abre una base de datos falsa si te obligan a desbloquear. Sin cuentas, sin número de teléfono requerido, sin rastreo. Tu privacidad está protegida por diseño.</string>
+
+    <!-- Chat -->
+    <string name="chat_peer_prefix">Par %s</string>
+    <string name="chat_empty_prompt">Envía un mensaje para iniciar la conversación.\nLos mensajes están cifrados de extremo a extremo.</string>
+    <string name="chat_via_mesh">vía mesh</string>
+    <string name="chat_back">Atrás</string>
+    <string name="chat_status_sending">Enviando</string>
+    <string name="chat_status_sent">Enviado</string>
+    <string name="chat_status_delivered">Entregado</string>
+    <string name="chat_status_read">Leído</string>
+    <string name="chat_status_failed">Fallido</string>
+
+    <!-- Network -->
+    <string name="network_connected_count">%d conectados, %d descubiertos</string>
+    <string name="network_discovered_count">%d dispositivos encontrados, conectando…</string>
+    <string name="network_scanning_status">Buscando dispositivos cercanos</string>
+    <string name="network_stat_connected">Conectado</string>
+    <string name="network_stat_queued">En cola</string>
+    <string name="network_stat_relayed">Retransmitido</string>
+    <string name="network_device_prefix">Dispositivo %s</string>
+    <string name="network_transport_ble">Bluetooth LE</string>
+    <string name="network_transport_wifi_direct">Wi-Fi Direct</string>
+    <string name="network_transport_wifi_aware">Wi-Fi Aware</string>
+    <string name="network_badge_connected">Conectado</string>
+
+    <!-- Contact Rename -->
+    <string name="rename_contact_title">Renombrar contacto</string>
+    <string name="rename_contact_hint">Ingresa un nuevo nombre para este contacto</string>
+    <string name="rename_contact_label">Nombre para mostrar</string>
+
+    <!-- Broadcast -->
+    <string name="broadcast_title">Mensaje de difusión</string>
+    <string name="broadcast_subtitle">Enviar a todos los contactos</string>
+    <string name="broadcast_hint">Escribe tu mensaje de difusión…</string>
+    <string name="broadcast_send">Enviar difusión</string>
+    <string name="broadcast_confirm_title">¿Enviar difusión?</string>
+    <string name="broadcast_confirm_message">Este mensaje se enviará a los %d contactos. Los mensajes de difusión NO están cifrados.</string>
+    <string name="broadcast_confirm_send">Enviar a todos</string>
+    <string name="broadcast_sent">Difusión enviada a %d contactos</string>
+    <string name="broadcast_no_contacts">No hay contactos para difundir. Agrega contactos primero.</string>
+    <string name="broadcast_security_notice">Los mensajes de difusión están firmados pero no cifrados. Cualquiera que reciba el mensaje puede leerlo.</string>
+
+    <!-- Language Settings -->
+    <string name="language_title">Idioma</string>
+    <string name="language_system_default">Predeterminado del sistema</string>
+    <string name="language_english">English</string>
+    <string name="language_farsi">فارسی (Farsi)</string>
+    <string name="language_arabic">العربية (Arabic)</string>
+    <string name="language_spanish">Español (Spanish)</string>
+    <string name="language_russian">Русский (Russian)</string>
+    <string name="language_chinese">中文 (Chinese)</string>
+    <string name="language_korean">한국어 (Korean)</string>
+    <string name="language_restart_notice">Cambiar el idioma puede requerir reiniciar la app.</string>
+
+    <!-- Splash -->
+    <string name="splash_app_name">Flare</string>
+    <string name="splash_tagline">Mensajería mesh, en todas partes</string>
+
+    <!-- Groups -->
+    <string name="groups_title">Grupos</string>
+    <string name="groups_create">Crear grupo</string>
+    <string name="groups_empty">Aún no hay grupos</string>
+    <string name="groups_empty_hint">Crea un grupo para enviar mensajes a varios contactos a la vez.</string>
+    <string name="onboarding_skip">Omitir</string>
+    <string name="onboarding_next">Siguiente</string>
+    <string name="onboarding_back">Atrás</string>
+    <string name="onboarding_get_started">Comenzar</string>
+
+    <!-- Voice Recording -->
+    <string name="voice_record_hold">Mantén presionado para grabar</string>
+    <string name="voice_recording">Grabando…</string>
+    <string name="voice_record_release">Suelta para enviar</string>
+    <string name="voice_record_cancel">Desliza para cancelar</string>
+    <string name="voice_record_permission_needed">Se necesita permiso de micrófono para grabar mensajes de voz</string>
+    <string name="voice_record_error">No se pudo grabar el audio</string>
+    <string name="voice_record_too_short">Grabación muy corta</string>
+
+    <!-- Image Capture -->
+    <string name="image_capture">Tomar foto</string>
+    <string name="image_preview_title">Enviar foto</string>
+    <string name="image_send">Enviar</string>
+    <string name="image_cancel">Cancelar</string>
+    <string name="image_capture_error">No se pudo capturar la foto</string>
+    <string name="image_permission_needed">Se necesita permiso de cámara para tomar fotos</string>
+
+    <!-- APK Sharing -->
+    <string name="apk_share_title">Compartir Flare</string>
+    <string name="apk_receive_title">Recibir Flare</string>
+    <string name="apk_share_description">Comparte la app Flare con dispositivos cercanos vía Bluetooth</string>
+    <string name="apk_share_version">Versión %s</string>
+    <string name="apk_share_size">Tamaño: %s</string>
+    <string name="apk_share_hash">SHA-256: %s</string>
+    <string name="apk_share_button">Compartir vía Bluetooth</string>
+    <string name="apk_share_stop_button">Dejar de compartir</string>
+    <string name="apk_share_advertising">Transmitiendo a dispositivos cercanos…</string>
+    <string name="apk_share_transfer_progress">Progreso de transferencia</string>
+    <string name="apk_share_requesting_devices">Dispositivos solicitando Flare</string>
+    <string name="apk_share_no_requests">Aún no hay solicitudes</string>
+    <string name="apk_receive_scanning">Buscando dispositivos Flare cercanos…</string>
+    <string name="apk_receive_available">Disponible para descargar</string>
+    <string name="apk_receive_version">Versión: %s</string>
+    <string name="apk_receive_size">Tamaño: %s</string>
+    <string name="apk_receive_verified">Firma verificada</string>
+    <string name="apk_receive_unverified">Firma no verificada</string>
+    <string name="apk_receive_download">Descargar</string>
+    <string name="apk_receive_install">Instalar</string>
+    <string name="apk_receive_downloading">Descargando…</string>
+    <string name="apk_receive_no_offers">No se encontraron dispositivos Flare cercanos</string>
+    <string name="apk_settings_share">Compartir app Flare</string>
+    <string name="apk_settings_share_subtitle">Enviar app a dispositivos cercanos vía Bluetooth</string>
+
+    <!-- Mesh Visualization -->
+    <string name="mesh_visualization_you">Tú</string>
+    <string name="mesh_visualization_title">Topología de la red mesh</string>
+    <string name="network_nearby_devices">Dispositivos cercanos</string>
+    <string name="network_scanning">Buscando dispositivos Flare…</string>
+</resources>

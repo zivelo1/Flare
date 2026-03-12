@@ -159,6 +159,25 @@ class ContactsViewModel : ViewModel() {
         val displayName: String?,
     )
 
+    /**
+     * Renames a contact by updating their display name.
+     */
+    fun renameContact(deviceId: String, newName: String) {
+        viewModelScope.launch {
+            try {
+                val success = repository.updateContactDisplayName(deviceId, newName)
+                if (success) {
+                    Timber.i("Contact renamed: %s -> %s", deviceId.take(12), newName)
+                    refreshContacts()
+                } else {
+                    Timber.w("Contact not found for rename: %s", deviceId.take(12))
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to rename contact: %s", deviceId.take(12))
+            }
+        }
+    }
+
     fun refreshContacts() {
         viewModelScope.launch {
             repository.refreshContacts()

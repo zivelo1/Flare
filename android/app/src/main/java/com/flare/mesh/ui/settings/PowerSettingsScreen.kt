@@ -8,9 +8,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flare.mesh.R
 import com.flare.mesh.util.Constants
 import com.flare.mesh.viewmodel.SettingsViewModel
 
@@ -26,10 +28,10 @@ fun PowerSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Power Management") },
+                title = { Text(stringResource(R.string.power_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -78,11 +80,11 @@ fun PowerSettingsScreen(
                         )
                         Column {
                             Text(
-                                text = "Battery Saver",
+                                text = stringResource(R.string.power_battery_saver),
                                 style = MaterialTheme.typography.bodyLarge,
                             )
                             Text(
-                                text = "Forces Ultra Low power tier",
+                                text = stringResource(R.string.power_battery_saver_subtitle),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -99,7 +101,7 @@ fun PowerSettingsScreen(
 
             // Tier Explanation
             Text(
-                text = "How Power Tiers Work",
+                text = stringResource(R.string.power_how_tiers_work),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,
@@ -108,7 +110,7 @@ fun PowerSettingsScreen(
 
             TierExplanationItem(
                 icon = Icons.Filled.Speed,
-                name = "High Performance",
+                name = stringResource(R.string.settings_tier_high),
                 description = "Near-continuous scanning. Maximum discovery speed. " +
                         "Used during active data exchange (max ${Constants.POWER_HIGH_DURATION_LIMIT_SECS}s).",
                 isActive = currentPowerTier == "high",
@@ -116,7 +118,7 @@ fun PowerSettingsScreen(
 
             TierExplanationItem(
                 icon = Icons.Filled.Balance,
-                name = "Balanced",
+                name = stringResource(R.string.settings_tier_balanced),
                 description = "25% duty cycle scanning. Good balance of discovery and battery. " +
                         "Drops to Low Power after ${Constants.POWER_BALANCED_NO_PEERS_THRESHOLD_SECS}s without peers.",
                 isActive = currentPowerTier == "balanced",
@@ -124,7 +126,7 @@ fun PowerSettingsScreen(
 
             TierExplanationItem(
                 icon = Icons.Filled.BatteryChargingFull,
-                name = "Low Power",
+                name = stringResource(R.string.settings_tier_low),
                 description = "Burst mode — scans ${Constants.POWER_TIER_LOW_BURST_SCAN_MS / 1000}s " +
                         "every ${(Constants.POWER_TIER_LOW_BURST_SCAN_MS + Constants.POWER_TIER_LOW_BURST_SLEEP_MS) / 1000}s (~17% active).",
                 isActive = currentPowerTier == "low_power",
@@ -132,7 +134,7 @@ fun PowerSettingsScreen(
 
             TierExplanationItem(
                 icon = Icons.Filled.BatterySaver,
-                name = "Ultra Low",
+                name = stringResource(R.string.settings_tier_ultra_low),
                 description = "Minimal scanning — ${Constants.POWER_TIER_ULTRALOW_BURST_SCAN_MS / 1000}s " +
                         "every ${(Constants.POWER_TIER_ULTRALOW_BURST_SCAN_MS + Constants.POWER_TIER_ULTRALOW_BURST_SLEEP_MS) / 1000}s (~5% active). " +
                         "Activated below ${Constants.POWER_CRITICAL_BATTERY_PERCENT}% battery.",
@@ -142,9 +144,7 @@ fun PowerSettingsScreen(
             Spacer(Modifier.height(16.dp))
 
             Text(
-                text = "Flare automatically adjusts the power tier based on network activity, " +
-                        "peer presence, and battery level. High tier is disabled " +
-                        "below ${Constants.POWER_LOW_BATTERY_PERCENT}% battery.",
+                text = stringResource(R.string.power_auto_adjust, Constants.POWER_LOW_BATTERY_PERCENT),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -193,7 +193,7 @@ private fun CurrentTierCard(tier: String) {
             )
             Column {
                 Text(
-                    text = "Current Tier",
+                    text = stringResource(R.string.power_current_tier),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -250,7 +250,7 @@ private fun TierExplanationItem(
                     if (isActive) {
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = "ACTIVE",
+                            text = stringResource(R.string.power_tier_active),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
@@ -267,10 +267,11 @@ private fun TierExplanationItem(
     }
 }
 
+@Composable
 private fun formatTierDisplay(tier: String): String = when (tier) {
-    "high" -> "High Performance"
-    "balanced" -> "Balanced"
-    "low_power" -> "Low Power"
-    "ultra_low" -> "Ultra Low"
+    "high" -> stringResource(R.string.settings_tier_high)
+    "balanced" -> stringResource(R.string.settings_tier_balanced)
+    "low_power" -> stringResource(R.string.settings_tier_low)
+    "ultra_low" -> stringResource(R.string.settings_tier_ultra_low)
     else -> tier.replaceFirstChar { it.uppercase() }
 }

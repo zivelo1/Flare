@@ -41,11 +41,76 @@
     <string name="deep_link_invalid">Invalid Flare identity link</string>
     <string name="action_close">Close</string>
     <string name="action_done">Done</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_show">Show</string>
+    <string name="action_hide">Hide</string>
+    <string name="action_back">Back</string>
+    <string name="action_save">Save</string>
+
+    <!-- Profile -->
+    <string name="settings_section_profile">Profile</string>
+    <string name="profile_name_label">Display name</string>
+    <string name="profile_name_hint">How others see you</string>
 
     <!-- Settings -->
     <string name="settings_duress_title">Duress PIN</string>
     <string name="settings_power_title">Power Management</string>
     <string name="settings_about_title">About Flare</string>
+    <string name="settings_back">Back</string>
+    <string name="settings_section_security">Security</string>
+    <string name="settings_duress_subtitle_configured">Configured — decoy database active</string>
+    <string name="settings_duress_subtitle_not_configured">Not configured — tap to set up</string>
+    <string name="settings_section_battery">Battery &amp; Performance</string>
+    <string name="settings_power_subtitle_format">Current tier: %s</string>
+    <string name="settings_section_storage">Storage</string>
+    <string name="settings_storage_own">Own</string>
+    <string name="settings_storage_relay">Relay</string>
+    <string name="settings_storage_waiting">Waiting</string>
+    <string name="settings_storage_total">Total</string>
+    <string name="settings_storage_usage_format">%.1f MB / %.0f MB used</string>
+    <string name="settings_section_device">Device</string>
+    <string name="settings_device_id">Device ID</string>
+    <string name="settings_safety_number">Safety Number</string>
+    <string name="settings_section_sharing">Sharing</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_about_subtitle">Encrypted mesh messaging — no internet required</string>
+    <string name="settings_open_source">Open Source</string>
+    <string name="settings_license">Licensed under GPLv3</string>
+    <string name="settings_tier_high">High Performance</string>
+    <string name="settings_tier_balanced">Balanced</string>
+    <string name="settings_tier_low">Low Power</string>
+    <string name="settings_tier_ultra_low">Ultra Low</string>
+
+    <!-- Duress Settings -->
+    <string name="duress_title">Duress PIN</string>
+    <string name="duress_plausible_deniability">Plausible Deniability</string>
+    <string name="duress_explanation">If you are forced to unlock Flare, entering the duress PIN opens a decoy database with innocent messages. Your real conversations remain hidden and encrypted.</string>
+    <string name="duress_active_title">Duress PIN Active</string>
+    <string name="duress_active_description">A decoy database will be shown when the duress PIN is entered.</string>
+    <string name="duress_remove_button">Remove Duress PIN</string>
+    <string name="duress_passphrase_label">Duress passphrase</string>
+    <string name="duress_confirm_label">Confirm passphrase</string>
+    <string name="duress_mismatch">Passphrases do not match</string>
+    <string name="duress_warning">Choose a passphrase you can remember under stress. It must be different from your main passphrase. If you forget it, there is no way to recover it.</string>
+    <string name="duress_set_button">Set Duress PIN</string>
+    <string name="duress_set_success">Duress PIN set successfully</string>
+    <string name="duress_set_error">Failed to set duress PIN. Please try again.</string>
+    <string name="duress_remove_dialog_title">Remove Duress PIN?</string>
+    <string name="duress_remove_dialog_message">This will disable plausible deniability. Anyone who forces you to unlock Flare will see your real conversations.</string>
+    <string name="duress_remove_confirm">Remove</string>
+
+    <!-- Power Settings -->
+    <string name="power_title">Power Management</string>
+    <string name="power_current_tier">Current Tier</string>
+    <string name="power_battery_saver">Battery Saver</string>
+    <string name="power_battery_saver_subtitle">Forces Ultra Low power tier</string>
+    <string name="power_how_tiers_work">How Power Tiers Work</string>
+    <string name="power_tier_active">ACTIVE</string>
+    <string name="power_high_description">Near-continuous scanning. Maximum discovery speed. Used during active data exchange (max %ds).</string>
+    <string name="power_balanced_description">25%% duty cycle scanning. Good balance of discovery and battery. Drops to Low Power after %ds without peers.</string>
+    <string name="power_low_description">Burst mode — scans %ds every %ds (~17%% active).</string>
+    <string name="power_ultralow_description">Minimal scanning — %ds every %ds (~5%% active). Activated below %d%% battery.</string>
+    <string name="power_auto_adjust">Flare automatically adjusts the power tier based on network activity, peer presence, and battery level. High tier is disabled below %d%% battery.</string>
 
     <!-- Groups -->
     <string name="groups_title">Groups</string>
@@ -58,6 +123,14 @@
     <string name="onboarding_next">Next</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_get_started">Get Started</string>
+    <string name="onboarding_title_1">No Internet Needed</string>
+    <string name="onboarding_desc_1">Flare sends messages phone to phone using Bluetooth. No servers, no Wi-Fi, no cell service. Your messages hop through other Flare users until they reach your contact.</string>
+    <string name="onboarding_title_2">End-to-End Encrypted</string>
+    <string name="onboarding_desc_2">Every message is encrypted on your phone before it leaves. Nobody in between can read your messages — not even the people whose phones relay them.</string>
+    <string name="onboarding_title_3">Find Your Friends</string>
+    <string name="onboarding_desc_3">Enter a shared phrase that you and your friend both know — a memory, a place, an inside joke. Flare searches the mesh and connects you securely.</string>
+    <string name="onboarding_title_4">Designed for Safety</string>
+    <string name="onboarding_desc_4">Duress PIN opens a fake database if you are forced to unlock. No accounts, no phone number required, no tracking. Your privacy is protected by design.</string>
 
     <!-- Splash -->
     <string name="splash_app_name">Flare</string>
@@ -72,6 +145,7 @@
     <string name="chat_status_delivered">Delivered</string>
     <string name="chat_status_read">Read</string>
     <string name="chat_status_failed">Failed</string>
+    <string name="chat_peer_prefix">Peer %s</string>
 
     <!-- Voice Recording -->
     <string name="voice_record_hold">Hold to record</string>
@@ -123,4 +197,101 @@
     <!-- Network -->
     <string name="network_nearby_devices">Nearby Devices</string>
     <string name="network_scanning">Scanning for Flare devices…</string>
+    <string name="network_connected_count">%d connected, %d discovered</string>
+    <string name="network_discovered_count">%d devices found, connecting…</string>
+    <string name="network_scanning_status">Scanning for nearby devices</string>
+    <string name="network_stat_connected">Connected</string>
+    <string name="network_stat_queued">Queued</string>
+    <string name="network_stat_relayed">Relayed</string>
+    <string name="network_device_prefix">Device %s</string>
+    <string name="network_transport_ble">Bluetooth LE</string>
+    <string name="network_transport_wifi_direct">Wi-Fi Direct</string>
+    <string name="network_transport_wifi_aware">Wi-Fi Aware</string>
+    <string name="network_badge_connected">Connected</string>
+
+    <!-- Conversation List -->
+    <string name="conversation_groups">Groups</string>
+    <string name="conversation_devices_nearby_format">%d devices nearby</string>
+
+    <!-- Contacts -->
+    <string name="contacts_find">Find Contact</string>
+    <string name="contacts_devices_nearby_format">%d Flare devices nearby</string>
+    <string name="contacts_last_seen_now">Just now</string>
+    <string name="contacts_last_seen_minutes">%dm ago</string>
+    <string name="contacts_last_seen_hours">%dh ago</string>
+    <string name="contacts_last_seen_days">%dd ago</string>
+
+    <!-- Find Contact -->
+    <string name="find_contact_title">Find a Contact</string>
+    <string name="find_contact_subtitle">Choose how to find your contact</string>
+    <string name="find_shared_phrase_title">Shared Phrase</string>
+    <string name="find_shared_phrase_desc">Enter a phrase that only you and your friend know. A shared memory, a place, an inside joke. Most secure option.</string>
+    <string name="find_recommended">Recommended</string>
+    <string name="find_share_link_title">Share Identity Link</string>
+    <string name="find_share_link_desc">Send your Flare identity via SMS, WhatsApp, or any app. Works at any distance — no mesh needed.</string>
+    <string name="find_qr_title">Scan QR Code</string>
+    <string name="find_qr_desc">Scan your contact\'s QR code when you meet in person. Maximum security — zero network exposure.</string>
+    <string name="find_phone_title">Phone Number</string>
+    <string name="find_phone_desc">Search by phone number. Both parties must enter each other\'s number. Less secure against well-funded adversaries.</string>
+    <string name="find_import_title">Import Contacts</string>
+    <string name="find_import_desc">Import your phone contacts to automatically find friends who also use Flare. Requires READ_CONTACTS permission.</string>
+
+    <!-- Shared Phrase Search -->
+    <string name="phrase_search_title">Shared Phrase</string>
+    <string name="phrase_search_instructions">Enter a phrase that only you and your friend would know. It could be a shared memory, a place you both visited, or anything unique between you.</string>
+    <string name="phrase_search_label">Shared phrase</string>
+    <string name="phrase_search_placeholder">e.g., grandmother\'s house on hafez street</string>
+    <string name="phrase_search_hint">Your friend must enter the EXACT same phrase in their Flare app. Case and extra spaces don\'t matter.</string>
+    <string name="phrase_search_button">Search Mesh</string>
+    <string name="phrase_searching">Searching the mesh network…</string>
+    <string name="phrase_searching_desc">Broadcasting your rendezvous token to nearby devices. This may take minutes, hours, or days depending on mesh connectivity to your friend.</string>
+    <string name="phrase_searching_privacy">Your phrase never leaves this device. Only a mathematical fingerprint is broadcast — it cannot be reversed.</string>
+    <string name="phrase_cancel">Cancel Search</string>
+    <string name="phrase_found">Contact Found!</string>
+    <string name="phrase_found_via">Found via %s</string>
+    <string name="phrase_add_contact">Add Contact</string>
+
+    <!-- Phone Search -->
+    <string name="phone_search_title">Phone Number Search</string>
+    <string name="phone_security_notice">Security Notice</string>
+    <string name="phone_security_warning">A well-funded adversary who knows YOUR phone number could potentially determine who you are trying to reach. Use \"Shared Phrase\" instead if you are concerned about government surveillance.</string>
+    <string name="phone_your_number">Your phone number</string>
+    <string name="phone_your_placeholder">+1 555 123 4567</string>
+    <string name="phone_their_number">Their phone number</string>
+    <string name="phone_their_placeholder">+1 555 987 6543</string>
+    <string name="phone_accept_risk">I understand the security limitations</string>
+    <string name="phone_searching_desc">Both phone numbers are combined into a single token. Only someone who knows both numbers can match it.</string>
+    <string name="phone_instructions">Your friend must also enter YOUR phone number in their app. Neither phone number is ever sent over the network.</string>
+
+    <!-- Contact Rename -->
+    <string name="rename_contact_title">Rename Contact</string>
+    <string name="rename_contact_hint">Enter a new name for this contact</string>
+    <string name="rename_contact_label">Display name</string>
+
+    <!-- Broadcast -->
+    <string name="broadcast_title">Broadcast Message</string>
+    <string name="broadcast_subtitle">Send to all contacts</string>
+    <string name="broadcast_hint">Type your broadcast message…</string>
+    <string name="broadcast_send">Send Broadcast</string>
+    <string name="broadcast_confirm_title">Send Broadcast?</string>
+    <string name="broadcast_confirm_message">This message will be sent to all %d contacts. Broadcast messages are NOT encrypted.</string>
+    <string name="broadcast_confirm_send">Send to All</string>
+    <string name="broadcast_sent">Broadcast sent to %d contacts</string>
+    <string name="broadcast_no_contacts">No contacts to broadcast to. Add contacts first.</string>
+    <string name="broadcast_security_notice">Broadcast messages are signed but not encrypted. Anyone who receives the message can read it.</string>
+
+    <!-- Language Settings -->
+    <string name="settings_section_language">Language</string>
+    <string name="settings_language_title">Language</string>
+    <string name="settings_language_subtitle">Current: %s</string>
+    <string name="language_title">Language</string>
+    <string name="language_system_default">System Default</string>
+    <string name="language_english">English</string>
+    <string name="language_farsi">فارسی (Farsi)</string>
+    <string name="language_arabic">العربية (Arabic)</string>
+    <string name="language_spanish">Español (Spanish)</string>
+    <string name="language_russian">Русский (Russian)</string>
+    <string name="language_chinese">中文 (Chinese)</string>
+    <string name="language_korean">한국어 (Korean)</string>
+    <string name="language_restart_notice">Changing the language may require restarting the app.</string>
 </resources>

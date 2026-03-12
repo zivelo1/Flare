@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Flare</string>
+    <string name="mesh_service_channel_name">Mesh-сеть</string>
+    <string name="mesh_service_channel_description">Поддерживает активность mesh-сети Flare</string>
+    <string name="mesh_notification_title">Mesh-сеть Flare активна</string>
+    <string name="mesh_notification_text_format">Подключено к %d узлам</string>
+    <string name="mesh_notification_text_no_peers">Поиск ближайших устройств…</string>
+    <string name="chat_hint">Введите сообщение…</string>
+    <string name="no_conversations">Пока нет разговоров.\nБлижайшие пользователи Flare появятся здесь.</string>
+    <string name="contacts_empty">Пока нет контактов.\nОтсканируйте QR-код, чтобы добавить контакт.</string>
+    <string name="tab_chats">Чаты</string>
+    <string name="tab_contacts">Контакты</string>
+    <string name="tab_network">Сеть</string>
+    <string name="settings_title">Настройки</string>
+    <string name="permission_bluetooth_title">Требуется Bluetooth</string>
+    <string name="permission_bluetooth_message">Flare использует Bluetooth для связи с ближайшими устройствами. Интернет и сотовая связь не используются.</string>
+    <string name="action_grant_permission">Предоставить разрешение</string>
+    <string name="action_send">Отправить</string>
+    <string name="action_scan_qr">Сканировать QR-код</string>
+    <string name="action_show_qr">Показать мой QR</string>
+    <string name="verified_badge">Проверен</string>
+    <string name="unverified_badge">Не проверен</string>
+    <string name="network_status_active">Mesh-сеть активна</string>
+    <string name="network_status_inactive">Mesh-сеть неактивна</string>
+    <string name="peer_count_format">%d узлов поблизости</string>
+    <string name="qr_my_code_title">Мой QR-код Flare</string>
+    <string name="qr_my_code_subtitle">Дайте вашему контакту отсканировать этот код</string>
+    <string name="qr_scanner_title">Сканировать QR-код</string>
+    <string name="qr_scanner_instruction">Наведите камеру на QR-код Flare</string>
+    <string name="qr_contact_added">Контакт успешно добавлен</string>
+    <string name="qr_invalid_code">Недействительный QR-код Flare</string>
+    <string name="qr_camera_permission_needed">Для сканирования QR-кодов требуется разрешение камеры</string>
+    <string name="qr_safety_number_label">Код безопасности</string>
+    <string name="qr_share_code">Поделиться QR-кодом</string>
+    <string name="share_identity_button">Поделиться ссылкой на мою личность</string>
+    <string name="share_identity_chooser_title">Поделиться идентификатором Flare</string>
+    <string name="share_identity_message">Добавьте меня в Flare (зашифрованная mesh-связь):\n%1$s\n\nНет Flare? Скачайте на https://github.com/zivelo1/Flare</string>
+    <string name="share_identity_hint">Отправьте эту ссылку через SMS, WhatsApp или любое приложение.\nВаш друг нажмёт на неё, чтобы добавить вас в контакты.</string>
+    <string name="deep_link_contact_added">Контакт добавлен из общей ссылки</string>
+    <string name="deep_link_invalid">Недействительная ссылка идентификации Flare</string>
+    <string name="action_close">Закрыть</string>
+    <string name="action_done">Готово</string>
+    <string name="action_cancel">Отмена</string>
+    <string name="action_back">Назад</string>
+    <string name="action_save">Сохранить</string>
+    <string name="action_show">Показать</string>
+    <string name="action_hide">Скрыть</string>
+
+    <!-- Settings -->
+    <string name="settings_section_security">Безопасность</string>
+    <string name="settings_duress_subtitle_configured">Настроено — обманная база данных активна</string>
+    <string name="settings_duress_subtitle_not_configured">Не настроено — нажмите для настройки</string>
+    <string name="settings_section_battery">Батарея &amp; Производительность</string>
+    <string name="settings_power_subtitle_format">Текущий уровень: %s</string>
+    <string name="settings_section_storage">Хранилище</string>
+    <string name="settings_storage_own">Собственное</string>
+    <string name="settings_storage_relay">Ретрансляция</string>
+    <string name="settings_storage_waiting">Ожидание</string>
+    <string name="settings_storage_total">Всего</string>
+    <string name="settings_storage_usage_format">%.1f МБ / %.0f МБ использовано</string>
+    <string name="settings_section_device">Устройство</string>
+    <string name="settings_device_id">ID устройства</string>
+    <string name="settings_safety_number">Код безопасности</string>
+    <string name="settings_section_sharing">Обмен</string>
+    <string name="settings_section_about">О приложении</string>
+    <string name="settings_about_subtitle">Зашифрованная mesh-связь — интернет не требуется</string>
+    <string name="settings_open_source">Открытый исходный код</string>
+    <string name="settings_license">Лицензия GPLv3</string>
+    <string name="settings_tier_high">Высокая производительность</string>
+    <string name="settings_tier_balanced">Сбалансированный</string>
+    <string name="settings_tier_low">Низкое энергопотребление</string>
+    <string name="settings_tier_ultra_low">Сверхнизкое</string>
+    <string name="settings_section_language">Язык</string>
+    <string name="settings_language_title">Язык</string>
+    <string name="settings_language_subtitle">Текущий: %s</string>
+
+    <string name="settings_duress_title">PIN под принуждением</string>
+    <string name="settings_power_title">Управление питанием</string>
+    <string name="settings_about_title">О Flare</string>
+
+    <!-- Duress Settings -->
+    <string name="duress_title">PIN под принуждением</string>
+    <string name="duress_plausible_deniability">Правдоподобное отрицание</string>
+    <string name="duress_explanation">Если вас принуждают разблокировать Flare, ввод PIN под принуждением открывает обманную базу данных с безобидными сообщениями. Ваши настоящие разговоры остаются скрытыми и зашифрованными.</string>
+    <string name="duress_active_title">PIN под принуждением активен</string>
+    <string name="duress_active_description">При вводе PIN под принуждением будет показана обманная база данных.</string>
+    <string name="duress_remove_button">Удалить PIN под принуждением</string>
+    <string name="duress_passphrase_label">Пароль под принуждением</string>
+    <string name="duress_confirm_label">Подтвердите пароль</string>
+    <string name="duress_mismatch">Пароли не совпадают</string>
+    <string name="duress_warning">Выберите пароль, который вы сможете вспомнить в стрессовой ситуации. Он должен отличаться от вашего основного пароля. Если вы его забудете, восстановить его будет невозможно.</string>
+    <string name="duress_set_button">Установить PIN под принуждением</string>
+    <string name="duress_set_success">PIN под принуждением успешно установлен</string>
+    <string name="duress_set_error">Не удалось установить PIN под принуждением. Попробуйте ещё раз.</string>
+    <string name="duress_remove_dialog_title">Удалить PIN под принуждением?</string>
+    <string name="duress_remove_dialog_message">Это отключит правдоподобное отрицание. Любой, кто заставит вас разблокировать Flare, увидит ваши настоящие разговоры.</string>
+    <string name="duress_remove_confirm">Удалить</string>
+
+    <!-- Power Settings -->
+    <string name="power_title">Управление питанием</string>
+    <string name="power_current_tier">Текущий уровень</string>
+    <string name="power_battery_saver">Экономия батареи</string>
+    <string name="power_battery_saver_subtitle">Принудительно устанавливает сверхнизкий уровень энергопотребления</string>
+    <string name="power_how_tiers_work">Как работают уровни энергопотребления</string>
+    <string name="power_tier_active">АКТИВЕН</string>
+    <string name="power_high_description">Почти непрерывное сканирование. Максимальная скорость обнаружения. Используется при активном обмене данными (макс. %ds).</string>
+    <string name="power_balanced_description">Сканирование с рабочим циклом 25%%. Хороший баланс между обнаружением и батареей. Переключается на низкое энергопотребление после %ds без узлов.</string>
+    <string name="power_low_description">Пакетный режим — сканирование %ds каждые %ds (~17%% активности).</string>
+    <string name="power_ultralow_description">Минимальное сканирование — %ds каждые %ds (~5%% активности). Включается при заряде ниже %d%%.</string>
+    <string name="power_auto_adjust">Flare автоматически регулирует уровень энергопотребления на основе активности сети, наличия узлов и уровня заряда батареи. Высокий уровень отключается при заряде ниже %d%%.</string>
+
+    <!-- Conversation List -->
+    <string name="conversation_groups">Группы</string>
+    <string name="conversation_devices_nearby_format">%d устройств поблизости</string>
+
+    <!-- Contacts -->
+    <string name="contacts_find">Найти контакт</string>
+    <string name="contacts_devices_nearby_format">%d устройств Flare поблизости</string>
+    <string name="contacts_last_seen_now">Только что</string>
+    <string name="contacts_last_seen_minutes">%dм назад</string>
+    <string name="contacts_last_seen_hours">%dч назад</string>
+    <string name="contacts_last_seen_days">%dд назад</string>
+
+    <!-- Find Contact -->
+    <string name="find_contact_title">Найти контакт</string>
+    <string name="find_contact_subtitle">Выберите способ поиска контакта</string>
+    <string name="find_shared_phrase_title">Общая фраза</string>
+    <string name="find_shared_phrase_desc">Введите фразу, которую знаете только вы и ваш друг. Общее воспоминание, место, шутка для своих. Самый безопасный вариант.</string>
+    <string name="find_recommended">Рекомендуется</string>
+    <string name="find_share_link_title">Поделиться ссылкой</string>
+    <string name="find_share_link_desc">Отправьте свой идентификатор Flare через SMS, WhatsApp или любое приложение. Работает на любом расстоянии — mesh-сеть не нужна.</string>
+    <string name="find_qr_title">Сканировать QR-код</string>
+    <string name="find_qr_desc">Отсканируйте QR-код контакта при личной встрече. Максимальная безопасность — нулевое сетевое воздействие.</string>
+    <string name="find_phone_title">Номер телефона</string>
+    <string name="find_phone_desc">Поиск по номеру телефона. Обе стороны должны ввести номер друг друга. Менее безопасно против хорошо финансируемых противников.</string>
+    <string name="find_import_title">Импорт контактов</string>
+    <string name="find_import_desc">Импортируйте контакты телефона для автоматического поиска друзей, которые тоже используют Flare. Требуется разрешение READ_CONTACTS.</string>
+
+    <!-- Shared Phrase Search -->
+    <string name="phrase_search_title">Общая фраза</string>
+    <string name="phrase_search_instructions">Введите фразу, которую знаете только вы и ваш друг. Это может быть общее воспоминание, место, которое вы оба посещали, или что-то уникальное между вами.</string>
+    <string name="phrase_search_label">Общая фраза</string>
+    <string name="phrase_search_placeholder">напр., бабушкин дом на улице пушкина</string>
+    <string name="phrase_search_hint">Ваш друг должен ввести ТОЧНО такую же фразу в своём приложении Flare. Регистр и лишние пробелы не важны.</string>
+    <string name="phrase_search_button">Искать в mesh-сети</string>
+    <string name="phrase_searching">Поиск в mesh-сети…</string>
+    <string name="phrase_searching_desc">Передача вашего токена встречи ближайшим устройствам. Это может занять минуты, часы или дни в зависимости от mesh-связи с вашим другом.</string>
+    <string name="phrase_searching_privacy">Ваша фраза никогда не покидает это устройство. Передаётся только математический отпечаток — его невозможно обратить.</string>
+    <string name="phrase_cancel">Отменить поиск</string>
+    <string name="phrase_found">Контакт найден!</string>
+    <string name="phrase_found_via">Найден через %s</string>
+    <string name="phrase_add_contact">Добавить контакт</string>
+
+    <!-- Phone Search -->
+    <string name="phone_search_title">Поиск по номеру телефона</string>
+    <string name="phone_security_notice">Предупреждение безопасности</string>
+    <string name="phone_security_warning">Хорошо финансируемый противник, знающий ВАШ номер телефона, потенциально может определить, с кем вы пытаетесь связаться. Используйте \"Общую фразу\", если вас беспокоит государственная слежка.</string>
+    <string name="phone_your_number">Ваш номер телефона</string>
+    <string name="phone_your_placeholder">+7 912 123 4567</string>
+    <string name="phone_their_number">Их номер телефона</string>
+    <string name="phone_their_placeholder">+7 903 987 6543</string>
+    <string name="phone_accept_risk">Я понимаю ограничения безопасности</string>
+    <string name="phone_searching_desc">Оба номера телефона объединяются в один токен. Только тот, кто знает оба номера, может установить совпадение.</string>
+    <string name="phone_instructions">Ваш друг тоже должен ввести ВАШ номер телефона в своём приложении. Ни один номер телефона никогда не передаётся по сети.</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">Интернет не нужен</string>
+    <string name="onboarding_desc_1">Flare отправляет сообщения с телефона на телефон через Bluetooth. Без серверов, без Wi-Fi, без сотовой связи. Ваши сообщения передаются через других пользователей Flare, пока не достигнут вашего контакта.</string>
+    <string name="onboarding_title_2">Сквозное шифрование</string>
+    <string name="onboarding_desc_2">Каждое сообщение шифруется на вашем телефоне перед отправкой. Никто посередине не может прочитать ваши сообщения — даже люди, чьи телефоны их передают.</string>
+    <string name="onboarding_title_3">Найдите своих друзей</string>
+    <string name="onboarding_desc_3">Введите общую фразу, которую знаете вы и ваш друг — воспоминание, место, шутку для своих. Flare ищет в mesh-сети и соединяет вас безопасно.</string>
+    <string name="onboarding_title_4">Создано для безопасности</string>
+    <string name="onboarding_desc_4">PIN под принуждением открывает фальшивую базу данных, если вас заставят разблокировать. Без аккаунтов, без номера телефона, без отслеживания. Ваша конфиденциальность защищена по умолчанию.</string>
+
+    <!-- Chat -->
+    <string name="chat_peer_prefix">Узел %s</string>
+    <string name="chat_empty_prompt">Отправьте сообщение, чтобы начать разговор.\nСообщения зашифрованы сквозным шифрованием.</string>
+    <string name="chat_via_mesh">через mesh</string>
+    <string name="chat_back">Назад</string>
+    <string name="chat_status_sending">Отправка</string>
+    <string name="chat_status_sent">Отправлено</string>
+    <string name="chat_status_delivered">Доставлено</string>
+    <string name="chat_status_read">Прочитано</string>
+    <string name="chat_status_failed">Ошибка</string>
+
+    <!-- Network -->
+    <string name="network_connected_count">%d подключено, %d обнаружено</string>
+    <string name="network_discovered_count">%d устройств найдено, подключение…</string>
+    <string name="network_scanning_status">Поиск ближайших устройств</string>
+    <string name="network_stat_connected">Подключено</string>
+    <string name="network_stat_queued">В очереди</string>
+    <string name="network_stat_relayed">Ретранслировано</string>
+    <string name="network_device_prefix">Устройство %s</string>
+    <string name="network_transport_ble">Bluetooth LE</string>
+    <string name="network_transport_wifi_direct">Wi-Fi Direct</string>
+    <string name="network_transport_wifi_aware">Wi-Fi Aware</string>
+    <string name="network_badge_connected">Подключено</string>
+
+    <!-- Contact Rename -->
+    <string name="rename_contact_title">Переименовать контакт</string>
+    <string name="rename_contact_hint">Введите новое имя для этого контакта</string>
+    <string name="rename_contact_label">Отображаемое имя</string>
+
+    <!-- Broadcast -->
+    <string name="broadcast_title">Широковещательное сообщение</string>
+    <string name="broadcast_subtitle">Отправить всем контактам</string>
+    <string name="broadcast_hint">Введите широковещательное сообщение…</string>
+    <string name="broadcast_send">Отправить рассылку</string>
+    <string name="broadcast_confirm_title">Отправить рассылку?</string>
+    <string name="broadcast_confirm_message">Это сообщение будет отправлено всем %d контактам. Широковещательные сообщения НЕ шифруются.</string>
+    <string name="broadcast_confirm_send">Отправить всем</string>
+    <string name="broadcast_sent">Рассылка отправлена %d контактам</string>
+    <string name="broadcast_no_contacts">Нет контактов для рассылки. Сначала добавьте контакты.</string>
+    <string name="broadcast_security_notice">Широковещательные сообщения подписаны, но не зашифрованы. Любой, кто получит сообщение, сможет его прочитать.</string>
+
+    <!-- Language Settings -->
+    <string name="language_title">Язык</string>
+    <string name="language_system_default">Системный по умолчанию</string>
+    <string name="language_english">English</string>
+    <string name="language_farsi">فارسی (Farsi)</string>
+    <string name="language_arabic">العربية (Arabic)</string>
+    <string name="language_spanish">Español (Spanish)</string>
+    <string name="language_russian">Русский (Russian)</string>
+    <string name="language_chinese">中文 (Chinese)</string>
+    <string name="language_korean">한국어 (Korean)</string>
+    <string name="language_restart_notice">Смена языка может потребовать перезапуска приложения.</string>
+
+    <!-- Splash -->
+    <string name="splash_app_name">Flare</string>
+    <string name="splash_tagline">Mesh-связь повсюду</string>
+
+    <!-- Groups -->
+    <string name="groups_title">Группы</string>
+    <string name="groups_create">Создать группу</string>
+    <string name="groups_empty">Пока нет групп</string>
+    <string name="groups_empty_hint">Создайте группу, чтобы отправлять сообщения нескольким контактам одновременно.</string>
+    <string name="onboarding_skip">Пропустить</string>
+    <string name="onboarding_next">Далее</string>
+    <string name="onboarding_back">Назад</string>
+    <string name="onboarding_get_started">Начать</string>
+
+    <!-- Voice Recording -->
+    <string name="voice_record_hold">Удерживайте для записи</string>
+    <string name="voice_recording">Запись…</string>
+    <string name="voice_record_release">Отпустите для отправки</string>
+    <string name="voice_record_cancel">Проведите для отмены</string>
+    <string name="voice_record_permission_needed">Для записи голосовых сообщений требуется разрешение микрофона</string>
+    <string name="voice_record_error">Не удалось записать аудио</string>
+    <string name="voice_record_too_short">Запись слишком короткая</string>
+
+    <!-- Image Capture -->
+    <string name="image_capture">Сделать фото</string>
+    <string name="image_preview_title">Отправить фото</string>
+    <string name="image_send">Отправить</string>
+    <string name="image_cancel">Отмена</string>
+    <string name="image_capture_error">Не удалось сделать фото</string>
+    <string name="image_permission_needed">Для съёмки фотографий требуется разрешение камеры</string>
+
+    <!-- APK Sharing -->
+    <string name="apk_share_title">Поделиться Flare</string>
+    <string name="apk_receive_title">Получить Flare</string>
+    <string name="apk_share_description">Поделитесь приложением Flare с ближайшими устройствами через Bluetooth</string>
+    <string name="apk_share_version">Версия %s</string>
+    <string name="apk_share_size">Размер: %s</string>
+    <string name="apk_share_hash">SHA-256: %s</string>
+    <string name="apk_share_button">Поделиться через Bluetooth</string>
+    <string name="apk_share_stop_button">Прекратить раздачу</string>
+    <string name="apk_share_advertising">Передача ближайшим устройствам…</string>
+    <string name="apk_share_transfer_progress">Прогресс передачи</string>
+    <string name="apk_share_requesting_devices">Устройства, запрашивающие Flare</string>
+    <string name="apk_share_no_requests">Пока нет запросов</string>
+    <string name="apk_receive_scanning">Поиск ближайших устройств Flare…</string>
+    <string name="apk_receive_available">Доступно для загрузки</string>
+    <string name="apk_receive_version">Версия: %s</string>
+    <string name="apk_receive_size">Размер: %s</string>
+    <string name="apk_receive_verified">Подпись подтверждена</string>
+    <string name="apk_receive_unverified">Подпись не подтверждена</string>
+    <string name="apk_receive_download">Скачать</string>
+    <string name="apk_receive_install">Установить</string>
+    <string name="apk_receive_downloading">Загрузка…</string>
+    <string name="apk_receive_no_offers">Ближайшие устройства Flare не найдены</string>
+    <string name="apk_settings_share">Поделиться приложением Flare</string>
+    <string name="apk_settings_share_subtitle">Отправить приложение ближайшим устройствам через Bluetooth</string>
+
+    <!-- Mesh Visualization -->
+    <string name="mesh_visualization_you">Вы</string>
+    <string name="mesh_visualization_title">Топология mesh-сети</string>
+    <string name="network_nearby_devices">Ближайшие устройства</string>
+    <string name="network_scanning">Поиск устройств Flare…</string>
+</resources>

@@ -16,8 +16,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flare.mesh.R
 import com.flare.mesh.viewmodel.DuressSetupStatus
 import com.flare.mesh.viewmodel.SettingsViewModel
 
@@ -38,10 +40,10 @@ fun DuressSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Duress PIN") },
+                title = { Text(stringResource(R.string.duress_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -76,14 +78,14 @@ fun DuressSettingsScreen(
                     )
                     Column {
                         Text(
-                            text = "Plausible Deniability",
+                            text = stringResource(R.string.duress_plausible_deniability),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = "If you are forced to unlock Flare, entering the duress PIN opens a decoy database with innocent messages. Your real conversations remain hidden and encrypted.",
+                            text = stringResource(R.string.duress_explanation),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
@@ -113,14 +115,14 @@ fun DuressSettingsScreen(
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = "Duress PIN Active",
+                            text = stringResource(R.string.duress_active_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = "A decoy database will be shown when the duress PIN is entered.",
+                            text = stringResource(R.string.duress_active_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             textAlign = TextAlign.Center,
@@ -137,7 +139,7 @@ fun DuressSettingsScreen(
                         contentColor = MaterialTheme.colorScheme.error,
                     ),
                 ) {
-                    Text("Remove Duress PIN")
+                    Text(stringResource(R.string.duress_remove_button))
                 }
             } else {
                 // Setup new duress PIN
@@ -147,7 +149,7 @@ fun DuressSettingsScreen(
                 OutlinedTextField(
                     value = passphrase,
                     onValueChange = { passphrase = it },
-                    label = { Text("Duress passphrase") },
+                    label = { Text(stringResource(R.string.duress_passphrase_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     visualTransformation = visualTransformation,
                     trailingIcon = {
@@ -155,7 +157,7 @@ fun DuressSettingsScreen(
                             Icon(
                                 if (showPassphrase) Icons.Filled.VisibilityOff
                                 else Icons.Filled.Visibility,
-                                contentDescription = if (showPassphrase) "Hide" else "Show",
+                                contentDescription = if (showPassphrase) stringResource(R.string.action_hide) else stringResource(R.string.action_show),
                             )
                         }
                     },
@@ -167,7 +169,7 @@ fun DuressSettingsScreen(
                 OutlinedTextField(
                     value = confirmPassphrase,
                     onValueChange = { confirmPassphrase = it },
-                    label = { Text("Confirm passphrase") },
+                    label = { Text(stringResource(R.string.duress_confirm_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     visualTransformation = visualTransformation,
                     singleLine = true,
@@ -180,7 +182,7 @@ fun DuressSettingsScreen(
                             && passphrase != confirmPassphrase,
                 ) {
                     Text(
-                        text = "Passphrases do not match",
+                        text = stringResource(R.string.duress_mismatch),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -206,9 +208,7 @@ fun DuressSettingsScreen(
                             modifier = Modifier.size(20.dp),
                         )
                         Text(
-                            text = "Choose a passphrase you can remember under stress. " +
-                                    "It must be different from your main passphrase. " +
-                                    "If you forget it, there is no way to recover it.",
+                            text = stringResource(R.string.duress_warning),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onErrorContainer,
                         )
@@ -239,12 +239,12 @@ fun DuressSettingsScreen(
                         )
                         Spacer(Modifier.width(8.dp))
                     }
-                    Text("Set Duress PIN")
+                    Text(stringResource(R.string.duress_set_button))
                 }
 
                 AnimatedVisibility(visible = duressStatus == DuressSetupStatus.SUCCESS) {
                     Text(
-                        text = "Duress PIN set successfully",
+                        text = stringResource(R.string.duress_set_success),
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
@@ -254,7 +254,7 @@ fun DuressSettingsScreen(
 
                 AnimatedVisibility(visible = duressStatus == DuressSetupStatus.ERROR) {
                     Text(
-                        text = "Failed to set duress PIN. Please try again.",
+                        text = stringResource(R.string.duress_set_error),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(top = 8.dp),
@@ -278,12 +278,12 @@ fun DuressSettingsScreen(
                         contentColor = MaterialTheme.colorScheme.error,
                     ),
                 ) {
-                    Text("Remove")
+                    Text(stringResource(R.string.duress_remove_confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showConfirmDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             },
             icon = {
@@ -293,9 +293,9 @@ fun DuressSettingsScreen(
                     tint = MaterialTheme.colorScheme.error,
                 )
             },
-            title = { Text("Remove Duress PIN?") },
+            title = { Text(stringResource(R.string.duress_remove_dialog_title)) },
             text = {
-                Text("This will disable plausible deniability. Anyone who forces you to unlock Flare will see your real conversations.")
+                Text(stringResource(R.string.duress_remove_dialog_message))
             },
         )
     }

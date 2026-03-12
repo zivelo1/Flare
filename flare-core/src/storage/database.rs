@@ -261,6 +261,19 @@ impl FlareDatabase {
         Ok(())
     }
 
+    /// Updates only the display name of an existing contact.
+    pub fn update_contact_display_name(
+        &self,
+        device_id: &DeviceId,
+        display_name: &str,
+    ) -> Result<bool, DatabaseError> {
+        let rows = self.conn.execute(
+            "UPDATE contacts SET display_name = ?2, last_seen = datetime('now') WHERE device_id = ?1",
+            params![device_id.to_hex(), display_name],
+        )?;
+        Ok(rows > 0)
+    }
+
     /// Loads a contact by device ID.
     pub fn load_contact(
         &self,

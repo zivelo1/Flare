@@ -7,6 +7,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flare.mesh.R
+import com.flare.mesh.util.Constants
 import com.flare.mesh.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,6 +27,7 @@ fun SettingsScreen(
     onNavigateToDuress: () -> Unit,
     onNavigateToPower: () -> Unit,
     onNavigateToApkShare: () -> Unit = {},
+    onNavigateToLanguage: () -> Unit = {},
     settingsViewModel: SettingsViewModel = viewModel(),
 ) {
     val hasDuressPin by settingsViewModel.hasDuressPin.collectAsState()
@@ -38,10 +41,10 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings") },
+                title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -56,33 +59,42 @@ fun SettingsScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState()),
         ) {
+            // ── Profile Section ───────────────────────────────────────
+            SettingsSectionHeader(stringResource(R.string.settings_section_profile))
+
+            ProfileNameItem(
+                onNameChanged = { /* name saved via SharedPreferences in the item */ },
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
             // ── Security Section ─────────────────────────────────────
-            SettingsSectionHeader("Security")
+            SettingsSectionHeader(stringResource(R.string.settings_section_security))
 
             SettingsItem(
                 icon = Icons.Filled.Shield,
-                title = "Duress PIN",
-                subtitle = if (hasDuressPin) "Configured — decoy database active"
-                else "Not configured — tap to set up",
+                title = stringResource(R.string.duress_title),
+                subtitle = if (hasDuressPin) stringResource(R.string.settings_duress_subtitle_configured)
+                else stringResource(R.string.settings_duress_subtitle_not_configured),
                 onClick = onNavigateToDuress,
             )
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
             // ── Battery & Performance Section ────────────────────────
-            SettingsSectionHeader("Battery & Performance")
+            SettingsSectionHeader(stringResource(R.string.settings_section_battery))
 
             SettingsItem(
                 icon = Icons.Filled.BatteryChargingFull,
-                title = "Power Management",
-                subtitle = "Current tier: ${formatTierName(currentPowerTier)}",
+                title = stringResource(R.string.settings_power_title),
+                subtitle = stringResource(R.string.settings_power_subtitle_format, formatTierName(currentPowerTier)),
                 onClick = onNavigateToPower,
             )
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
             // ── Storage Section ──────────────────────────────────────
-            SettingsSectionHeader("Storage")
+            SettingsSectionHeader(stringResource(R.string.settings_section_storage))
 
             storeStats?.let { stats ->
                 StorageStatsCard(stats)
@@ -91,7 +103,7 @@ fun SettingsScreen(
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
             // ── Device Info Section ──────────────────────────────────
-            SettingsSectionHeader("Device")
+            SettingsSectionHeader(stringResource(R.string.settings_section_device))
 
             DeviceInfoCard(
                 deviceId = settingsViewModel.deviceId,
@@ -101,7 +113,7 @@ fun SettingsScreen(
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
             // ── Sharing Section ───────────────────────────────────────
-            SettingsSectionHeader("Sharing")
+            SettingsSectionHeader(stringResource(R.string.settings_section_sharing))
 
             SettingsItem(
                 icon = Icons.Filled.Share,
@@ -112,20 +124,32 @@ fun SettingsScreen(
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
+            // ── Language Section ──────────────────────────────────────
+            SettingsSectionHeader(stringResource(R.string.settings_section_language))
+
+            SettingsItem(
+                icon = Icons.Filled.Language,
+                title = stringResource(R.string.settings_language_title),
+                subtitle = stringResource(R.string.settings_language_subtitle, getCurrentLanguageName()),
+                onClick = onNavigateToLanguage,
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
             // ── About Section ────────────────────────────────────────
-            SettingsSectionHeader("About")
+            SettingsSectionHeader(stringResource(R.string.settings_section_about))
 
             SettingsItem(
                 icon = Icons.Filled.Info,
-                title = "Flare",
-                subtitle = "Encrypted mesh messaging — no internet required",
+                title = stringResource(R.string.app_name),
+                subtitle = stringResource(R.string.settings_about_subtitle),
                 onClick = {},
             )
 
             SettingsItem(
                 icon = Icons.Filled.Code,
-                title = "Open Source",
-                subtitle = "Licensed under GPLv3",
+                title = stringResource(R.string.settings_open_source),
+                subtitle = stringResource(R.string.settings_license),
                 onClick = {},
             )
 
@@ -175,6 +199,39 @@ private fun SettingsItem(
 }
 
 @Composable
+private fun ProfileNameItem(
+    onNameChanged: (String) -> Unit,
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val prefs = remember { context.getSharedPreferences(Constants.PREFS_NAME, android.content.Context.MODE_PRIVATE) }
+    var name by remember { mutableStateOf(prefs.getString(Constants.KEY_DISPLAY_NAME, "") ?: "") }
+
+    ListItem(
+        leadingContent = {
+            Icon(
+                Icons.Filled.Person,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        headlineContent = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = {
+                    name = it
+                    prefs.edit().putString(Constants.KEY_DISPLAY_NAME, it).apply()
+                    onNameChanged(it)
+                },
+                label = { Text(stringResource(R.string.profile_name_label)) },
+                placeholder = { Text(stringResource(R.string.profile_name_hint)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+    )
+}
+
+@Composable
 private fun StorageStatsCard(
     stats: com.flare.mesh.data.repository.StoreStats,
 ) {
@@ -191,10 +248,10 @@ private fun StorageStatsCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                StorageStat("Own", stats.ownMessages.toString())
-                StorageStat("Relay", stats.activeRelayMessages.toString())
-                StorageStat("Waiting", stats.waitingRelayMessages.toString())
-                StorageStat("Total", stats.totalMessages.toString())
+                StorageStat(stringResource(R.string.settings_storage_own), stats.ownMessages.toString())
+                StorageStat(stringResource(R.string.settings_storage_relay), stats.activeRelayMessages.toString())
+                StorageStat(stringResource(R.string.settings_storage_waiting), stats.waitingRelayMessages.toString())
+                StorageStat(stringResource(R.string.settings_storage_total), stats.totalMessages.toString())
             }
             Spacer(Modifier.height(12.dp))
 
@@ -205,7 +262,7 @@ private fun StorageStatsCard(
             else 0f
 
             Text(
-                text = String.format("%.1f MB / %.0f MB used", usedMB, budgetMB),
+                text = stringResource(R.string.settings_storage_usage_format, usedMB, budgetMB),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -252,7 +309,7 @@ private fun DeviceInfoCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Device ID",
+                text = stringResource(R.string.settings_device_id),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -263,7 +320,7 @@ private fun DeviceInfoCard(
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                text = "Safety Number",
+                text = stringResource(R.string.settings_safety_number),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -276,10 +333,25 @@ private fun DeviceInfoCard(
     }
 }
 
+@Composable
 private fun formatTierName(tier: String): String = when (tier) {
-    "high" -> "High Performance"
-    "balanced" -> "Balanced"
-    "low_power" -> "Low Power"
-    "ultra_low" -> "Ultra Low"
+    "high" -> stringResource(R.string.settings_tier_high)
+    "balanced" -> stringResource(R.string.settings_tier_balanced)
+    "low_power" -> stringResource(R.string.settings_tier_low)
+    "ultra_low" -> stringResource(R.string.settings_tier_ultra_low)
     else -> tier.replaceFirstChar { it.uppercase() }
+}
+
+@Composable
+private fun getCurrentLanguageName(): String {
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    return when (locale.language) {
+        "fa" -> stringResource(R.string.language_farsi)
+        "ar" -> stringResource(R.string.language_arabic)
+        "es" -> stringResource(R.string.language_spanish)
+        "ru" -> stringResource(R.string.language_russian)
+        "zh" -> stringResource(R.string.language_chinese)
+        "ko" -> stringResource(R.string.language_korean)
+        else -> stringResource(R.string.language_english)
+    }
 }

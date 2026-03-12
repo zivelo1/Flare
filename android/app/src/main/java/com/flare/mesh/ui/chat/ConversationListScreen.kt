@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Settings
@@ -34,6 +35,7 @@ fun ConversationListScreen(
     onConversationClick: (String) -> Unit,
     onNavigateToSettings: () -> Unit = {},
     onNavigateToGroups: () -> Unit = {},
+    onNavigateToBroadcast: () -> Unit = {},
     chatViewModel: ChatViewModel = viewModel(),
 ) {
     val meshStatus by chatViewModel.meshStatus.collectAsState()
@@ -46,15 +48,18 @@ fun ConversationListScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Flare",
+                            text = stringResource(R.string.app_name),
                             style = MaterialTheme.typography.headlineMedium,
                         )
                         MeshStatusIndicator(meshStatus, isServiceRunning)
                     }
                 },
                 actions = {
+                    IconButton(onClick = onNavigateToBroadcast) {
+                        Icon(Icons.Default.Campaign, contentDescription = stringResource(R.string.broadcast_title))
+                    }
                     IconButton(onClick = onNavigateToGroups) {
-                        Icon(Icons.Default.Group, contentDescription = "Groups")
+                        Icon(Icons.Default.Group, contentDescription = stringResource(R.string.conversation_groups))
                     }
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings_title))
@@ -155,7 +160,7 @@ private fun EmptyConversationsView(
                 modifier = Modifier.padding(horizontal = 32.dp),
             ) {
                 Text(
-                    text = "${meshStatus.discoveredPeerCount} devices nearby",
+                    text = stringResource(R.string.conversation_devices_nearby_format, meshStatus.discoveredPeerCount),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,

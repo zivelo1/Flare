@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Flare</string>
+    <string name="mesh_service_channel_name">الشبكة المتداخلة</string>
+    <string name="mesh_service_channel_description">يبقي شبكة Flare المتداخلة نشطة</string>
+    <string name="mesh_notification_title">شبكة Flare نشطة</string>
+    <string name="mesh_notification_text_format">متصل بـ %d من الأجهزة</string>
+    <string name="mesh_notification_text_no_peers">جارٍ البحث عن أجهزة قريبة…</string>
+    <string name="chat_hint">اكتب رسالة…</string>
+    <string name="no_conversations">لا توجد محادثات بعد.\nسيظهر مستخدمو Flare القريبون هنا.</string>
+    <string name="contacts_empty">لا توجد جهات اتصال بعد.\nامسح رمز QR لإضافة جهة اتصال.</string>
+    <string name="tab_chats">المحادثات</string>
+    <string name="tab_contacts">جهات الاتصال</string>
+    <string name="tab_network">الشبكة</string>
+    <string name="settings_title">الإعدادات</string>
+    <string name="permission_bluetooth_title">البلوتوث مطلوب</string>
+    <string name="permission_bluetooth_message">يحتاج Flare إلى البلوتوث للتواصل مع الأجهزة القريبة. لا يتم استخدام الإنترنت أو خدمة الهاتف.</string>
+    <string name="action_grant_permission">منح الإذن</string>
+    <string name="action_send">إرسال</string>
+    <string name="action_scan_qr">مسح رمز QR</string>
+    <string name="action_show_qr">عرض رمز QR الخاص بي</string>
+    <string name="verified_badge">موثّق</string>
+    <string name="unverified_badge">غير موثّق</string>
+    <string name="network_status_active">الشبكة نشطة</string>
+    <string name="network_status_inactive">الشبكة غير نشطة</string>
+    <string name="peer_count_format">%d من الأجهزة القريبة</string>
+    <string name="qr_my_code_title">رمز QR الخاص بي في Flare</string>
+    <string name="qr_my_code_subtitle">دع جهة اتصالك تمسح هذا الرمز</string>
+    <string name="qr_scanner_title">مسح رمز QR</string>
+    <string name="qr_scanner_instruction">وجّه الكاميرا نحو رمز QR الخاص بـ Flare</string>
+    <string name="qr_contact_added">تمت إضافة جهة الاتصال بنجاح</string>
+    <string name="qr_invalid_code">رمز QR غير صالح لـ Flare</string>
+    <string name="qr_camera_permission_needed">إذن الكاميرا مطلوب لمسح رموز QR</string>
+    <string name="qr_safety_number_label">رقم الأمان</string>
+    <string name="qr_share_code">مشاركة رمز QR</string>
+    <string name="share_identity_button">مشاركة رابط هويتي</string>
+    <string name="share_identity_chooser_title">مشاركة هوية Flare</string>
+    <string name="share_identity_message">أضفني على Flare (مراسلة مشفرة عبر الشبكة المتداخلة):\n%1$s\n\nليس لديك Flare؟ احصل عليه من: https://github.com/zivelo1/Flare</string>
+    <string name="share_identity_hint">أرسل هذا الرابط عبر الرسائل القصيرة أو واتساب أو أي تطبيق.\nصديقك ينقر عليه لإضافتك كجهة اتصال.</string>
+    <string name="deep_link_contact_added">تمت إضافة جهة اتصال من الرابط المشترك</string>
+    <string name="deep_link_invalid">رابط هوية Flare غير صالح</string>
+    <string name="action_close">إغلاق</string>
+    <string name="action_done">تم</string>
+    <string name="action_cancel">إلغاء</string>
+    <string name="action_show">إظهار</string>
+    <string name="action_hide">إخفاء</string>
+    <string name="action_back">رجوع</string>
+    <string name="action_save">حفظ</string>
+
+    <!-- Settings -->
+    <string name="settings_duress_title">رمز الإكراه</string>
+    <string name="settings_power_title">إدارة الطاقة</string>
+    <string name="settings_about_title">حول Flare</string>
+    <string name="settings_back">رجوع</string>
+    <string name="settings_section_security">الأمان</string>
+    <string name="settings_duress_subtitle_configured">مفعّل — قاعدة البيانات الوهمية نشطة</string>
+    <string name="settings_duress_subtitle_not_configured">غير مفعّل — انقر للإعداد</string>
+    <string name="settings_section_battery">البطارية والأداء</string>
+    <string name="settings_power_subtitle_format">المستوى الحالي: %s</string>
+    <string name="settings_section_storage">التخزين</string>
+    <string name="settings_storage_own">خاص</string>
+    <string name="settings_storage_relay">مُرحَّل</string>
+    <string name="settings_storage_waiting">في الانتظار</string>
+    <string name="settings_storage_total">الإجمالي</string>
+    <string name="settings_storage_usage_format">%.1f م.ب / %.0f م.ب مستخدمة</string>
+    <string name="settings_section_device">الجهاز</string>
+    <string name="settings_device_id">معرّف الجهاز</string>
+    <string name="settings_safety_number">رقم الأمان</string>
+    <string name="settings_section_sharing">المشاركة</string>
+    <string name="settings_section_about">حول</string>
+    <string name="settings_about_subtitle">مراسلة مشفرة عبر الشبكة المتداخلة — لا حاجة للإنترنت</string>
+    <string name="settings_open_source">مفتوح المصدر</string>
+    <string name="settings_license">مرخّص بموجب GPLv3</string>
+    <string name="settings_tier_high">أداء عالٍ</string>
+    <string name="settings_tier_balanced">متوازن</string>
+    <string name="settings_tier_low">توفير الطاقة</string>
+    <string name="settings_tier_ultra_low">الحد الأدنى للطاقة</string>
+
+    <!-- Duress Settings -->
+    <string name="duress_title">رمز الإكراه</string>
+    <string name="duress_plausible_deniability">الإنكار المعقول</string>
+    <string name="duress_explanation">إذا أُجبرت على فتح Flare، فإن إدخال رمز الإكراه يفتح قاعدة بيانات وهمية تحتوي على رسائل عادية. تبقى محادثاتك الحقيقية مخفية ومشفرة.</string>
+    <string name="duress_active_title">رمز الإكراه مفعّل</string>
+    <string name="duress_active_description">ستُعرض قاعدة بيانات وهمية عند إدخال رمز الإكراه.</string>
+    <string name="duress_remove_button">إزالة رمز الإكراه</string>
+    <string name="duress_passphrase_label">عبارة مرور الإكراه</string>
+    <string name="duress_confirm_label">تأكيد عبارة المرور</string>
+    <string name="duress_mismatch">عبارتا المرور غير متطابقتين</string>
+    <string name="duress_warning">اختر عبارة مرور يمكنك تذكرها تحت الضغط. يجب أن تكون مختلفة عن عبارة المرور الرئيسية. إذا نسيتها، لا توجد طريقة لاستعادتها.</string>
+    <string name="duress_set_button">تعيين رمز الإكراه</string>
+    <string name="duress_set_success">تم تعيين رمز الإكراه بنجاح</string>
+    <string name="duress_set_error">فشل تعيين رمز الإكراه. يرجى المحاولة مرة أخرى.</string>
+    <string name="duress_remove_dialog_title">إزالة رمز الإكراه؟</string>
+    <string name="duress_remove_dialog_message">سيؤدي هذا إلى تعطيل الإنكار المعقول. أي شخص يجبرك على فتح Flare سيرى محادثاتك الحقيقية.</string>
+    <string name="duress_remove_confirm">إزالة</string>
+
+    <!-- Power Settings -->
+    <string name="power_title">إدارة الطاقة</string>
+    <string name="power_current_tier">المستوى الحالي</string>
+    <string name="power_battery_saver">توفير البطارية</string>
+    <string name="power_battery_saver_subtitle">يفرض مستوى الحد الأدنى للطاقة</string>
+    <string name="power_how_tiers_work">كيف تعمل مستويات الطاقة</string>
+    <string name="power_tier_active">نشط</string>
+    <string name="power_high_description">مسح شبه مستمر. أقصى سرعة اكتشاف. يُستخدم أثناء تبادل البيانات النشط (حد أقصى %d ثانية).</string>
+    <string name="power_balanced_description">مسح بنسبة 25%% من الوقت. توازن جيد بين الاكتشاف والبطارية. ينخفض إلى توفير الطاقة بعد %d ثانية بدون أجهزة.</string>
+    <string name="power_low_description">وضع الدفعات — مسح لمدة %d ثانية كل %d ثانية (~17%% نشط).</string>
+    <string name="power_ultralow_description">مسح في حده الأدنى — %d ثانية كل %d ثانية (~5%% نشط). يُفعّل عندما تنخفض البطارية عن %d%%.</string>
+    <string name="power_auto_adjust">يضبط Flare مستوى الطاقة تلقائيًا بناءً على نشاط الشبكة ووجود الأجهزة ومستوى البطارية. يُعطّل الأداء العالي عندما تنخفض البطارية عن %d%%.</string>
+
+    <!-- Groups -->
+    <string name="groups_title">المجموعات</string>
+    <string name="groups_create">إنشاء مجموعة</string>
+    <string name="groups_empty">لا توجد مجموعات بعد</string>
+    <string name="groups_empty_hint">أنشئ مجموعة لإرسال الرسائل إلى عدة جهات اتصال في آن واحد.</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_skip">تخطي</string>
+    <string name="onboarding_next">التالي</string>
+    <string name="onboarding_back">رجوع</string>
+    <string name="onboarding_get_started">ابدأ الآن</string>
+    <string name="onboarding_title_1">لا حاجة للإنترنت</string>
+    <string name="onboarding_desc_1">يرسل Flare الرسائل من هاتف إلى هاتف عبر البلوتوث. لا خوادم، لا واي فاي، لا خدمة اتصالات. تنتقل رسائلك عبر مستخدمي Flare الآخرين حتى تصل إلى جهة اتصالك.</string>
+    <string name="onboarding_title_2">تشفير من طرف إلى طرف</string>
+    <string name="onboarding_desc_2">يتم تشفير كل رسالة على هاتفك قبل إرسالها. لا أحد في الوسط يمكنه قراءة رسائلك — ولا حتى الأشخاص الذين تمر رسائلك عبر هواتفهم.</string>
+    <string name="onboarding_title_3">ابحث عن أصدقائك</string>
+    <string name="onboarding_desc_3">أدخل عبارة مشتركة تعرفها أنت وصديقك — ذكرى، مكان، أو نكتة بينكما. يبحث Flare في الشبكة المتداخلة ويربطكما بأمان.</string>
+    <string name="onboarding_title_4">مصمّم من أجل سلامتك</string>
+    <string name="onboarding_desc_4">رمز الإكراه يفتح قاعدة بيانات وهمية إذا أُجبرت على فتح التطبيق. لا حسابات، لا رقم هاتف مطلوب، لا تتبع. خصوصيتك محمية بالتصميم.</string>
+
+    <!-- Splash -->
+    <string name="splash_app_name">Flare</string>
+    <string name="splash_tagline">مراسلة عبر الشبكة المتداخلة، في كل مكان</string>
+
+    <!-- Chat -->
+    <string name="chat_empty_prompt">أرسل رسالة لبدء المحادثة.\nالرسائل مشفرة من طرف إلى طرف.</string>
+    <string name="chat_via_mesh">عبر الشبكة المتداخلة</string>
+    <string name="chat_back">رجوع</string>
+    <string name="chat_status_sending">جارٍ الإرسال</string>
+    <string name="chat_status_sent">تم الإرسال</string>
+    <string name="chat_status_delivered">تم التوصيل</string>
+    <string name="chat_status_read">مقروءة</string>
+    <string name="chat_status_failed">فشل الإرسال</string>
+    <string name="chat_peer_prefix">جهاز %s</string>
+
+    <!-- Voice Recording -->
+    <string name="voice_record_hold">اضغط مع الاستمرار للتسجيل</string>
+    <string name="voice_recording">جارٍ التسجيل…</string>
+    <string name="voice_record_release">ارفع إصبعك للإرسال</string>
+    <string name="voice_record_cancel">اسحب للإلغاء</string>
+    <string name="voice_record_permission_needed">إذن الميكروفون مطلوب لتسجيل الرسائل الصوتية</string>
+    <string name="voice_record_error">فشل تسجيل الصوت</string>
+    <string name="voice_record_too_short">التسجيل قصير جدًا</string>
+
+    <!-- Image Capture -->
+    <string name="image_capture">التقاط صورة</string>
+    <string name="image_preview_title">إرسال صورة</string>
+    <string name="image_send">إرسال</string>
+    <string name="image_cancel">إلغاء</string>
+    <string name="image_capture_error">فشل التقاط الصورة</string>
+    <string name="image_permission_needed">إذن الكاميرا مطلوب لالتقاط الصور</string>
+
+    <!-- APK Sharing -->
+    <string name="apk_share_title">مشاركة Flare</string>
+    <string name="apk_receive_title">استقبال Flare</string>
+    <string name="apk_share_description">مشاركة تطبيق Flare مع الأجهزة القريبة عبر البلوتوث</string>
+    <string name="apk_share_version">الإصدار %s</string>
+    <string name="apk_share_size">الحجم: %s</string>
+    <string name="apk_share_hash">SHA-256: %s</string>
+    <string name="apk_share_button">مشاركة عبر البلوتوث</string>
+    <string name="apk_share_stop_button">إيقاف المشاركة</string>
+    <string name="apk_share_advertising">جارٍ البث إلى الأجهزة القريبة…</string>
+    <string name="apk_share_transfer_progress">تقدم النقل</string>
+    <string name="apk_share_requesting_devices">أجهزة تطلب Flare</string>
+    <string name="apk_share_no_requests">لا توجد طلبات بعد</string>
+    <string name="apk_receive_scanning">جارٍ البحث عن أجهزة Flare قريبة…</string>
+    <string name="apk_receive_available">متاح للتنزيل</string>
+    <string name="apk_receive_version">الإصدار: %s</string>
+    <string name="apk_receive_size">الحجم: %s</string>
+    <string name="apk_receive_verified">تم التحقق من التوقيع</string>
+    <string name="apk_receive_unverified">لم يتم التحقق من التوقيع</string>
+    <string name="apk_receive_download">تنزيل</string>
+    <string name="apk_receive_install">تثبيت</string>
+    <string name="apk_receive_downloading">جارٍ التنزيل…</string>
+    <string name="apk_receive_no_offers">لم يتم العثور على أجهزة Flare قريبة</string>
+    <string name="apk_settings_share">مشاركة تطبيق Flare</string>
+    <string name="apk_settings_share_subtitle">إرسال التطبيق إلى الأجهزة القريبة عبر البلوتوث</string>
+
+    <!-- Mesh Visualization -->
+    <string name="mesh_visualization_you">أنت</string>
+    <string name="mesh_visualization_title">طوبولوجيا الشبكة</string>
+
+    <!-- Network -->
+    <string name="network_nearby_devices">الأجهزة القريبة</string>
+    <string name="network_scanning">جارٍ البحث عن أجهزة Flare…</string>
+    <string name="network_connected_count">%d متصل، %d مكتشَف</string>
+    <string name="network_discovered_count">تم العثور على %d جهاز، جارٍ الاتصال…</string>
+    <string name="network_scanning_status">جارٍ البحث عن أجهزة قريبة</string>
+    <string name="network_stat_connected">متصل</string>
+    <string name="network_stat_queued">في قائمة الانتظار</string>
+    <string name="network_stat_relayed">مُرحَّل</string>
+    <string name="network_device_prefix">جهاز %s</string>
+    <string name="network_transport_ble">بلوتوث منخفض الطاقة</string>
+    <string name="network_transport_wifi_direct">واي فاي مباشر</string>
+    <string name="network_transport_wifi_aware">واي فاي أوير</string>
+    <string name="network_badge_connected">متصل</string>
+
+    <!-- Conversation List -->
+    <string name="conversation_groups">المجموعات</string>
+    <string name="conversation_devices_nearby_format">%d جهاز قريب</string>
+
+    <!-- Contacts -->
+    <string name="contacts_find">البحث عن جهة اتصال</string>
+    <string name="contacts_devices_nearby_format">%d جهاز Flare قريب</string>
+    <string name="contacts_last_seen_now">الآن</string>
+    <string name="contacts_last_seen_minutes">منذ %d د</string>
+    <string name="contacts_last_seen_hours">منذ %d س</string>
+    <string name="contacts_last_seen_days">منذ %d ي</string>
+
+    <!-- Find Contact -->
+    <string name="find_contact_title">البحث عن جهة اتصال</string>
+    <string name="find_contact_subtitle">اختر طريقة للعثور على جهة اتصالك</string>
+    <string name="find_shared_phrase_title">عبارة مشتركة</string>
+    <string name="find_shared_phrase_desc">أدخل عبارة لا يعرفها سواك أنت وصديقك. ذكرى مشتركة، مكان، أو نكتة بينكما. الخيار الأكثر أمانًا.</string>
+    <string name="find_recommended">مُوصى به</string>
+    <string name="find_share_link_title">مشاركة رابط الهوية</string>
+    <string name="find_share_link_desc">أرسل هويتك على Flare عبر الرسائل القصيرة أو واتساب أو أي تطبيق. يعمل من أي مسافة — لا حاجة للشبكة المتداخلة.</string>
+    <string name="find_qr_title">مسح رمز QR</string>
+    <string name="find_qr_desc">امسح رمز QR الخاص بجهة اتصالك عند اللقاء شخصيًا. أقصى درجات الأمان — لا تعرض للشبكة.</string>
+    <string name="find_phone_title">رقم الهاتف</string>
+    <string name="find_phone_desc">ابحث برقم الهاتف. يجب على كلا الطرفين إدخال رقم الآخر. أقل أمانًا ضد الخصوم ذوي الموارد الكبيرة.</string>
+    <string name="find_import_title">استيراد جهات الاتصال</string>
+    <string name="find_import_desc">استورد جهات اتصال هاتفك للعثور تلقائيًا على الأصدقاء الذين يستخدمون Flare. يتطلب إذن READ_CONTACTS.</string>
+
+    <!-- Shared Phrase Search -->
+    <string name="phrase_search_title">عبارة مشتركة</string>
+    <string name="phrase_search_instructions">أدخل عبارة لا يعرفها سواك أنت وصديقك. يمكن أن تكون ذكرى مشتركة، مكان زرتماه معًا، أو أي شيء فريد بينكما.</string>
+    <string name="phrase_search_label">العبارة المشتركة</string>
+    <string name="phrase_search_placeholder">مثال: بيت جدتي في شارع الحمراء</string>
+    <string name="phrase_search_hint">يجب على صديقك إدخال نفس العبارة بالضبط في تطبيق Flare الخاص به. لا تؤثر حالة الأحرف والمسافات الزائدة.</string>
+    <string name="phrase_search_button">البحث في الشبكة</string>
+    <string name="phrase_searching">جارٍ البحث في الشبكة المتداخلة…</string>
+    <string name="phrase_searching_desc">جارٍ بث رمز التلاقي إلى الأجهزة القريبة. قد يستغرق هذا دقائق أو ساعات أو أيامًا حسب اتصال الشبكة بصديقك.</string>
+    <string name="phrase_searching_privacy">عبارتك لا تغادر هذا الجهاز أبدًا. يتم بث بصمة رياضية فقط — لا يمكن عكسها.</string>
+    <string name="phrase_cancel">إلغاء البحث</string>
+    <string name="phrase_found">تم العثور على جهة الاتصال!</string>
+    <string name="phrase_found_via">تم العثور عبر %s</string>
+    <string name="phrase_add_contact">إضافة جهة اتصال</string>
+
+    <!-- Phone Search -->
+    <string name="phone_search_title">البحث برقم الهاتف</string>
+    <string name="phone_security_notice">تنبيه أمني</string>
+    <string name="phone_security_warning">خصم ذو موارد كبيرة يعرف رقم هاتفك قد يتمكن من تحديد الشخص الذي تحاول التواصل معه. استخدم \"العبارة المشتركة\" بدلاً من ذلك إذا كنت قلقًا بشأن المراقبة الحكومية.</string>
+    <string name="phone_your_number">رقم هاتفك</string>
+    <string name="phone_your_placeholder">‪+966 55 123 4567‬</string>
+    <string name="phone_their_number">رقم هاتف الطرف الآخر</string>
+    <string name="phone_their_placeholder">‪+966 55 987 6543‬</string>
+    <string name="phone_accept_risk">أفهم القيود الأمنية</string>
+    <string name="phone_searching_desc">يتم دمج رقمي الهاتف في رمز واحد. فقط من يعرف كلا الرقمين يمكنه المطابقة.</string>
+    <string name="phone_instructions">يجب على صديقك أيضًا إدخال رقم هاتفك في تطبيقه. لا يتم إرسال أي رقم هاتف عبر الشبكة أبدًا.</string>
+
+    <!-- Contact Rename -->
+    <string name="rename_contact_title">إعادة تسمية جهة الاتصال</string>
+    <string name="rename_contact_hint">أدخل اسمًا جديدًا لجهة الاتصال هذه</string>
+    <string name="rename_contact_label">الاسم المعروض</string>
+
+    <!-- Broadcast -->
+    <string name="broadcast_title">رسالة جماعية</string>
+    <string name="broadcast_subtitle">إرسال إلى جميع جهات الاتصال</string>
+    <string name="broadcast_hint">اكتب رسالتك الجماعية…</string>
+    <string name="broadcast_send">إرسال رسالة جماعية</string>
+    <string name="broadcast_confirm_title">إرسال رسالة جماعية؟</string>
+    <string name="broadcast_confirm_message">ستُرسل هذه الرسالة إلى جميع جهات الاتصال البالغ عددها %d. الرسائل الجماعية غير مشفرة.</string>
+    <string name="broadcast_confirm_send">إرسال للجميع</string>
+    <string name="broadcast_sent">تم إرسال الرسالة الجماعية إلى %d من جهات الاتصال</string>
+    <string name="broadcast_no_contacts">لا توجد جهات اتصال للإرسال إليها. أضف جهات اتصال أولاً.</string>
+    <string name="broadcast_security_notice">الرسائل الجماعية موقّعة ولكنها غير مشفرة. أي شخص يستلم الرسالة يمكنه قراءتها.</string>
+
+    <!-- Language Settings -->
+    <string name="settings_section_language">اللغة</string>
+    <string name="settings_language_title">اللغة</string>
+    <string name="settings_language_subtitle">الحالية: %s</string>
+    <string name="language_title">اللغة</string>
+    <string name="language_system_default">الافتراضية للنظام</string>
+    <string name="language_english">English</string>
+    <string name="language_farsi">فارسی (Farsi)</string>
+    <string name="language_arabic">العربية (Arabic)</string>
+    <string name="language_spanish">Español (Spanish)</string>
+    <string name="language_russian">Русский (Russian)</string>
+    <string name="language_chinese">中文 (Chinese)</string>
+    <string name="language_korean">한국어 (Korean)</string>
+    <string name="language_restart_notice">قد يتطلب تغيير اللغة إعادة تشغيل التطبيق.</string>
+</resources>

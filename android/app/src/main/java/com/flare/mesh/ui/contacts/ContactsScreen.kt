@@ -1,6 +1,8 @@
 package com.flare.mesh.ui.contacts
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -38,6 +40,10 @@ fun ContactsScreen(
     val meshStatus by contactsViewModel.meshStatus.collectAsState()
     val contacts by contactsViewModel.contacts.collectAsState()
 
+    var showRenameDialog by remember { mutableStateOf(false) }
+    var renameTarget by remember { mutableStateOf<Contact?>(null) }
+    var renameText by remember { mutableStateOf("") }
+
     LaunchedEffect(Unit) {
         contactsViewModel.refreshContacts()
     }
@@ -55,7 +61,7 @@ fun ContactsScreen(
                     IconButton(onClick = onNavigateToFindContact) {
                         Icon(
                             Icons.Default.PersonSearch,
-                            contentDescription = "Find Contact",
+                            contentDescription = stringResource(R.string.contacts_find),
                         )
                     }
                     IconButton(onClick = onNavigateToScanner) {
@@ -91,10 +97,57 @@ fun ContactsScreen(
                     ContactItem(
                         contact = contact,
                         onClick = { onContactClick(contact.identity.deviceId) },
+                        onLongClick = {
+                            renameTarget = contact
+                            renameText = contact.displayName ?: ""
+                            showRenameDialog = true
+                        },
                     )
                 }
             }
         }
+    }
+
+    if (showRenameDialog && renameTarget != null) {
+        AlertDialog(
+            onDismissRequest = { showRenameDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        renameTarget?.let { contact ->
+                            contactsViewModel.renameContact(contact.identity.deviceId, renameText.trim())
+                        }
+                        showRenameDialog = false
+                    },
+                    enabled = renameText.isNotBlank(),
+                ) {
+                    Text(stringResource(R.string.action_save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRenameDialog = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+            title = { Text(stringResource(R.string.rename_contact_title)) },
+            text = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.rename_contact_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = renameText,
+                        onValueChange = { renameText = it },
+                        label = { Text(stringResource(R.string.rename_contact_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                    )
+                }
+            },
+        )
     }
 }
 
@@ -131,7 +184,7 @@ private fun EmptyContactsView(
                 ),
             ) {
                 Text(
-                    text = "$nearbyCount Flare devices nearby",
+                    text = stringResource(R.string.contacts_devices_nearby_format, nearbyCount),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -141,13 +194,18 @@ private fun EmptyContactsView(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ContactItem(
     contact: Contact,
     onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
 ) {
     ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = Modifier.combinedClickable(
+            onClick = onClick,
+            onLongClick = onLongClick,
+        ),
         leadingContent = {
             Surface(
                 shape = CircleShape,
@@ -202,9 +260,9 @@ private fun ContactItem(
 private fun formatLastSeen(instant: Instant): String {
     val duration = Duration.between(instant, Instant.now())
     return when {
-        duration.toMinutes() < 1 -> "Just now"
-        duration.toMinutes() < 60 -> "${duration.toMinutes()}m ago"
-        duration.toHours() < 24 -> "${duration.toHours()}h ago"
-        else -> "${duration.toDays()}d ago"
+        duration.toMinutes() < 1 -> stringResource(R.string.contacts_last_seen_now)
+        duration.toMinutes() < 60 -> stringResource(R.string.contacts_last_seen_minutes, duration.toMinutes().toInt())
+        duration.toHours() < 24 -> stringResource(R.string.contacts_last_seen_hours, duration.toHours().toInt())
+        else -> stringResource(R.string.contacts_last_seen_days, duration.toDays().toInt())
     }
 }
