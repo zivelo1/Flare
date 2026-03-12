@@ -288,10 +288,9 @@ impl FlareDatabase {
             params![hex],
         )?;
         // Delete the contact
-        let rows = self.conn.execute(
-            "DELETE FROM contacts WHERE device_id = ?1",
-            params![hex],
-        )?;
+        let rows = self
+            .conn
+            .execute("DELETE FROM contacts WHERE device_id = ?1", params![hex])?;
         Ok(rows > 0)
     }
 
