@@ -253,6 +253,10 @@
 - [x] **Language confirmation dialog** — OK/Cancel approval before switching language (prevents accidental changes)
 - [x] **AppCompatActivity migration** — MainActivity uses AppCompatActivity for proper locale switching via AppCompatDelegate
 - [x] **Voice recording permission fix** — permission check at composition time via ContextCompat.checkSelfPermission
+- [x] **Voice message sending** — Base64-encoded audio over mesh with playback UI (MediaPlayer)
+- [x] **Image message sending** — scaled/compressed JPEG, Base64-encoded, rendered in chat bubbles
+- [x] **Contact deletion** — cascading delete (messages → conversations → contact) with confirmation dialog
+- [x] **CI fix** — x86_64-linux-android OpenSSL cross-compilation (RANLIB env var)
 - [ ] **Emoji picker** — in-chat emoji selector for quick access beyond system keyboard
 
 ### Phase 10 — Android Release
@@ -293,7 +297,7 @@
 | 6A — Device Testing | Android APK build, cross-compilation, device install, BLE mesh verified | **Complete** (2 devices, encrypted chat working) |
 | 7 — Security Hardening | Crypto review, DB key fix, rendezvous DH fix, payload sig fix, TTL guard fix | **Complete** (5 vulnerabilities fixed, 193 tests) |
 | 8 — Localization & UX (Android) | 6 languages, language selector, contact rename, broadcast, profile | **Complete** |
-| 9 — UI Polish (Android) | Dark mode toggle, version display, language confirm dialog, voice fix | **Complete** |
+| 9 — UI Polish (Android) | Dark mode, voice/image sending, contact deletion, CI fix | **Complete** |
 | 10 — Android Release | Battery/memory profiling, signed APK, F-Droid, GitHub Release | Planned |
 | Backlog — iOS | iOS device testing, App Store ($99/yr), iOS localization | Deferred |
 
