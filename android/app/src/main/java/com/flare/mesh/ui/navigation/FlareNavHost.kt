@@ -34,7 +34,7 @@ import com.flare.mesh.ui.contacts.SharedPhraseSearchScreen
 import com.flare.mesh.ui.groups.CreateGroupScreen
 import com.flare.mesh.ui.groups.GroupListScreen
 import com.flare.mesh.ui.onboarding.OnboardingScreen
-import com.flare.mesh.ui.settings.DuressSettingsScreen
+import com.flare.mesh.ui.settings.DestructionCodeScreen
 import com.flare.mesh.ui.settings.NetworkScreen
 import com.flare.mesh.ui.settings.PowerSettingsScreen
 import com.flare.mesh.ui.settings.LanguageSettingsScreen
@@ -266,7 +266,7 @@ fun FlareNavHost(
             }
 
             composable("settings-duress") {
-                DuressSettingsScreen(
+                DestructionCodeScreen(
                     onNavigateBack = { navController.popBackStack() },
                 )
             }

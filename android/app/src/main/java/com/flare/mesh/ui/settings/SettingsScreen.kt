@@ -17,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import android.content.Context
 import com.flare.mesh.BuildConfig
 import com.flare.mesh.R
 import com.flare.mesh.util.Constants
@@ -32,7 +33,9 @@ fun SettingsScreen(
     onNavigateToLanguage: () -> Unit = {},
     settingsViewModel: SettingsViewModel = viewModel(),
 ) {
-    val hasDuressPin by settingsViewModel.hasDuressPin.collectAsState()
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE) }
+    val hasDestructionCode = remember { mutableStateOf(prefs.getString(Constants.KEY_DESTRUCTION_CODE_HASH, null) != null) }
     val currentPowerTier by settingsViewModel.currentPowerTier.collectAsState()
     val storeStats by settingsViewModel.storeStats.collectAsState()
 
@@ -75,8 +78,8 @@ fun SettingsScreen(
 
             SettingsItem(
                 icon = Icons.Filled.Shield,
-                title = stringResource(R.string.duress_title),
-                subtitle = if (hasDuressPin) stringResource(R.string.settings_duress_subtitle_configured)
+                title = stringResource(R.string.destruction_title),
+                subtitle = if (hasDestructionCode.value) stringResource(R.string.settings_duress_subtitle_configured)
                 else stringResource(R.string.settings_duress_subtitle_not_configured),
                 onClick = onNavigateToDuress,
             )

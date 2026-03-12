@@ -53,12 +53,12 @@
     <string name="profile_name_hint">How others see you</string>
 
     <!-- Settings -->
-    <string name="settings_duress_title">Duress PIN</string>
+    <string name="settings_duress_title">Destruction Code</string>
     <string name="settings_power_title">Power Management</string>
     <string name="settings_about_title">About Flare</string>
     <string name="settings_back">Back</string>
     <string name="settings_section_security">Security</string>
-    <string name="settings_duress_subtitle_configured">Configured — decoy database active</string>
+    <string name="settings_duress_subtitle_configured">Active — lock screen enabled</string>
     <string name="settings_duress_subtitle_not_configured">Not configured — tap to set up</string>
     <string name="settings_section_battery">Battery &amp; Performance</string>
     <string name="settings_power_subtitle_format">Current tier: %s</string>
@@ -81,23 +81,34 @@
     <string name="settings_tier_low">Low Power</string>
     <string name="settings_tier_ultra_low">Ultra Low</string>
 
-    <!-- Duress Settings -->
-    <string name="duress_title">Duress PIN</string>
-    <string name="duress_plausible_deniability">Plausible Deniability</string>
-    <string name="duress_explanation">If you are forced to unlock Flare, entering the duress PIN opens a decoy database with innocent messages. Your real conversations remain hidden and encrypted.</string>
-    <string name="duress_active_title">Duress PIN Active</string>
-    <string name="duress_active_description">A decoy database will be shown when the duress PIN is entered.</string>
-    <string name="duress_remove_button">Remove Duress PIN</string>
-    <string name="duress_passphrase_label">Duress passphrase</string>
-    <string name="duress_confirm_label">Confirm passphrase</string>
-    <string name="duress_mismatch">Passphrases do not match</string>
-    <string name="duress_warning">Choose a passphrase you can remember under stress. It must be different from your main passphrase. If you forget it, there is no way to recover it.</string>
-    <string name="duress_set_button">Set Duress PIN</string>
-    <string name="duress_set_success">Duress PIN set successfully</string>
-    <string name="duress_set_error">Failed to set duress PIN. Please try again.</string>
-    <string name="duress_remove_dialog_title">Remove Duress PIN?</string>
-    <string name="duress_remove_dialog_message">This will disable plausible deniability. Anyone who forces you to unlock Flare will see your real conversations.</string>
-    <string name="duress_remove_confirm">Remove</string>
+    <!-- Destruction Code Settings -->
+    <string name="destruction_title">Destruction Code</string>
+    <string name="destruction_plausible_deniability">Emergency Data Wipe</string>
+    <string name="destruction_explanation">If you are forced to unlock Flare, entering the destruction code permanently erases all messages, contacts, and your identity. The app will appear as freshly installed. This cannot be undone.</string>
+    <string name="destruction_active_title">Destruction Code Active</string>
+    <string name="destruction_active_description">A lock screen appears on every launch. Entering the destruction code permanently erases all data.</string>
+    <string name="destruction_remove_button">Remove Destruction Code</string>
+    <string name="destruction_unlock_code_label">Unlock code</string>
+    <string name="destruction_unlock_code_hint">Code to open the app normally</string>
+    <string name="destruction_code_label">Destruction code</string>
+    <string name="destruction_code_hint">Code that erases everything</string>
+    <string name="destruction_confirm_label">Confirm destruction code</string>
+    <string name="destruction_mismatch">Destruction codes do not match</string>
+    <string name="destruction_codes_same">Unlock code and destruction code must be different</string>
+    <string name="destruction_warning">WARNING: The destruction code permanently and irreversibly erases ALL data — messages, contacts, and your identity. There is no recovery. Choose codes you can remember under extreme stress.</string>
+    <string name="destruction_set_button">Activate Destruction Code</string>
+    <string name="destruction_set_success">Destruction code activated</string>
+    <string name="destruction_set_error">Failed to set destruction code. Please try again.</string>
+    <string name="destruction_remove_dialog_title">Remove Destruction Code?</string>
+    <string name="destruction_remove_dialog_message">This removes the lock screen and destruction code. Anyone with access to your phone can open Flare and see your conversations.</string>
+    <string name="destruction_remove_confirm">Remove</string>
+
+    <!-- Lock Screen -->
+    <string name="lock_screen_title">Flare</string>
+    <string name="lock_screen_enter_code">Enter your code to unlock</string>
+    <string name="lock_screen_code_label">Code</string>
+    <string name="lock_screen_unlock">Unlock</string>
+    <string name="lock_screen_wrong_code">Wrong code</string>
 
     <!-- Power Settings -->
     <string name="power_title">Power Management</string>
@@ -130,7 +141,7 @@
     <string name="onboarding_title_3">Find Your Friends</string>
     <string name="onboarding_desc_3">Enter a shared phrase that you and your friend both know — a memory, a place, an inside joke. Flare searches the mesh and connects you securely.</string>
     <string name="onboarding_title_4">Designed for Safety</string>
-    <string name="onboarding_desc_4">Duress PIN opens a fake database if you are forced to unlock. No accounts, no phone number required, no tracking. Your privacy is protected by design.</string>
+    <string name="onboarding_desc_4">Destruction code permanently erases all data if you are forced to unlock. No accounts, no phone number required, no tracking. Your privacy is protected by design.</string>
 
     <!-- Splash -->
     <string name="splash_app_name">Flare</string>

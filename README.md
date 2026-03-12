@@ -102,7 +102,8 @@ The APK includes a SHA-256 hash for integrity verification. The Rust core suppor
 - **No accounts or registration** — no phone number, no email, no sign-up
 - **Store and forward** — messages wait on relay phones until they can be delivered, even if it takes days
 - **Multi-hop routing** — messages travel through many phones to reach distant recipients
-- **Duress protection** — a panic PIN opens a decoy app with fake messages if you are forced to unlock
+- **Destruction code** — entering a special code permanently wipes all data (messages, contacts, identity) for plausible deniability
+- **Biometric lock** — fingerprint/face unlock with code fallback when destruction code is active
 - **Phone-to-phone install** — share Flare with others via Bluetooth, no app store needed
 - **Open source** — GPLv3, auditable, community-maintained
 
@@ -194,7 +195,9 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture diagr
 - Full message pipeline: encrypt → send → relay → deliver → ACK
 - Foreground service, neighborhood detection, ProGuard rules
 - **Adaptive power management** — MeshService evaluates battery + network state to dynamically adjust BLE scan/advertise tiers with burst mode scanning
-- **Settings** — duress PIN setup, power tier management, storage stats, device info
+- **BLE chunking** — 5-byte header protocol for large payloads (voice/image), sequential GATT writes with callbacks, chunk reassembly with stale timeout pruning
+- **Destruction code** — lock screen with BiometricPrompt (fingerprint/face) + manual code fallback, permanent data wipe (stop service, delete DB, clear prefs, reinitialize)
+- **Settings** — destruction code setup, power tier management, storage stats, device info
 - **Onboarding** — 4-page introduction flow with skip/next navigation
 - **Group messaging UI** — create groups, member selection, group list
 - **Splash screen** — animated flame icon with brand gradient
@@ -266,7 +269,7 @@ Flare uses established, audited cryptographic primitives:
 - Messages never touch the internet
 - Phone numbers and passphrases never leave your device
 - Rendezvous tokens rotate weekly and cannot be reversed
-- Duress PIN opens a decoy database if you are coerced
+- Destruction code permanently wipes all data if you are coerced
 
 ## License
 

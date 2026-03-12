@@ -12,16 +12,8 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
- * Status of a duress passphrase setup or clear operation.
- */
-enum class DuressSetupStatus {
-    IDLE, SETTING, SUCCESS, ERROR,
-}
-
-/**
  * ViewModel for the Settings screen.
- * Manages duress PIN configuration, power management, and store statistics
- * via the Rust core (FlareRepository).
+ * Manages power management and store statistics via the Rust core (FlareRepository).
  */
 class SettingsViewModel : ViewModel() {
 
@@ -29,12 +21,6 @@ class SettingsViewModel : ViewModel() {
 
     val deviceId: String get() = repository.getDeviceId()
     val safetyNumber: String get() = repository.getSafetyNumber()
-
-    private val _hasDuressPin = MutableStateFlow(false)
-    val hasDuressPin: StateFlow<Boolean> = _hasDuressPin.asStateFlow()
-
-    private val _duressStatus = MutableStateFlow(DuressSetupStatus.IDLE)
-    val duressStatus: StateFlow<DuressSetupStatus> = _duressStatus.asStateFlow()
 
     private val _currentPowerTier = MutableStateFlow("")
     val currentPowerTier: StateFlow<String> = _currentPowerTier.asStateFlow()
@@ -48,14 +34,6 @@ class SettingsViewModel : ViewModel() {
     init {
         viewModelScope.launch {
             try {
-                _hasDuressPin.value = repository.hasDuressPassphrase()
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to check duress passphrase status")
-            }
-        }
-
-        viewModelScope.launch {
-            try {
                 _currentPowerTier.value = repository.powerCurrentTier()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load current power tier")
@@ -67,36 +45,6 @@ class SettingsViewModel : ViewModel() {
                 _storeStats.value = repository.getStoreStats()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load store stats")
-            }
-        }
-    }
-
-    fun setDuressPassphrase(passphrase: String) {
-        viewModelScope.launch {
-            _duressStatus.value = DuressSetupStatus.SETTING
-            try {
-                repository.setDuressPassphrase(passphrase)
-                _hasDuressPin.value = true
-                _duressStatus.value = DuressSetupStatus.SUCCESS
-                Timber.i("Duress passphrase configured successfully")
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to set duress passphrase")
-                _duressStatus.value = DuressSetupStatus.ERROR
-            }
-        }
-    }
-
-    fun clearDuressPassphrase() {
-        viewModelScope.launch {
-            _duressStatus.value = DuressSetupStatus.SETTING
-            try {
-                repository.clearDuressPassphrase()
-                _hasDuressPin.value = false
-                _duressStatus.value = DuressSetupStatus.SUCCESS
-                Timber.i("Duress passphrase cleared")
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to clear duress passphrase")
-                _duressStatus.value = DuressSetupStatus.ERROR
             }
         }
     }

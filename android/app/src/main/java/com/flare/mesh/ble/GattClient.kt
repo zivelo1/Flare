@@ -5,9 +5,13 @@ import android.bluetooth.*
 import android.content.Context
 import android.os.Build
 import com.flare.mesh.util.Constants
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
 
@@ -15,7 +19,8 @@ import java.util.concurrent.ConcurrentHashMap
  * BLE Central (GATT Client) that connects to discovered Flare peers
  * and exchanges messages via GATT characteristics.
  *
- * Manages connections to multiple peers simultaneously.
+ * Handles BLE chunking transparently: large messages are split into
+ * MTU-sized chunks on write, and reassembled from chunks on receive.
  */
 class GattClient(private val context: Context) {
 
@@ -25,7 +30,16 @@ class GattClient(private val context: Context) {
     /** Negotiated MTU per connection (default BLE MTU = 23, ATT overhead = 3). */
     private val mtuMap = ConcurrentHashMap<String, Int>()
 
-    /** Flow of data received from peers via notifications. */
+    /** Per-address write completion signals for sequential chunk writes. */
+    private val writeCompletions = ConcurrentHashMap<String, CompletableDeferred<Boolean>>()
+
+    /** Per-address write mutex to prevent interleaved chunk writes. */
+    private val writeMutexes = ConcurrentHashMap<String, Mutex>()
+
+    /** Reassembler for incoming chunked notifications. */
+    private val reassembler = ChunkReassembler()
+
+    /** Flow of complete (reassembled) message data from peers. */
     private val _receivedData = MutableSharedFlow<ReceivedData>(extraBufferCapacity = 64)
     val receivedData: SharedFlow<ReceivedData> = _receivedData.asSharedFlow()
 
@@ -62,9 +76,13 @@ class GattClient(private val context: Context) {
 
     /**
      * Writes message data to a connected peer's message write characteristic.
+     *
+     * Transparently handles BLE chunking: if the data exceeds the negotiated MTU,
+     * it is split into chunks and sent sequentially, waiting for each write callback
+     * before sending the next chunk.
      */
     @SuppressLint("MissingPermission")
-    fun writeMessage(address: String, data: ByteArray): Boolean {
+    suspend fun writeMessage(address: String, data: ByteArray): Boolean {
         val gatt = connections[address] ?: run {
             Timber.w("Cannot write to %s: not connected", address)
             return false
@@ -80,25 +98,63 @@ class GattClient(private val context: Context) {
             return false
         }
 
-        return try {
-            val success = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                val writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                val statusCode = gatt.writeCharacteristic(characteristic, data, writeType)
-                if (statusCode != BluetoothStatusCodes.SUCCESS) {
-                    Timber.w("Write to %s returned status %d", address, statusCode)
+        val mtu = getMtu(address)
+        val chunks = BleChunker.chunk(data, mtu)
+        if (chunks.isEmpty()) {
+            Timber.e("Failed to chunk %d bytes for %s (MTU=%d)", data.size, address, mtu)
+            return false
+        }
+
+        if (chunks.size > 1) {
+            Timber.d("Chunking %d bytes into %d chunks for %s (MTU=%d)",
+                data.size, chunks.size, address, mtu)
+        }
+
+        val mutex = writeMutexes.getOrPut(address) { Mutex() }
+
+        return mutex.withLock {
+            for ((index, chunk) in chunks.withIndex()) {
+                val deferred = CompletableDeferred<Boolean>()
+                writeCompletions[address] = deferred
+
+                val writeInitiated = try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        val writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                        gatt.writeCharacteristic(characteristic, chunk, writeType) ==
+                            BluetoothStatusCodes.SUCCESS
+                    } else {
+                        @Suppress("DEPRECATION")
+                        characteristic.value = chunk
+                        characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                        @Suppress("DEPRECATION")
+                        gatt.writeCharacteristic(characteristic)
+                    }
+                } catch (e: SecurityException) {
+                    Timber.e(e, "Write permission denied for %s", address)
+                    false
                 }
-                statusCode == BluetoothStatusCodes.SUCCESS
-            } else {
-                @Suppress("DEPRECATION")
-                characteristic.value = data
-                characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                @Suppress("DEPRECATION")
-                gatt.writeCharacteristic(characteristic)
+
+                if (!writeInitiated) {
+                    writeCompletions.remove(address)
+                    Timber.w("Write initiation failed at chunk %d/%d for %s",
+                        index + 1, chunks.size, address)
+                    return@withLock false
+                }
+
+                // Wait for onCharacteristicWrite callback
+                val success = withTimeoutOrNull(Constants.BLE_CHUNK_WRITE_TIMEOUT_MS) {
+                    deferred.await()
+                } ?: false
+
+                writeCompletions.remove(address)
+
+                if (!success) {
+                    Timber.w("Write callback failed/timed out at chunk %d/%d for %s",
+                        index + 1, chunks.size, address)
+                    return@withLock false
+                }
             }
-            success
-        } catch (e: SecurityException) {
-            Timber.e(e, "Write permission denied for %s", address)
-            false
+            true
         }
     }
 
@@ -117,6 +173,7 @@ class GattClient(private val context: Context) {
         }
         connections.remove(address)
         mtuMap.remove(address)
+        writeMutexes.remove(address)
     }
 
     /**
@@ -136,6 +193,11 @@ class GattClient(private val context: Context) {
      * Returns addresses of all connected peers.
      */
     fun connectedAddresses(): Set<String> = connections.keys.toSet()
+
+    /**
+     * Cleans up stale incomplete chunk reassembly buffers.
+     */
+    fun pruneChunkBuffers() = reassembler.pruneStale()
 
     private val gattCallback = object : BluetoothGattCallback() {
 
@@ -161,6 +223,7 @@ class GattClient(private val context: Context) {
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     connections.remove(address)
                     mtuMap.remove(address)
+                    writeMutexes.remove(address)
                     _connectionState.tryEmit(ConnectionStateChange(address, false))
                     Timber.i("Disconnected from peer: %s (status=%d)", address, status)
 
@@ -243,6 +306,19 @@ class GattClient(private val context: Context) {
             _connectionState.tryEmit(ConnectionStateChange(address, true))
         }
 
+        // ── Write callback for sequential chunk sending ──
+
+        override fun onCharacteristicWrite(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+            status: Int,
+        ) {
+            val address = gatt.device.address
+            writeCompletions[address]?.complete(status == BluetoothGatt.GATT_SUCCESS)
+        }
+
+        // ── Notification receive (with chunk reassembly) ──
+
         // API 33+ callback
         override fun onCharacteristicChanged(
             gatt: BluetoothGatt,
@@ -270,11 +346,17 @@ class GattClient(private val context: Context) {
             val address = gatt.device.address
             when (characteristic.uuid) {
                 Constants.CHAR_MESSAGE_NOTIFY_UUID -> {
-                    _receivedData.tryEmit(ReceivedData(address, value))
-                    Timber.d("Received %d bytes notification from %s", value.size, address)
+                    val reassembled = reassembler.onDataReceived(value)
+                    if (reassembled != null) {
+                        _receivedData.tryEmit(ReceivedData(address, reassembled))
+                        Timber.d("Received complete message (%d bytes) from %s",
+                            reassembled.size, address)
+                    }
                 }
             }
         }
+
+        // ── Characteristic read callbacks ──
 
         // API 33+ callback
         override fun onCharacteristicRead(

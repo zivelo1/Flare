@@ -100,6 +100,9 @@ dependencies {
     // Image loading (Coil for Compose)
     implementation("io.coil-kt:coil-compose:2.7.0")
 
+    // Biometric authentication (fingerprint, face)
+    implementation("androidx.biometric:biometric:1.1.0")
+
     // Logging
     implementation("com.jakewharton.timber:timber:5.0.1")
 

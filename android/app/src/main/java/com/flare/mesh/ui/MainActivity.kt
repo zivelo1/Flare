@@ -16,12 +16,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.flare.mesh.FlareApplication
 import com.flare.mesh.R
 import com.flare.mesh.service.MeshService
+import com.flare.mesh.ui.lock.LockScreen
+import com.flare.mesh.ui.lock.isLockScreenEnabled
 import com.flare.mesh.ui.navigation.FlareNavHost
 import com.flare.mesh.ui.theme.FlareTheme
 import com.flare.mesh.util.Constants
@@ -31,6 +34,9 @@ import timber.log.Timber
 class MainActivity : AppCompatActivity() {
 
     private val contactsViewModel by lazy { ContactsViewModel() }
+
+    /** Whether the app is unlocked (past the lock screen). */
+    private val isUnlocked = mutableStateOf(false)
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -49,14 +55,28 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Check if lock screen is needed
+        val lockEnabled = isLockScreenEnabled(this)
+        isUnlocked.value = !lockEnabled
+
         setContent {
             FlareTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val error = FlareApplication.initError
-                    if (error != null) {
-                        InitErrorScreen(error)
-                    } else {
-                        FlareNavHost(
+                    when {
+                        error != null -> InitErrorScreen(error)
+                        !isUnlocked.value -> LockScreen(
+                            onUnlocked = {
+                                isUnlocked.value = true
+                                requestBluetoothPermissions()
+                            },
+                            onDestructionTriggered = {
+                                FlareApplication.wipeAndReinitialize(this@MainActivity)
+                                isUnlocked.value = true
+                                requestBluetoothPermissions()
+                            },
+                        )
+                        else -> FlareNavHost(
                             onRequestPermissions = { requestBluetoothPermissions() },
                         )
                     }
@@ -100,7 +120,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        requestBluetoothPermissions()
+        if (isUnlocked.value) {
+            requestBluetoothPermissions()
+        }
     }
 
     @Composable

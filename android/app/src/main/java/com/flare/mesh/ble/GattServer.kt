@@ -10,19 +10,22 @@ import android.content.Context
 import android.os.Build
 import android.os.ParcelUuid
 import com.flare.mesh.util.Constants
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * BLE Peripheral (GATT Server) that advertises the Flare service
  * and accepts connections from nearby mesh peers.
  *
- * Each connected peer can:
- * - Write messages to us via CHAR_MESSAGE_WRITE
- * - Subscribe to notifications on CHAR_MESSAGE_NOTIFY
- * - Read our peer info via CHAR_PEER_INFO
+ * Handles BLE chunking transparently: large outbound notifications are split
+ * into MTU-sized chunks, and incoming writes are reassembled from chunks.
  */
 class GattServer(private val context: Context) {
 
@@ -37,10 +40,22 @@ class GattServer(private val context: Context) {
     /** Connected devices tracked by address. */
     private val connectedDevices = mutableMapOf<String, BluetoothDevice>()
 
+    /** Negotiated MTU per connected device. */
+    private val mtuMap = ConcurrentHashMap<String, Int>()
+
+    /** Per-device notification completion signals for sequential chunk sends. */
+    private val notifyCompletions = ConcurrentHashMap<String, CompletableDeferred<Boolean>>()
+
+    /** Per-device notification mutex to prevent interleaved chunk notifications. */
+    private val notifyMutexes = ConcurrentHashMap<String, Mutex>()
+
+    /** Reassembler for incoming chunked characteristic writes. */
+    private val reassembler = ChunkReassembler()
+
     /** Our local peer info bytes (set by the application layer). */
     var localPeerInfoBytes: ByteArray = ByteArray(0)
 
-    /** Flow of incoming message data from connected peers. */
+    /** Flow of complete (reassembled) incoming messages from connected peers. */
     private val _incomingMessages = MutableSharedFlow<IncomingBleMessage>(extraBufferCapacity = 64)
     val incomingMessages: SharedFlow<IncomingBleMessage> = _incomingMessages.asSharedFlow()
 
@@ -206,34 +221,82 @@ class GattServer(private val context: Context) {
 
     /**
      * Sends data to a connected peer via notification on the message characteristic.
+     *
+     * Transparently handles BLE chunking: if the data exceeds the peer's MTU,
+     * it is split into chunks and sent sequentially, waiting for each
+     * onNotificationSent callback before sending the next chunk.
      */
     @SuppressLint("MissingPermission")
-    fun sendToPeer(address: String, data: ByteArray): Boolean {
+    suspend fun sendToPeer(address: String, data: ByteArray): Boolean {
         val server = gattServer ?: return false
         val device = connectedDevices[address] ?: return false
 
         val service = server.getService(Constants.SERVICE_UUID) ?: return false
-        val characteristic = service.getCharacteristic(Constants.CHAR_MESSAGE_NOTIFY_UUID) ?: return false
+        val characteristic = service.getCharacteristic(Constants.CHAR_MESSAGE_NOTIFY_UUID)
+            ?: return false
 
-        return try {
-            val success = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                val statusCode = server.notifyCharacteristicChanged(device, characteristic, false, data)
-                if (statusCode != BluetoothStatusCodes.SUCCESS) {
-                    Timber.w("Notify peer %s returned status %d", address, statusCode)
+        val mtu = getMtu(address)
+        val chunks = BleChunker.chunk(data, mtu)
+        if (chunks.isEmpty()) {
+            Timber.e("Failed to chunk %d bytes for %s (MTU=%d)", data.size, address, mtu)
+            return false
+        }
+
+        if (chunks.size > 1) {
+            Timber.d("Chunking %d bytes into %d chunks for %s (MTU=%d)",
+                data.size, chunks.size, address, mtu)
+        }
+
+        val mutex = notifyMutexes.getOrPut(address) { Mutex() }
+
+        return mutex.withLock {
+            for ((index, chunk) in chunks.withIndex()) {
+                val deferred = CompletableDeferred<Boolean>()
+                notifyCompletions[address] = deferred
+
+                val notifyInitiated = try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        server.notifyCharacteristicChanged(device, characteristic, false, chunk) ==
+                            BluetoothStatusCodes.SUCCESS
+                    } else {
+                        @Suppress("DEPRECATION")
+                        characteristic.value = chunk
+                        @Suppress("DEPRECATION")
+                        server.notifyCharacteristicChanged(device, characteristic, false)
+                    }
+                } catch (e: SecurityException) {
+                    Timber.e(e, "Failed to notify peer %s", address)
+                    false
                 }
-                statusCode == BluetoothStatusCodes.SUCCESS
-            } else {
-                @Suppress("DEPRECATION")
-                characteristic.value = data
-                @Suppress("DEPRECATION")
-                server.notifyCharacteristicChanged(device, characteristic, false)
+
+                if (!notifyInitiated) {
+                    notifyCompletions.remove(address)
+                    Timber.w("Notification failed at chunk %d/%d for %s",
+                        index + 1, chunks.size, address)
+                    return@withLock false
+                }
+
+                // Wait for onNotificationSent callback
+                val success = withTimeoutOrNull(Constants.BLE_CHUNK_WRITE_TIMEOUT_MS) {
+                    deferred.await()
+                } ?: false
+
+                notifyCompletions.remove(address)
+
+                if (!success) {
+                    Timber.w("Notification callback failed/timed out at chunk %d/%d for %s",
+                        index + 1, chunks.size, address)
+                    return@withLock false
+                }
             }
-            success
-        } catch (e: SecurityException) {
-            Timber.e(e, "Failed to notify peer %s", address)
-            false
+            true
         }
     }
+
+    /**
+     * Returns the negotiated MTU for a connected device, or the minimum if unknown.
+     */
+    fun getMtu(address: String): Int = mtuMap[address] ?: Constants.MIN_MTU
 
     /**
      * Stops the GATT server and advertising.
@@ -256,6 +319,8 @@ class GattServer(private val context: Context) {
         advertiser = null
         advertiseCallback = null
         connectedDevices.clear()
+        mtuMap.clear()
+        notifyMutexes.clear()
         Timber.i("GATT server stopped")
     }
 
@@ -264,6 +329,9 @@ class GattServer(private val context: Context) {
 
     /** Returns addresses of all currently connected devices. */
     fun connectedDeviceAddresses(): Set<String> = connectedDevices.keys.toSet()
+
+    /** Cleans up stale incomplete chunk reassembly buffers. */
+    fun pruneChunkBuffers() = reassembler.pruneStale()
 
     private val gattCallback = object : BluetoothGattServerCallback() {
 
@@ -276,6 +344,8 @@ class GattServer(private val context: Context) {
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     connectedDevices.remove(device.address)
+                    mtuMap.remove(device.address)
+                    notifyMutexes.remove(device.address)
                     _connectionEvents.tryEmit(BleConnectionEvent.Disconnected(device.address))
                     Timber.i("Peer disconnected: %s", device.address)
                 }
@@ -321,8 +391,14 @@ class GattServer(private val context: Context) {
             when (characteristic.uuid) {
                 Constants.CHAR_MESSAGE_WRITE_UUID -> {
                     value?.let { data ->
-                        _incomingMessages.tryEmit(IncomingBleMessage(device.address, data))
-                        Timber.d("Received %d bytes from %s", data.size, device.address)
+                        val reassembled = reassembler.onDataReceived(data)
+                        if (reassembled != null) {
+                            _incomingMessages.tryEmit(
+                                IncomingBleMessage(device.address, reassembled),
+                            )
+                            Timber.d("Received complete message (%d bytes) from %s",
+                                reassembled.size, device.address)
+                        }
                     }
                     if (responseNeeded) {
                         gattServer?.sendResponse(
@@ -364,9 +440,13 @@ class GattServer(private val context: Context) {
             }
         }
 
-        @SuppressLint("MissingPermission")
         override fun onMtuChanged(device: BluetoothDevice, mtu: Int) {
-            Timber.d("MTU changed to %d for %s", mtu, device.address)
+            mtuMap[device.address] = mtu - 3 // Subtract ATT header overhead
+            Timber.d("MTU changed to %d (usable: %d) for %s", mtu, mtu - 3, device.address)
+        }
+
+        override fun onNotificationSent(device: BluetoothDevice, status: Int) {
+            notifyCompletions[device.address]?.complete(status == BluetoothGatt.GATT_SUCCESS)
         }
     }
 }

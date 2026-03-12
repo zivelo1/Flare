@@ -95,6 +95,17 @@ object Constants {
     /** Minimum usable MTU (default BLE MTU minus ATT overhead). */
     const val MIN_MTU: Int = 20
 
+    // ── BLE Chunking ─────────────────────────────────────────────────
+
+    /** Maximum number of chunks per message (1 byte index = 255). */
+    const val BLE_CHUNK_MAX_COUNT: Int = 255
+
+    /** Timeout for incomplete chunk reassembly buffers (milliseconds). */
+    const val BLE_CHUNK_REASSEMBLY_TIMEOUT_MS: Long = 30_000L
+
+    /** Timeout waiting for a single BLE write/notify callback (milliseconds). */
+    const val BLE_CHUNK_WRITE_TIMEOUT_MS: Long = 5_000L
+
     // ── Notifications ─────────────────────────────────────────────────
 
     /** Notification channel ID for the mesh foreground service. */
@@ -257,6 +268,17 @@ object Constants {
 
     /** Broadcast recipient constant — all 0xFF (matches Rust BROADCAST_DEVICE_ID). */
     const val BROADCAST_DEVICE_ID: String = "ffffffffffffffffffffffffffffffff"
+
+    // ── Destruction Code (Lock Screen) ────────────────────────────────
+
+    /** SharedPreferences key for the SHA-256 hash of the unlock code. */
+    const val KEY_UNLOCK_CODE_HASH: String = "unlock_code_hash"
+
+    /** SharedPreferences key for the SHA-256 hash of the destruction code. */
+    const val KEY_DESTRUCTION_CODE_HASH: String = "destruction_code_hash"
+
+    /** Minimum length for unlock and destruction codes. */
+    const val MIN_CODE_LENGTH: Int = 4
 
     // ── APK Sharing ──────────────────────────────────────────────────
 

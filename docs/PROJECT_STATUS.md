@@ -1,6 +1,6 @@
 # Flare — Project Status
 
-## Current Phase: Phase 9 — UI Polish (Android)
+## Current Phase: Phase 9 — UI Polish & Security (Android)
 **Strategy:** Android-first. In target markets (Iran, Syria, Yemen, Sudan, Myanmar, Cuba, Venezuela, Ethiopia), Android has 85-98% market share. iOS deferred to backlog.
 **Previous:** Phase 8 localization (6 languages), Phase 6A device testing verified — encrypted BLE mesh messaging working on 2 physical Android devices.
 
@@ -89,7 +89,7 @@
 - [x] ContactsViewModel — contact management, QR code data generation/parsing, shareable identity deep links
 - [x] DiscoveryViewModel — shared phrase search, phone number search, contact import with SearchState management
 - [x] NetworkViewModel — mesh status, nearby peers from BLE scanner
-- [x] SettingsViewModel — duress PIN management, power tier state, store stats
+- [x] SettingsViewModel — power tier state, store stats
 - [x] GroupViewModel — group CRUD, member selection, create group with members
 - [x] Navigation — bottom tabs (Chats, Contacts, Network) + settings/groups routes with Compose Navigation
 - [x] ConversationListScreen — conversation list with mesh status, unread badges, identicon avatars, settings/groups navigation
@@ -100,8 +100,8 @@
 - [x] PhoneSearchScreen — bilateral phone number entry, security warning, risk acceptance
 - [x] NetworkScreen — mesh status card, stats row, nearby peer list with signal strength
 - [x] **Onboarding flow** — 4-page HorizontalPager (No Internet Needed, E2E Encrypted, Find Friends, Designed for Safety), skip/next/back/get-started, persisted via SharedPreferences
-- [x] **Settings screen** — security (duress PIN), battery & performance (power tiers), storage stats card with progress bar, device info, about section
-- [x] **Duress PIN settings** — setup form (passphrase + confirm), active status card, remove with confirmation dialog
+- [x] **Settings screen** — security (destruction code), battery & performance (power tiers), storage stats card with progress bar, device info, about section
+- [x] **Destruction code** — DestructionCodeScreen with unlock code + destruction code setup, SHA-256 hashed in SharedPreferences, remove with confirmation dialog
 - [x] **Power management settings** — current tier card with color coding, battery saver toggle, tier explanation cards with Constants values
 - [x] **Group messaging UI** — group list with empty state, create group with contact selection and checkboxes
 - [x] **Identicon avatars** — SHA-256 deterministic colors from 12-color curated palette (IdenticonGenerator)
@@ -260,6 +260,10 @@
 - [x] **KeyExchange protocol** — QR scan auto-sends sender's public keys to scanned contact, enabling immediate two-way messaging without mutual QR scan
 - [x] **APK sharing via system intent** — share app file via Nearby Share, Bluetooth, WhatsApp, etc. (replaced non-functional BLE transfer stubs)
 - [x] **content_type in FfiMeshMessage** — Rust FFI now exposes message content type for routing KeyExchange, voice, image messages
+- [x] **BLE chunking** — 5-byte header protocol (magic=0xF1, msgId, chunkIdx, totalChunks) for payloads exceeding BLE MTU (~514 bytes). Sequential GATT writes/notifications with onCharacteristicWrite/onNotificationSent callbacks. Per-address Mutex prevents interleaving. ChunkReassembler with 30s stale timeout pruning. Max 255 chunks (~130KB per message). Backward compatible with non-chunked data
+- [x] **Destruction code (full implementation)** — replaces non-functional duress PIN skeleton. Two codes: unlock code (opens normally) + destruction code (permanently erases all data). Codes stored as SHA-256 hashes in SharedPreferences. Data wipe: stop MeshService → clear prefs → delete DB files → reset FlareRepository → reinitialize FlareNode with fresh identity
+- [x] **Lock screen with biometric** — BiometricPrompt (fingerprint/face) as primary unlock, manual code entry as fallback. Shown on every app launch when destruction code is configured. Entering destruction code triggers full data wipe
+- [x] **FlareApplication.wipeAndReinitialize()** — complete data destruction: stops mesh service, clears SharedPreferences, deletes encrypted database files (flare.db, -wal, -shm), resets FlareRepository singleton, reinitializes FlareNode with fresh identity
 - [ ] **Emoji picker** — in-chat emoji selector for quick access beyond system keyboard
 
 ### Phase 10 — Android Release
@@ -289,6 +293,8 @@
 - **Crash on update from pre-v0.8:** Old `derive_key()` used random salt, making databases encrypted with an irrecoverable key. New deterministic salt produces a different key, so old DB can't be opened. **Fixed:** `FlareRepository.initialize()` catches the error, deletes the old DB, and creates a fresh one. One-time migration — all future updates preserve data.
 - **One-way QR bug:** User A scans User B's QR and sends a message, but B cannot decrypt (B doesn't have A's keys). **Fixed:** KeyExchange protocol — scanning a QR automatically sends the scanner's public keys to the scanned contact via a KeyExchange mesh message (content_type=4). The receiver auto-adds the sender as an unverified contact.
 - **Voice/image messages not received:** Media messages (voice, image) sent as file paths instead of encoded binary data. **Fixed:** Base64-encode media bytes, prefix with `flare:voice:` or `flare:image:`, send through text encryption pipeline. Receiver detects prefix and renders audio player or image.
+- **Voice/image messages truncated on BLE:** Encoded media payloads (10-200KB) exceeded BLE MTU (~514 bytes) and were silently truncated by GATT. **Fixed:** BLE chunking protocol with 5-byte header, sequential writes with callback synchronization, and chunk reassembly on receive.
+- **Duress PIN was non-functional skeleton:** Only stored Argon2id hash in Rust DB with no lock screen or data wipe. **Fixed:** Complete destruction code implementation with BiometricPrompt lock screen, SHA-256 code hashes in SharedPreferences, and full data wipe (delete DB, clear prefs, reinitialize).
 - **CI x86_64 cross-compilation failure:** OpenSSL build failed with `x86_64-linux-android-ranlib: not found`. **Fixed:** Added `RANLIB_*` environment variable pointing to NDK's `llvm-ranlib` in GitHub Actions workflow.
 - **APK sharing screens were stubs:** Share/receive screens had no backend integration (BLE advertising code was placeholder). **Fixed:** Replaced with functional Android system share intent (Nearby Share, Bluetooth, messaging apps) using FileProvider.
 

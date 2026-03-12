@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.async
 import timber.log.Timber
 
 /**
@@ -189,6 +190,8 @@ class MeshService : LifecycleService() {
             while (isActive) {
                 delay(Constants.PEER_STALE_TIMEOUT_MS / 2)
                 bleScanner.pruneStale()
+                gattServer.pruneChunkBuffers()
+                gattClient.pruneChunkBuffers()
                 try {
                     val pruned = FlareRepository.getInstance().pruneExpiredMessages()
                     if (pruned > 0) {
@@ -561,21 +564,24 @@ class MeshService : LifecycleService() {
         updateMeshStatus()
     }
 
-    private fun sendToMesh(outbound: OutboundMessage) {
+    private suspend fun sendToMesh(outbound: OutboundMessage) {
         notifyDataActivity()
 
-        // Send to all connected peers (Spray-and-Wait)
+        // Send to all connected peers concurrently (Spray-and-Wait)
         val serverPeers = gattServer.connectedDeviceAddresses()
         val clientPeers = gattClient.connectedAddresses()
 
-        var sent = 0
-        serverPeers.forEach { address ->
-            if (gattServer.sendToPeer(address, outbound.data)) sent++
-        }
-        clientPeers.forEach { address ->
-            if (gattClient.writeMessage(address, outbound.data)) sent++
+        val results = coroutineScope {
+            val serverJobs = serverPeers.map { address ->
+                async { gattServer.sendToPeer(address, outbound.data) }
+            }
+            val clientJobs = clientPeers.map { address ->
+                async { gattClient.writeMessage(address, outbound.data) }
+            }
+            serverJobs.map { it.await() } + clientJobs.map { it.await() }
         }
 
+        val sent = results.count { it }
         Timber.d("Sent outbound message to %d/%d peers",
             sent, serverPeers.size + clientPeers.size)
     }

@@ -73,6 +73,16 @@ class FlareRepository private constructor(private val node: FlareNode) {
                 "FlareRepository not initialized. Call initialize() in Application.onCreate()."
             )
         }
+
+        /**
+         * Resets the singleton so the next [initialize] call creates a fresh instance.
+         * Used by the destruction code to wipe and reinitialize.
+         */
+        fun reset() {
+            synchronized(this) {
+                instance = null
+            }
+        }
     }
 
     // ── Identity ──────────────────────────────────────────────────────

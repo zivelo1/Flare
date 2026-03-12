@@ -1,10 +1,11 @@
 package com.flare.mesh.ui.settings
 
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Warning
@@ -12,35 +13,49 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flare.mesh.R
-import com.flare.mesh.viewmodel.DuressSetupStatus
-import com.flare.mesh.viewmodel.SettingsViewModel
+import com.flare.mesh.ui.lock.sha256
+import com.flare.mesh.util.Constants
 
+/**
+ * Settings screen for configuring the Destruction Code.
+ *
+ * The user sets two codes:
+ * - Unlock code: opens the app normally (also unlockable via biometric)
+ * - Destruction code: permanently erases ALL data (messages, contacts, identity)
+ *
+ * Both codes are stored as SHA-256 hashes in SharedPreferences.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DuressSettingsScreen(
+fun DestructionCodeScreen(
     onNavigateBack: () -> Unit,
-    settingsViewModel: SettingsViewModel = viewModel(),
 ) {
-    val hasDuressPin by settingsViewModel.hasDuressPin.collectAsState()
-    val duressStatus by settingsViewModel.duressStatus.collectAsState()
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE) }
 
-    var passphrase by remember { mutableStateOf("") }
-    var confirmPassphrase by remember { mutableStateOf("") }
-    var showPassphrase by remember { mutableStateOf(false) }
+    val isConfigured = remember {
+        mutableStateOf(prefs.getString(Constants.KEY_DESTRUCTION_CODE_HASH, null) != null)
+    }
+
+    var unlockCode by remember { mutableStateOf("") }
+    var destructionCode by remember { mutableStateOf("") }
+    var confirmDestructionCode by remember { mutableStateOf("") }
+    var showCodes by remember { mutableStateOf(false) }
     var showConfirmDialog by remember { mutableStateOf(false) }
+    var setupSuccess by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.duress_title)) },
+                title = { Text(stringResource(R.string.destruction_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
@@ -72,20 +87,20 @@ fun DuressSettingsScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Icon(
-                        Icons.Filled.Shield,
+                        Icons.Filled.DeleteForever,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSecondaryContainer,
                     )
                     Column {
                         Text(
-                            text = stringResource(R.string.duress_plausible_deniability),
+                            text = stringResource(R.string.destruction_plausible_deniability),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = stringResource(R.string.duress_explanation),
+                            text = stringResource(R.string.destruction_explanation),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
@@ -95,11 +110,11 @@ fun DuressSettingsScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            if (hasDuressPin) {
+            if (isConfigured.value) {
                 // Already configured — show status and clear option
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
                     ),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
@@ -108,23 +123,23 @@ fun DuressSettingsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Icon(
-                            Icons.Filled.Shield,
+                            Icons.Filled.DeleteForever,
                             contentDescription = null,
                             modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            tint = MaterialTheme.colorScheme.error,
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = stringResource(R.string.duress_active_title),
+                            text = stringResource(R.string.destruction_active_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = stringResource(R.string.duress_active_description),
+                            text = stringResource(R.string.destruction_active_description),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
                             textAlign = TextAlign.Center,
                         )
                     }
@@ -139,25 +154,27 @@ fun DuressSettingsScreen(
                         contentColor = MaterialTheme.colorScheme.error,
                     ),
                 ) {
-                    Text(stringResource(R.string.duress_remove_button))
+                    Text(stringResource(R.string.destruction_remove_button))
                 }
             } else {
-                // Setup new duress PIN
-                val visualTransformation = if (showPassphrase) VisualTransformation.None
+                // Setup new destruction code
+                val visualTransformation = if (showCodes) VisualTransformation.None
                 else PasswordVisualTransformation()
 
+                // Unlock code
                 OutlinedTextField(
-                    value = passphrase,
-                    onValueChange = { passphrase = it },
-                    label = { Text(stringResource(R.string.duress_passphrase_label)) },
+                    value = unlockCode,
+                    onValueChange = { unlockCode = it },
+                    label = { Text(stringResource(R.string.destruction_unlock_code_label)) },
+                    supportingText = { Text(stringResource(R.string.destruction_unlock_code_hint)) },
                     modifier = Modifier.fillMaxWidth(),
                     visualTransformation = visualTransformation,
                     trailingIcon = {
-                        IconButton(onClick = { showPassphrase = !showPassphrase }) {
+                        IconButton(onClick = { showCodes = !showCodes }) {
                             Icon(
-                                if (showPassphrase) Icons.Filled.VisibilityOff
+                                if (showCodes) Icons.Filled.VisibilityOff
                                 else Icons.Filled.Visibility,
-                                contentDescription = if (showPassphrase) stringResource(R.string.action_hide) else stringResource(R.string.action_show),
+                                contentDescription = null,
                             )
                         }
                     },
@@ -166,10 +183,24 @@ fun DuressSettingsScreen(
 
                 Spacer(Modifier.height(12.dp))
 
+                // Destruction code
                 OutlinedTextField(
-                    value = confirmPassphrase,
-                    onValueChange = { confirmPassphrase = it },
-                    label = { Text(stringResource(R.string.duress_confirm_label)) },
+                    value = destructionCode,
+                    onValueChange = { destructionCode = it },
+                    label = { Text(stringResource(R.string.destruction_code_label)) },
+                    supportingText = { Text(stringResource(R.string.destruction_code_hint)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = visualTransformation,
+                    singleLine = true,
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                // Confirm destruction code
+                OutlinedTextField(
+                    value = confirmDestructionCode,
+                    onValueChange = { confirmDestructionCode = it },
+                    label = { Text(stringResource(R.string.destruction_confirm_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     visualTransformation = visualTransformation,
                     singleLine = true,
@@ -177,12 +208,26 @@ fun DuressSettingsScreen(
 
                 Spacer(Modifier.height(8.dp))
 
+                // Validation messages
                 AnimatedVisibility(
-                    visible = passphrase.isNotEmpty() && confirmPassphrase.isNotEmpty()
-                            && passphrase != confirmPassphrase,
+                    visible = destructionCode.isNotEmpty()
+                            && confirmDestructionCode.isNotEmpty()
+                            && destructionCode != confirmDestructionCode,
                 ) {
                     Text(
-                        text = stringResource(R.string.duress_mismatch),
+                        text = stringResource(R.string.destruction_mismatch),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+
+                AnimatedVisibility(
+                    visible = unlockCode.isNotEmpty()
+                            && destructionCode.isNotEmpty()
+                            && unlockCode == destructionCode,
+                ) {
+                    Text(
+                        text = stringResource(R.string.destruction_codes_same),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -190,7 +235,7 @@ fun DuressSettingsScreen(
 
                 Spacer(Modifier.height(8.dp))
 
-                // Warning
+                // Warning card
                 Card(
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
@@ -208,7 +253,7 @@ fun DuressSettingsScreen(
                             modifier = Modifier.size(20.dp),
                         )
                         Text(
-                            text = stringResource(R.string.duress_warning),
+                            text = stringResource(R.string.destruction_warning),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onErrorContainer,
                         )
@@ -217,46 +262,38 @@ fun DuressSettingsScreen(
 
                 Spacer(Modifier.height(24.dp))
 
-                val canSet = passphrase.isNotBlank()
-                        && passphrase == confirmPassphrase
-                        && passphrase.length >= 4
-                        && duressStatus != DuressSetupStatus.SETTING
+                val canSet = unlockCode.length >= Constants.MIN_CODE_LENGTH
+                        && destructionCode.length >= Constants.MIN_CODE_LENGTH
+                        && destructionCode == confirmDestructionCode
+                        && unlockCode != destructionCode
 
                 Button(
                     onClick = {
-                        settingsViewModel.setDuressPassphrase(passphrase)
-                        passphrase = ""
-                        confirmPassphrase = ""
+                        prefs.edit()
+                            .putString(Constants.KEY_UNLOCK_CODE_HASH, sha256(unlockCode))
+                            .putString(Constants.KEY_DESTRUCTION_CODE_HASH, sha256(destructionCode))
+                            .apply()
+                        isConfigured.value = true
+                        setupSuccess = true
+                        unlockCode = ""
+                        destructionCode = ""
+                        confirmDestructionCode = ""
                     },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = canSet,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                    ),
                 ) {
-                    if (duressStatus == DuressSetupStatus.SETTING) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            strokeWidth = 2.dp,
-                        )
-                        Spacer(Modifier.width(8.dp))
-                    }
-                    Text(stringResource(R.string.duress_set_button))
+                    Text(stringResource(R.string.destruction_set_button))
                 }
 
-                AnimatedVisibility(visible = duressStatus == DuressSetupStatus.SUCCESS) {
+                AnimatedVisibility(visible = setupSuccess) {
                     Text(
-                        text = stringResource(R.string.duress_set_success),
+                        text = stringResource(R.string.destruction_set_success),
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
-                }
-
-                AnimatedVisibility(visible = duressStatus == DuressSetupStatus.ERROR) {
-                    Text(
-                        text = stringResource(R.string.duress_set_error),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(top = 8.dp),
                     )
                 }
@@ -271,14 +308,18 @@ fun DuressSettingsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        settingsViewModel.clearDuressPassphrase()
+                        prefs.edit()
+                            .remove(Constants.KEY_UNLOCK_CODE_HASH)
+                            .remove(Constants.KEY_DESTRUCTION_CODE_HASH)
+                            .apply()
+                        isConfigured.value = false
                         showConfirmDialog = false
                     },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error,
                     ),
                 ) {
-                    Text(stringResource(R.string.duress_remove_confirm))
+                    Text(stringResource(R.string.destruction_remove_confirm))
                 }
             },
             dismissButton = {
@@ -293,10 +334,8 @@ fun DuressSettingsScreen(
                     tint = MaterialTheme.colorScheme.error,
                 )
             },
-            title = { Text(stringResource(R.string.duress_remove_dialog_title)) },
-            text = {
-                Text(stringResource(R.string.duress_remove_dialog_message))
-            },
+            title = { Text(stringResource(R.string.destruction_remove_dialog_title)) },
+            text = { Text(stringResource(R.string.destruction_remove_dialog_message)) },
         )
     }
 }

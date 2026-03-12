@@ -1,10 +1,14 @@
 package com.flare.mesh
 
+import android.content.Context
 import android.app.Application
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import com.flare.mesh.data.repository.FlareRepository
+import com.flare.mesh.service.MeshService
+import com.flare.mesh.util.Constants
 import timber.log.Timber
+import java.io.File
 import java.security.KeyStore
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -26,7 +30,7 @@ class FlareApplication : Application() {
      * The passphrase is derived from a key stored in Android Keystore,
      * ensuring the encrypted database is tied to this specific device.
      */
-    private fun initializeFlareNode() {
+    internal fun initializeFlareNode() {
         try {
             val passphrase = getOrCreateDevicePassphrase()
             FlareRepository.initialize(this, passphrase)
@@ -42,6 +46,43 @@ class FlareApplication : Application() {
         /** Non-null if FlareNode initialization failed. Displayed by the UI. */
         var initError: String? = null
             private set
+
+        /**
+         * Permanently erases all data: stops mesh service, deletes the encrypted
+         * database, clears lock screen preferences, and reinitializes with a fresh
+         * identity. After this call, the app appears as freshly installed.
+         */
+        fun wipeAndReinitialize(context: Context) {
+            Timber.w("DESTRUCTION CODE ACTIVATED — wiping all data")
+
+            // 1. Stop mesh service
+            MeshService.stop(context)
+
+            // 2. Clear lock screen and destruction code preferences
+            context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .remove(Constants.KEY_UNLOCK_CODE_HASH)
+                .remove(Constants.KEY_DESTRUCTION_CODE_HASH)
+                .apply()
+
+            // 3. Delete the encrypted database files
+            val dbPath = File(context.filesDir, "flare.db")
+            val walPath = File("${dbPath.absolutePath}-wal")
+            val shmPath = File("${dbPath.absolutePath}-shm")
+            dbPath.delete()
+            walPath.delete()
+            shmPath.delete()
+            Timber.w("Database files deleted")
+
+            // 4. Reset the FlareRepository singleton
+            FlareRepository.reset()
+
+            // 5. Reinitialize with a fresh database and new identity
+            val app = context.applicationContext as FlareApplication
+            app.initializeFlareNode()
+
+            Timber.w("Wipe complete — new identity created")
+        }
     }
 
     /**
