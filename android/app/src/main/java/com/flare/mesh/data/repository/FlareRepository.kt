@@ -185,8 +185,43 @@ class FlareRepository private constructor(private val node: FlareNode) {
     }
 
     /**
+     * Sends a KeyExchange message to a recipient, containing our public identity.
+     * This allows the recipient to auto-add us and decrypt our messages
+     * without needing to scan our QR code.
+     *
+     * Payload format: deviceId|signingKeyHex|agreementKeyHex|displayName
+     * The payload is NOT encrypted — it contains only public keys.
+     */
+    suspend fun sendKeyExchange(
+        recipientDeviceId: String,
+    ): ByteArray = withContext(Dispatchers.IO) {
+        val identity = getPublicIdentity()
+        val signingHex = identity.signingPublicKey.joinToString("") { "%02x".format(it) }
+        val agreementHex = identity.agreementPublicKey.joinToString("") { "%02x".format(it) }
+
+        val payload = listOf(
+            identity.deviceId,
+            signingHex,
+            agreementHex,
+        ).joinToString(Constants.KEY_EXCHANGE_SEPARATOR)
+
+        // KeyExchange is NOT encrypted — it contains only public keys
+        // Build mesh message with content_type=4 (KeyExchange)
+        val meshMsg = node.buildMeshMessage(
+            recipientDeviceId,
+            payload.toByteArray(Charsets.UTF_8),
+            Constants.CONTENT_TYPE_KEY_EXCHANGE,
+        )
+
+        Timber.i("KeyExchange sent to %s", recipientDeviceId.take(12))
+        meshMsg.serialized
+    }
+
+    /**
      * Processes an incoming raw mesh message from BLE.
      * Returns the routing decision and optionally the decrypted text (if for us).
+     *
+     * Handles KeyExchange messages by auto-adding the sender as an unverified contact.
      */
     suspend fun processIncomingMessage(rawData: ByteArray): IncomingMessageResult =
         withContext(Dispatchers.IO) {
@@ -196,6 +231,18 @@ class FlareRepository private constructor(private val node: FlareNode) {
                 FfiRouteDecision.DELIVER_LOCALLY -> {
                     val parsed = node.parseMeshMessage(rawData)
                     if (parsed != null) {
+                        // Handle KeyExchange messages: auto-add sender as unverified contact
+                        if (parsed.contentType.toInt() == Constants.CONTENT_TYPE_KEY_EXCHANGE.toInt()) {
+                            handleKeyExchange(parsed)
+                            return@withContext IncomingMessageResult(
+                                decision = RouteDecisionType.DELIVER_LOCALLY,
+                                senderId = parsed.senderId,
+                                plaintext = null,
+                                messageId = parsed.messageId,
+                                isKeyExchange = true,
+                            )
+                        }
+
                         // Look up sender's agreement key from contacts
                         val senderContact = _contacts.value.find {
                             it.identity.deviceId == parsed.senderId
@@ -206,6 +253,10 @@ class FlareRepository private constructor(private val node: FlareNode) {
                                 it.identity.agreementPublicKey,
                                 parsed.payload,
                             )
+                        }
+
+                        if (plaintext == null && senderContact == null) {
+                            Timber.w("Message from unknown sender %s — no agreement key to decrypt", parsed.senderId.take(12))
                         }
 
                         // Store the decrypted message in the database
@@ -246,6 +297,66 @@ class FlareRepository private constructor(private val node: FlareNode) {
                 }
             }
         }
+
+    /**
+     * Handles an incoming KeyExchange message by auto-adding the sender.
+     * The payload contains the sender's public keys in cleartext.
+     * Format: deviceId|signingKeyHex|agreementKeyHex
+     */
+    private suspend fun handleKeyExchange(parsed: uniffi.flare_core.FfiMeshMessage) {
+        try {
+            val payloadStr = String(parsed.payload, Charsets.UTF_8)
+            val parts = payloadStr.split(Constants.KEY_EXCHANGE_SEPARATOR)
+
+            if (parts.size < Constants.KEY_EXCHANGE_MIN_FIELDS) {
+                Timber.w("Invalid KeyExchange payload: expected %d fields, got %d",
+                    Constants.KEY_EXCHANGE_MIN_FIELDS, parts.size)
+                return
+            }
+
+            val senderDeviceId = parts[0]
+            val signingKeyHex = parts[1]
+            val agreementKeyHex = parts[2]
+
+            // Validate key lengths
+            if (signingKeyHex.length != Constants.HEX_PUBLIC_KEY_LENGTH ||
+                agreementKeyHex.length != Constants.HEX_PUBLIC_KEY_LENGTH) {
+                Timber.w("Invalid key lengths in KeyExchange: sk=%d ak=%d",
+                    signingKeyHex.length, agreementKeyHex.length)
+                return
+            }
+
+            // Check if we already have this contact
+            val existing = _contacts.value.find { it.identity.deviceId == senderDeviceId }
+            if (existing != null) {
+                Timber.d("KeyExchange from known contact %s — ignoring", senderDeviceId.take(12))
+                return
+            }
+
+            // Auto-add as unverified contact
+            val signingKey = hexToBytes(signingKeyHex)
+            val agreementKey = hexToBytes(agreementKeyHex)
+
+            node.addContact(FfiContact(
+                deviceId = senderDeviceId,
+                signingPublicKey = signingKey,
+                agreementPublicKey = agreementKey,
+                displayName = null,
+                isVerified = false,
+            ))
+
+            refreshContacts()
+            Timber.i("Auto-added contact via KeyExchange: %s", senderDeviceId.take(12))
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to process KeyExchange")
+        }
+    }
+
+    private fun hexToBytes(hex: String): ByteArray {
+        return ByteArray(hex.length / 2) { i ->
+            hex.substring(i * 2, i * 2 + 2).toInt(16).toByte()
+        }
+    }
 
     /**
      * Prepares a raw mesh message for relay by incrementing its hop count.
@@ -756,6 +867,7 @@ data class IncomingMessageResult(
     val senderId: String? = null,
     val plaintext: String? = null,
     val messageId: String? = null,
+    val isKeyExchange: Boolean = false,
 )
 
 data class TransferRecommendation(

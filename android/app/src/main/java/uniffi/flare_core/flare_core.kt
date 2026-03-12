@@ -4055,6 +4055,10 @@ data class FfiMeshMessage (
     var `hopCount`: kotlin.UByte, 
     var `maxHops`: kotlin.UByte, 
     /**
+     * Content type: 1=Text, 2=Voice, 3=Image, 4=KeyExchange, 5=ACK, 6=ReadReceipt
+     */
+    var `contentType`: kotlin.UByte, 
+    /**
      * The encrypted payload bytes from the mesh message envelope.
      * Pass this to decrypt_incoming_message() — NOT the full serialized frame.
      */
@@ -4076,6 +4080,7 @@ public object FfiConverterTypeFfiMeshMessage: FfiConverterRustBuffer<FfiMeshMess
             FfiConverterString.read(buf),
             FfiConverterUByte.read(buf),
             FfiConverterUByte.read(buf),
+            FfiConverterUByte.read(buf),
             FfiConverterByteArray.read(buf),
         )
     }
@@ -4087,6 +4092,7 @@ public object FfiConverterTypeFfiMeshMessage: FfiConverterRustBuffer<FfiMeshMess
             FfiConverterString.allocationSize(value.`recipientId`) +
             FfiConverterUByte.allocationSize(value.`hopCount`) +
             FfiConverterUByte.allocationSize(value.`maxHops`) +
+            FfiConverterUByte.allocationSize(value.`contentType`) +
             FfiConverterByteArray.allocationSize(value.`payload`)
     )
 
@@ -4097,6 +4103,7 @@ public object FfiConverterTypeFfiMeshMessage: FfiConverterRustBuffer<FfiMeshMess
             FfiConverterString.write(value.`recipientId`, buf)
             FfiConverterUByte.write(value.`hopCount`, buf)
             FfiConverterUByte.write(value.`maxHops`, buf)
+            FfiConverterUByte.write(value.`contentType`, buf)
             FfiConverterByteArray.write(value.`payload`, buf)
     }
 }

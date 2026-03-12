@@ -166,29 +166,21 @@
 
     <!-- APK Sharing -->
     <string name="apk_share_title">Share Flare</string>
-    <string name="apk_receive_title">Receive Flare</string>
-    <string name="apk_share_description">Share the Flare app with nearby devices via Bluetooth</string>
+    <string name="apk_share_description">Share the Flare app with friends nearby</string>
     <string name="apk_share_version">Version %s</string>
     <string name="apk_share_size">Size: %s</string>
     <string name="apk_share_hash">SHA-256: %s</string>
-    <string name="apk_share_button">Share via Bluetooth</string>
-    <string name="apk_share_stop_button">Stop Sharing</string>
-    <string name="apk_share_advertising">Broadcasting to nearby devices…</string>
-    <string name="apk_share_transfer_progress">Transfer progress</string>
-    <string name="apk_share_requesting_devices">Devices requesting Flare</string>
-    <string name="apk_share_no_requests">No requests yet</string>
-    <string name="apk_receive_scanning">Scanning for nearby Flare devices…</string>
-    <string name="apk_receive_available">Available to download</string>
-    <string name="apk_receive_version">Version: %s</string>
-    <string name="apk_receive_size">Size: %s</string>
-    <string name="apk_receive_verified">Signature verified</string>
-    <string name="apk_receive_unverified">Signature not verified</string>
-    <string name="apk_receive_download">Download</string>
-    <string name="apk_receive_install">Install</string>
-    <string name="apk_receive_downloading">Downloading…</string>
-    <string name="apk_receive_no_offers">No nearby Flare devices found</string>
+    <string name="apk_share_button">Share App File</string>
+    <string name="apk_share_link_button">Share Download Link</string>
+    <string name="apk_share_chooser_title">Share Flare with…</string>
+    <string name="apk_share_message">Get Flare — encrypted mesh messaging that works without internet! Download: %s</string>
+    <string name="apk_share_link_message">Get Flare — encrypted mesh messaging that works without internet!\n\nDownload: %s</string>
+    <string name="apk_share_how_title">How it works</string>
+    <string name="apk_share_step_1">Tap \"Share App File\" to send the APK via Nearby Share, Bluetooth, or any messaging app</string>
+    <string name="apk_share_step_2">Your friend opens the received file to install Flare</string>
+    <string name="apk_share_step_3">Exchange QR codes or share your identity link to start chatting</string>
     <string name="apk_settings_share">Share Flare App</string>
-    <string name="apk_settings_share_subtitle">Send app to nearby devices via Bluetooth</string>
+    <string name="apk_settings_share_subtitle">Send the app to friends nearby</string>
 
     <!-- Mesh Visualization -->
     <string name="mesh_visualization_you">You</string>

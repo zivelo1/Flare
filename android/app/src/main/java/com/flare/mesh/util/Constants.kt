@@ -258,6 +258,33 @@ object Constants {
     /** Broadcast recipient constant — all 0xFF (matches Rust BROADCAST_DEVICE_ID). */
     const val BROADCAST_DEVICE_ID: String = "ffffffffffffffffffffffffffffffff"
 
+    // ── APK Sharing ──────────────────────────────────────────────────
+
+    // ── Key Exchange ──────────────────────────────────────────────────
+
+    /** Content type for KeyExchange messages. */
+    const val CONTENT_TYPE_KEY_EXCHANGE: UByte = 4u
+
+    /** Separator in key exchange payload: deviceId|signingKeyHex|agreementKeyHex|displayName */
+    const val KEY_EXCHANGE_SEPARATOR: String = "|"
+
+    /** Minimum fields in a key exchange payload. */
+    const val KEY_EXCHANGE_MIN_FIELDS: Int = 3
+
+    // ── APK Sharing ──────────────────────────────────────────────────
+
+    /** Filename used when copying APK to cache for sharing via FileProvider. */
+    const val APK_SHARE_CACHE_FILENAME: String = "Flare.apk"
+
+    /** MIME type for Android APK files. */
+    const val APK_MIME_TYPE: String = "application/vnd.android.package-archive"
+
+    /** GitHub repository releases URL for download link sharing. */
+    const val GITHUB_RELEASES_URL: String = "https://github.com/zivelo1/Flare/releases/latest"
+
+    /** Share message template key — used with string resource for share text. */
+    const val APK_SHARE_SUBDIRECTORY: String = "apk_share"
+
     /** Supported languages with their resource IDs and native names. */
     data class LanguageOption(
         val code: String,

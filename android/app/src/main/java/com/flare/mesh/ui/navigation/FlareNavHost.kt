@@ -40,7 +40,6 @@ import com.flare.mesh.ui.settings.PowerSettingsScreen
 import com.flare.mesh.ui.settings.LanguageSettingsScreen
 import com.flare.mesh.ui.settings.SettingsScreen
 import com.flare.mesh.util.Constants
-import com.flare.mesh.ui.sharing.ApkReceiveScreen
 import com.flare.mesh.ui.sharing.ApkShareScreen
 import com.flare.mesh.ui.splash.SplashScreen
 import com.flare.mesh.viewmodel.ContactsViewModel
@@ -318,11 +317,6 @@ fun FlareNavHost(
                 )
             }
 
-            composable("apk-receive") {
-                ApkReceiveScreen(
-                    onNavigateBack = { navController.popBackStack() },
-                )
-            }
         }
     }
 }

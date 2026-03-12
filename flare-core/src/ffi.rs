@@ -95,6 +95,8 @@ pub struct FfiMeshMessage {
     pub recipient_id: String,
     pub hop_count: u8,
     pub max_hops: u8,
+    /// Content type: 1=Text, 2=Voice, 3=Image, 4=KeyExchange, 5=ACK, 6=ReadReceipt
+    pub content_type: u8,
     /// The encrypted payload bytes from the mesh message envelope.
     /// Pass this to decrypt_incoming_message() — NOT the full serialized frame.
     pub payload: Vec<u8>,
@@ -450,6 +452,7 @@ impl FlareNode {
             recipient_id: msg.recipient_id.to_hex(),
             hop_count: msg.hop_count,
             max_hops: msg.max_hops,
+            content_type: msg.content_type as u8,
             payload,
         })
     }
@@ -474,6 +477,7 @@ impl FlareNode {
                     recipient_id: msg.recipient_id.to_hex(),
                     hop_count: msg.hop_count,
                     max_hops: msg.max_hops,
+                    content_type: msg.content_type as u8,
                     payload: msg.payload,
                 }))
             }
@@ -656,6 +660,7 @@ impl FlareNode {
             recipient_id: msg.recipient_id.to_hex(),
             hop_count: msg.hop_count,
             max_hops: msg.max_hops,
+            content_type: msg.content_type as u8,
             payload,
         })
     }

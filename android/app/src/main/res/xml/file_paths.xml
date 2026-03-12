@@ -3,4 +3,7 @@
     <cache-path
         name="cache"
         path="." />
+    <cache-path
+        name="apk_share"
+        path="apk_share" />
 </paths>

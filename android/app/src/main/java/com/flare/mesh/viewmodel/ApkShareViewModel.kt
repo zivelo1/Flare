@@ -1,10 +1,13 @@
 package com.flare.mesh.viewmodel
 
 import android.app.Application
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.flare.mesh.util.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,8 +19,8 @@ import java.io.FileInputStream
 import java.security.MessageDigest
 
 /**
- * ViewModel managing APK sharing state.
- * Computes APK metadata (path, size, SHA-256 hash) and tracks transfer progress.
+ * ViewModel managing APK sharing.
+ * Extracts APK metadata and provides share actions via system intents.
  */
 class ApkShareViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -29,40 +32,11 @@ class ApkShareViewModel(application: Application) : AndroidViewModel(application
         val sha256Hash: String,
     )
 
-    data class TransferRequest(
-        val deviceId: String,
-        val deviceName: String?,
-        val progress: Float,
-        val isComplete: Boolean,
-    )
-
-    data class ApkOffer(
-        val deviceId: String,
-        val deviceName: String?,
-        val versionName: String,
-        val sizeBytes: Long,
-        val isVerified: Boolean,
-        val downloadProgress: Float,
-        val isDownloaded: Boolean,
-    )
-
     private val _apkInfo = MutableStateFlow<ApkInfo?>(null)
     val apkInfo: StateFlow<ApkInfo?> = _apkInfo.asStateFlow()
 
-    private val _isSharing = MutableStateFlow(false)
-    val isSharing: StateFlow<Boolean> = _isSharing.asStateFlow()
-
-    private val _transferRequests = MutableStateFlow<List<TransferRequest>>(emptyList())
-    val transferRequests: StateFlow<List<TransferRequest>> = _transferRequests.asStateFlow()
-
-    private val _shareProgress = MutableStateFlow(0f)
-    val shareProgress: StateFlow<Float> = _shareProgress.asStateFlow()
-
-    private val _availableOffers = MutableStateFlow<List<ApkOffer>>(emptyList())
-    val availableOffers: StateFlow<List<ApkOffer>> = _availableOffers.asStateFlow()
-
-    private val _isScanning = MutableStateFlow(false)
-    val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
+    private val _shareError = MutableStateFlow<String?>(null)
+    val shareError: StateFlow<String?> = _shareError.asStateFlow()
 
     init {
         loadApkInfo()
@@ -82,8 +56,7 @@ class ApkShareViewModel(application: Application) : AndroidViewModel(application
                     context.packageManager.getPackageInfo(context.packageName, 0)
                 }
 
-                val appInfo = context.applicationInfo
-                val apkPath = appInfo.sourceDir
+                val apkPath = context.applicationInfo.sourceDir
                 val apkFile = File(apkPath)
                 val sizeBytes = apkFile.length()
                 val sha256 = computeSha256(apkFile)
@@ -108,108 +81,80 @@ class ApkShareViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun startSharing() {
-        _isSharing.value = true
-        _transferRequests.value = emptyList()
-        _shareProgress.value = 0f
-        Timber.i("Started APK sharing via Bluetooth advertising")
-        // Actual BLE advertising would be triggered through MeshService
-    }
+    /**
+     * Copies the installed APK to a shareable cache location and launches
+     * the system share sheet. Works with Nearby Share, Bluetooth, WhatsApp,
+     * email, and any app that can receive files.
+     */
+    fun shareApk(context: android.content.Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val sourceFile = File(context.applicationInfo.sourceDir)
+                val shareDir = File(context.cacheDir, Constants.APK_SHARE_SUBDIRECTORY)
+                if (!shareDir.exists()) shareDir.mkdirs()
 
-    fun stopSharing() {
-        _isSharing.value = false
-        _shareProgress.value = 0f
-        Timber.i("Stopped APK sharing")
-    }
+                val cacheFile = File(shareDir, Constants.APK_SHARE_CACHE_FILENAME)
+                sourceFile.copyTo(cacheFile, overwrite = true)
 
-    fun startScanning() {
-        _isScanning.value = true
-        _availableOffers.value = emptyList()
-        Timber.i("Started scanning for APK offers")
-    }
+                val authority = "${context.packageName}.fileprovider"
+                val uri = FileProvider.getUriForFile(context, authority, cacheFile)
 
-    fun stopScanning() {
-        _isScanning.value = false
-        Timber.i("Stopped scanning for APK offers")
-    }
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = Constants.APK_MIME_TYPE
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    putExtra(
+                        Intent.EXTRA_TEXT,
+                        context.getString(
+                            com.flare.mesh.R.string.apk_share_message,
+                            Constants.GITHUB_RELEASES_URL,
+                        ),
+                    )
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
 
-    fun requestDownload(offer: ApkOffer) {
-        _availableOffers.value = _availableOffers.value.map { existing ->
-            if (existing.deviceId == offer.deviceId) {
-                existing.copy(downloadProgress = 0.01f)
-            } else existing
+                val chooser = Intent.createChooser(shareIntent, context.getString(com.flare.mesh.R.string.apk_share_chooser_title))
+                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(chooser)
+
+                Timber.i("APK share intent launched, size=%d bytes", cacheFile.length())
+                _shareError.value = null
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to share APK")
+                _shareError.value = e.message
+            }
         }
-        Timber.i("Requested APK download from %s", offer.deviceId.take(12))
     }
 
     /**
-     * Called by the BLE layer when a new device requests the APK.
+     * Shares the GitHub releases download link via text share.
+     * For users who prefer sharing a link instead of the APK file directly.
      */
-    fun onTransferRequested(deviceId: String, deviceName: String?) {
-        val request = TransferRequest(
-            deviceId = deviceId,
-            deviceName = deviceName,
-            progress = 0f,
-            isComplete = false,
-        )
-        _transferRequests.value = _transferRequests.value + request
-    }
-
-    /**
-     * Called by the BLE layer when transfer progress updates.
-     */
-    fun onTransferProgress(deviceId: String, progress: Float) {
-        _transferRequests.value = _transferRequests.value.map { req ->
-            if (req.deviceId == deviceId) {
-                req.copy(
-                    progress = progress,
-                    isComplete = progress >= 1f,
+    fun shareDownloadLink(context: android.content.Context) {
+        try {
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(
+                    Intent.EXTRA_TEXT,
+                    context.getString(
+                        com.flare.mesh.R.string.apk_share_link_message,
+                        Constants.GITHUB_RELEASES_URL,
+                    ),
                 )
-            } else req
-        }
-        // Update overall progress as average
-        val requests = _transferRequests.value
-        if (requests.isNotEmpty()) {
-            _shareProgress.value = requests.map { it.progress }.average().toFloat()
+            }
+
+            val chooser = Intent.createChooser(shareIntent, context.getString(com.flare.mesh.R.string.apk_share_chooser_title))
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(chooser)
+
+            Timber.i("Download link share intent launched")
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to share download link")
+            _shareError.value = e.message
         }
     }
 
-    /**
-     * Called by the BLE layer when an APK offer is discovered.
-     */
-    fun onOfferDiscovered(
-        deviceId: String,
-        deviceName: String?,
-        versionName: String,
-        sizeBytes: Long,
-        isVerified: Boolean,
-    ) {
-        val existing = _availableOffers.value.find { it.deviceId == deviceId }
-        if (existing == null) {
-            _availableOffers.value = _availableOffers.value + ApkOffer(
-                deviceId = deviceId,
-                deviceName = deviceName,
-                versionName = versionName,
-                sizeBytes = sizeBytes,
-                isVerified = isVerified,
-                downloadProgress = 0f,
-                isDownloaded = false,
-            )
-        }
-    }
-
-    /**
-     * Called by the BLE layer when download progress updates.
-     */
-    fun onDownloadProgress(deviceId: String, progress: Float) {
-        _availableOffers.value = _availableOffers.value.map { offer ->
-            if (offer.deviceId == deviceId) {
-                offer.copy(
-                    downloadProgress = progress,
-                    isDownloaded = progress >= 1f,
-                )
-            } else offer
-        }
+    fun clearError() {
+        _shareError.value = null
     }
 
     private fun computeSha256(file: File): String {

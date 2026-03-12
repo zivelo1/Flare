@@ -8,6 +8,7 @@ import com.flare.mesh.data.model.DeviceIdentity
 import com.flare.mesh.data.repository.FlareRepository
 import com.flare.mesh.service.MeshService
 import com.flare.mesh.util.Constants
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -58,6 +59,17 @@ class ContactsViewModel : ViewModel() {
                     displayName = displayName,
                     isVerified = true, // QR scan = verified
                 )
+
+                // Send our public keys to the new contact so they can auto-add us
+                // and decrypt our messages without scanning our QR code
+                try {
+                    val keyExchangeBytes = repository.sendKeyExchange(deviceId)
+                    MeshService.enqueueOutbound(deviceId, keyExchangeBytes)
+                    Timber.i("KeyExchange sent to %s", deviceId.take(12))
+                } catch (e: Exception) {
+                    Timber.w(e, "Failed to send KeyExchange — contact may need to scan our QR")
+                }
+
                 Timber.i("Contact added via QR: %s", deviceId.take(12))
             } catch (e: Exception) {
                 Timber.e(e, "Failed to add contact from QR")
@@ -142,6 +154,15 @@ class ContactsViewModel : ViewModel() {
                     displayName = contact.displayName,
                     isVerified = false, // Link-based = not verified (no in-person confirmation)
                 )
+
+                // Send our public keys so they can auto-add us
+                try {
+                    val keyExchangeBytes = repository.sendKeyExchange(contact.deviceId)
+                    MeshService.enqueueOutbound(contact.deviceId, keyExchangeBytes)
+                } catch (e: Exception) {
+                    Timber.w(e, "Failed to send KeyExchange via deep link")
+                }
+
                 Timber.i("Contact added via deep link: %s", contact.deviceId.take(12))
             } catch (e: Exception) {
                 Timber.e(e, "Failed to add contact from deep link")
