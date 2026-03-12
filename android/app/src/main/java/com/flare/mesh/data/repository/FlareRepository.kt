@@ -45,7 +45,20 @@ class FlareRepository private constructor(private val node: FlareNode) {
                 instance ?: run {
                     val dbPath = File(context.filesDir, DB_FILENAME).absolutePath
                     Timber.i("Initializing FlareNode with database at %s", dbPath)
-                    val node = FlareNode(dbPath, passphrase)
+                    val node = try {
+                        FlareNode(dbPath, passphrase)
+                    } catch (e: Exception) {
+                        // Database may be from an older version with incompatible key derivation.
+                        // Delete it and start fresh — the user gets a new identity but the app works.
+                        Timber.w(e, "Failed to open existing database — resetting (likely key derivation migration)")
+                        val dbFile = File(dbPath)
+                        val walFile = File("$dbPath-wal")
+                        val shmFile = File("$dbPath-shm")
+                        dbFile.delete()
+                        walFile.delete()
+                        shmFile.delete()
+                        FlareNode(dbPath, passphrase)
+                    }
                     val repo = FlareRepository(node)
                     instance = repo
                     Timber.i("FlareNode initialized — device ID: %s", node.getDeviceId())
