@@ -274,6 +274,27 @@ impl FlareDatabase {
         Ok(rows > 0)
     }
 
+    /// Deletes a contact and all associated data (conversation, messages).
+    pub fn delete_contact(&self, device_id: &DeviceId) -> Result<bool, DatabaseError> {
+        let hex = device_id.to_hex();
+        // Delete messages for this conversation
+        self.conn.execute(
+            "DELETE FROM messages WHERE conversation_id = ?1",
+            params![hex],
+        )?;
+        // Delete the conversation
+        self.conn.execute(
+            "DELETE FROM conversations WHERE peer_device_id = ?1",
+            params![hex],
+        )?;
+        // Delete the contact
+        let rows = self.conn.execute(
+            "DELETE FROM contacts WHERE device_id = ?1",
+            params![hex],
+        )?;
+        Ok(rows > 0)
+    }
+
     /// Loads a contact by device ID.
     pub fn load_contact(
         &self,

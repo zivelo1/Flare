@@ -2,6 +2,7 @@ package com.flare.mesh.data.repository
 
 import android.content.Context
 import com.flare.mesh.data.model.*
+import com.flare.mesh.util.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -127,6 +128,59 @@ class FlareRepository private constructor(private val node: FlareNode) {
         node.queueOutboundMessage(messageId, recipientDeviceId, encrypted)
 
         Timber.d("Message queued for %s (id=%s)", recipientDeviceId.take(12), messageId)
+        meshMsg.serialized
+    }
+
+    /**
+     * Encrypts and sends a media message (voice or image).
+     * Reads binary data, Base64-encodes it, encrypts, and builds a mesh message
+     * with the appropriate content type.
+     *
+     * @param contentType 2u for voice, 3u for image
+     */
+    suspend fun sendMediaMessage(
+        recipientDeviceId: String,
+        recipientAgreementKey: ByteArray,
+        mediaBytes: ByteArray,
+        contentType: UByte,
+        displayText: String,
+    ): ByteArray = withContext(Dispatchers.IO) {
+        val messageId = UUID.randomUUID().toString()
+
+        // Base64-encode the binary data for transport through the text-based encryption pipeline
+        val encoded = android.util.Base64.encodeToString(mediaBytes, android.util.Base64.NO_WRAP)
+
+        // Prefix identifies the media type for the receiver's UI
+        val prefix = when (contentType.toInt()) {
+            0x02 -> Constants.MEDIA_PREFIX_VOICE
+            0x03 -> Constants.MEDIA_PREFIX_IMAGE
+            else -> ""
+        }
+        val payload = "$prefix$encoded"
+
+        // Encrypt the payload
+        val encrypted = node.createEncryptedMessage(
+            recipientDeviceId, recipientAgreementKey, payload,
+        )
+
+        // Build mesh message with correct content type
+        val meshMsg = node.buildMeshMessage(recipientDeviceId, encrypted, contentType)
+
+        // Store locally with display text (not the full Base64 data)
+        node.storeChatMessage(FfiChatMessage(
+            messageId = messageId,
+            conversationId = recipientDeviceId,
+            senderDeviceId = getDeviceId(),
+            content = displayText,
+            timestampMs = Instant.now().toEpochMilli(),
+            isOutgoing = true,
+            deliveryStatus = DeliveryStatus.PENDING.ordinal.toUByte(),
+        ))
+
+        // Queue for outbound delivery
+        node.queueOutboundMessage(messageId, recipientDeviceId, encrypted)
+
+        Timber.d("Media message queued for %s (type=%d, size=%d bytes)", recipientDeviceId.take(12), contentType.toInt(), mediaBytes.size)
         meshMsg.serialized
     }
 
@@ -290,6 +344,19 @@ class FlareRepository private constructor(private val node: FlareNode) {
             )
         }
     }
+
+    /**
+     * Deletes a contact and all associated data (conversation, messages).
+     * Returns true if the contact was found and deleted.
+     */
+    suspend fun deleteContact(deviceId: String): Boolean =
+        withContext(Dispatchers.IO) {
+            val result = node.deleteContact(deviceId)
+            if (result) {
+                refreshContacts()
+            }
+            result
+        }
 
     /**
      * Updates the display name of an existing contact.

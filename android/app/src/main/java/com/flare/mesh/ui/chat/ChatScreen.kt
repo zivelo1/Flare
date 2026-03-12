@@ -1,8 +1,11 @@
 package com.flare.mesh.ui.chat
 
+import android.graphics.BitmapFactory
+import android.media.MediaPlayer
 import android.net.Uri
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,13 +20,19 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -33,8 +42,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flare.mesh.R
 import com.flare.mesh.data.model.ChatMessage
 import com.flare.mesh.data.model.DeliveryStatus
+import com.flare.mesh.util.Constants
 import com.flare.mesh.util.IdenticonGenerator
 import com.flare.mesh.viewmodel.ChatViewModel
+import java.io.File
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -124,7 +135,7 @@ fun ChatScreen(
                 },
                 onVoiceRecordingComplete = { filePath ->
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                    chatViewModel.sendMessage(conversationId, "[Voice message: $filePath]")
+                    chatViewModel.sendVoiceMessage(conversationId, filePath)
                 },
                 onVoiceRecordingError = { /* Could show a snackbar */ },
                 onImageCaptured = { uri ->
@@ -186,7 +197,7 @@ fun ChatScreen(
             imageUri = uri,
             onSend = { imageUri ->
                 hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                chatViewModel.sendMessage(conversationId, "[Image: $imageUri]")
+                chatViewModel.sendImageMessage(conversationId, imageUri)
                 capturedImageUri = null
             },
             onDismiss = { capturedImageUri = null },
@@ -230,11 +241,26 @@ private fun MessageBubble(message: ChatMessage) {
             modifier = Modifier.widthIn(max = 300.dp),
         ) {
             Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                Text(
-                    text = message.content,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = textColor,
-                )
+                when {
+                    message.content.startsWith(Constants.MEDIA_PREFIX_VOICE) -> {
+                        VoiceMessageContent(
+                            base64Data = message.content.removePrefix(Constants.MEDIA_PREFIX_VOICE),
+                            tint = textColor,
+                        )
+                    }
+                    message.content.startsWith(Constants.MEDIA_PREFIX_IMAGE) -> {
+                        ImageMessageContent(
+                            base64Data = message.content.removePrefix(Constants.MEDIA_PREFIX_IMAGE),
+                        )
+                    }
+                    else -> {
+                        Text(
+                            text = message.content,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = textColor,
+                        )
+                    }
+                }
                 Spacer(Modifier.height(2.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -256,6 +282,101 @@ private fun MessageBubble(message: ChatMessage) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun VoiceMessageContent(base64Data: String, tint: Color) {
+    val context = LocalContext.current
+    var isPlaying by remember { mutableStateOf(false) }
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer?.release()
+        }
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(vertical = 4.dp),
+    ) {
+        IconButton(
+            onClick = {
+                if (isPlaying) {
+                    mediaPlayer?.stop()
+                    mediaPlayer?.release()
+                    mediaPlayer = null
+                    isPlaying = false
+                } else {
+                    try {
+                        val audioBytes = android.util.Base64.decode(base64Data, android.util.Base64.NO_WRAP)
+                        val tempFile = File.createTempFile("play_", ".m4a", context.cacheDir)
+                        tempFile.writeBytes(audioBytes)
+
+                        val player = MediaPlayer().apply {
+                            setDataSource(tempFile.absolutePath)
+                            prepare()
+                            setOnCompletionListener {
+                                isPlaying = false
+                                it.release()
+                                mediaPlayer = null
+                                tempFile.delete()
+                            }
+                            start()
+                        }
+                        mediaPlayer = player
+                        isPlaying = true
+                    } catch (e: Exception) {
+                        timber.log.Timber.e(e, "Failed to play voice message")
+                    }
+                }
+            },
+            modifier = Modifier.size(36.dp),
+        ) {
+            Icon(
+                if (isPlaying) Icons.Filled.Stop else Icons.Filled.PlayArrow,
+                contentDescription = if (isPlaying) "Stop" else "Play",
+                tint = tint,
+                modifier = Modifier.size(24.dp),
+            )
+        }
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = stringResource(R.string.voice_message_label),
+            style = MaterialTheme.typography.bodyMedium,
+            color = tint,
+        )
+    }
+}
+
+@Composable
+private fun ImageMessageContent(base64Data: String) {
+    val bitmap = remember(base64Data) {
+        try {
+            val imageBytes = android.util.Base64.decode(base64Data, android.util.Base64.NO_WRAP)
+            BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        } catch (e: Exception) {
+            timber.log.Timber.e(e, "Failed to decode image message")
+            null
+        }
+    }
+
+    if (bitmap != null) {
+        Image(
+            bitmap = bitmap.asImageBitmap(),
+            contentDescription = stringResource(R.string.image_message_label),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 250.dp)
+                .clip(RoundedCornerShape(8.dp)),
+            contentScale = ContentScale.FillWidth,
+        )
+    } else {
+        Text(
+            text = stringResource(R.string.image_message_label),
+            style = MaterialTheme.typography.bodyMedium,
+        )
     }
 }
 

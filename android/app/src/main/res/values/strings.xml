@@ -305,4 +305,13 @@
     <string name="language_confirm_message">Switch to %1$s? The app will restart to apply the change.</string>
     <string name="language_confirm_ok">OK</string>
 
+    <!-- Media Messages -->
+    <string name="voice_message_label">Voice message</string>
+    <string name="image_message_label">Photo</string>
+
+    <!-- Delete Contact -->
+    <string name="delete_contact_title">Delete Contact</string>
+    <string name="delete_contact_message">Delete %1$s and all chat history? This cannot be undone.</string>
+    <string name="delete_contact_confirm">Delete</string>
+
 </resources>

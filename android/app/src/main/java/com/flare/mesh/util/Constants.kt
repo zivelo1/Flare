@@ -189,6 +189,22 @@ object Constants {
     /** Amplitude values for incoming message haptic pattern. -1 = default. */
     val HAPTIC_INCOMING_AMPLITUDES: IntArray = intArrayOf(0, 120, 0, 180)
 
+    // ── Media Message Prefixes ────────────────────────────────────────
+    // These prefixes identify media type in the encrypted payload.
+    // Format: prefix + Base64-encoded binary data.
+
+    /** Prefix for voice message payloads (followed by Base64-encoded .m4a data). */
+    const val MEDIA_PREFIX_VOICE: String = "flare:voice:"
+
+    /** Prefix for image message payloads (followed by Base64-encoded JPEG data). */
+    const val MEDIA_PREFIX_IMAGE: String = "flare:image:"
+
+    /** Maximum image dimension (pixels) before compression for mesh transfer. */
+    const val IMAGE_MAX_DIMENSION: Int = 800
+
+    /** JPEG compression quality for mesh transfer (0-100). */
+    const val IMAGE_COMPRESS_QUALITY: Int = 60
+
     /** Polling interval for voice waveform amplitude in milliseconds. */
     const val VOICE_WAVEFORM_POLL_INTERVAL_MS: Long = 60L
 

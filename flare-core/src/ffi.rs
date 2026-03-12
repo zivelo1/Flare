@@ -603,6 +603,16 @@ impl FlareNode {
             .map_err(|e| FlareError::StorageError { msg: e.to_string() })
     }
 
+    /// Deletes a contact and all associated data (conversation, messages).
+    /// Returns true if the contact was found and deleted, false if not found.
+    pub fn delete_contact(&self, device_id: String) -> Result<bool, FlareError> {
+        let did = DeviceId::from_hex(&device_id)
+            .map_err(|e| FlareError::InvalidInput { msg: e.to_string() })?;
+        let db = self.db.lock().expect("db lock");
+        db.delete_contact(&did)
+            .map_err(|e| FlareError::StorageError { msg: e.to_string() })
+    }
+
     /// Builds a broadcast mesh message (sent to all peers).
     /// The payload is NOT encrypted — broadcasts are signed but readable by all.
     /// content_type: same as build_mesh_message.

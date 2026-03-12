@@ -878,6 +878,8 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -943,6 +945,8 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_decrypt_incoming_message(`ptr`: Pointer,`senderDeviceId`: RustBuffer.ByValue,`senderAgreementKey`: RustBuffer.ByValue,`encryptedData`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_flare_core_fn_method_flarenode_delete_contact(`ptr`: Pointer,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
     fun uniffi_flare_core_fn_method_flarenode_encrypt_group_sender_key(`ptr`: Pointer,`groupId`: RustBuffer.ByValue,`plaintext`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_flare_core_fn_method_flarenode_export_neighborhood_bitmap(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1223,6 +1227,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_decrypt_incoming_message(
     ): Short
+    fun uniffi_flare_core_checksum_method_flarenode_delete_contact(
+    ): Short
     fun uniffi_flare_core_checksum_method_flarenode_encrypt_group_sender_key(
     ): Short
     fun uniffi_flare_core_checksum_method_flarenode_export_neighborhood_bitmap(
@@ -1425,6 +1431,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_decrypt_incoming_message() != 50281.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_flare_core_checksum_method_flarenode_delete_contact() != 34780.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_flare_core_checksum_method_flarenode_encrypt_group_sender_key() != 61848.toShort()) {
@@ -2126,6 +2135,12 @@ public interface FlareNodeInterface {
      * Returns the plaintext string, or None if decryption fails.
      */
     fun `decryptIncomingMessage`(`senderDeviceId`: kotlin.String, `senderAgreementKey`: kotlin.ByteArray, `encryptedData`: kotlin.ByteArray): kotlin.String?
+    
+    /**
+     * Deletes a contact and all associated data (conversation, messages).
+     * Returns true if the contact was found and deleted, false if not found.
+     */
+    fun `deleteContact`(`deviceId`: kotlin.String): kotlin.Boolean
     
     /**
      * Encrypts a plaintext message for a group using sender keys.
@@ -2876,6 +2891,23 @@ open class FlareNode: Disposable, AutoCloseable, FlareNodeInterface {
     uniffiRustCallWithError(FlareException) { _status ->
     UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_decrypt_incoming_message(
         it, FfiConverterString.lower(`senderDeviceId`),FfiConverterByteArray.lower(`senderAgreementKey`),FfiConverterByteArray.lower(`encryptedData`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Deletes a contact and all associated data (conversation, messages).
+     * Returns true if the contact was found and deleted, false if not found.
+     */
+    @Throws(FlareException::class)override fun `deleteContact`(`deviceId`: kotlin.String): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FlareException) { _status ->
+    UniffiLib.INSTANCE.uniffi_flare_core_fn_method_flarenode_delete_contact(
+        it, FfiConverterString.lower(`deviceId`),_status)
 }
     }
     )

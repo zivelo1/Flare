@@ -1,6 +1,9 @@
 package com.flare.mesh.viewmodel
 
 import android.app.Application
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -15,6 +18,8 @@ import com.flare.mesh.util.Constants
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.time.Instant
 
 /**
@@ -128,6 +133,149 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
+    }
+
+    /**
+     * Sends a voice message by reading the audio file, encoding it, and sending via mesh.
+     */
+    fun sendVoiceMessage(conversationId: String, audioFilePath: String) {
+        val contact = _currentContact.value ?: run {
+            Timber.w("Cannot send voice: no contact loaded for conversation %s", conversationId)
+            return
+        }
+
+        val audioFile = File(audioFilePath)
+        if (!audioFile.exists()) {
+            Timber.e("Voice file does not exist: %s", audioFilePath)
+            return
+        }
+
+        val audioBytes = audioFile.readBytes()
+        Timber.d("Sending voice message: %d bytes from %s", audioBytes.size, audioFilePath)
+
+        // Optimistically add to UI
+        val displayText = "\uD83C\uDFA4 Voice message"
+        val message = ChatMessage(
+            messageId = System.nanoTime().toString(),
+            conversationId = conversationId,
+            senderDeviceId = repository.getDeviceId(),
+            content = displayText,
+            timestamp = Instant.now(),
+            isOutgoing = true,
+            deliveryStatus = DeliveryStatus.PENDING,
+        )
+        _currentMessages.value = _currentMessages.value + message
+
+        viewModelScope.launch {
+            try {
+                val serialized = repository.sendMediaMessage(
+                    recipientDeviceId = conversationId,
+                    recipientAgreementKey = contact.identity.agreementPublicKey,
+                    mediaBytes = audioBytes,
+                    contentType = 2u,
+                    displayText = displayText,
+                )
+                MeshService.enqueueOutbound(conversationId, serialized)
+                _currentMessages.value = _currentMessages.value.map { msg ->
+                    if (msg.messageId == message.messageId) msg.copy(deliveryStatus = DeliveryStatus.SENT) else msg
+                }
+                updateConversationList(repository.contacts.value)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to send voice message to %s", conversationId.take(12))
+                _currentMessages.value = _currentMessages.value.map { msg ->
+                    if (msg.messageId == message.messageId) msg.copy(deliveryStatus = DeliveryStatus.FAILED) else msg
+                }
+            } finally {
+                // Clean up the temp recording file
+                audioFile.delete()
+            }
+        }
+    }
+
+    /**
+     * Sends an image message by reading, compressing, encoding, and sending via mesh.
+     */
+    fun sendImageMessage(conversationId: String, imageUri: Uri) {
+        val contact = _currentContact.value ?: run {
+            Timber.w("Cannot send image: no contact loaded for conversation %s", conversationId)
+            return
+        }
+
+        val context = getApplication<Application>()
+        val imageBytes = try {
+            val inputStream = context.contentResolver.openInputStream(imageUri) ?: run {
+                Timber.e("Cannot open image URI: %s", imageUri)
+                return
+            }
+            val original = BitmapFactory.decodeStream(inputStream)
+            inputStream.close()
+
+            if (original == null) {
+                Timber.e("Failed to decode image from URI: %s", imageUri)
+                return
+            }
+
+            // Scale down to max dimension for mesh transfer
+            val scaled = scaleDown(original, Constants.IMAGE_MAX_DIMENSION)
+            val outputStream = ByteArrayOutputStream()
+            scaled.compress(Bitmap.CompressFormat.JPEG, Constants.IMAGE_COMPRESS_QUALITY, outputStream)
+            if (scaled !== original) scaled.recycle()
+            original.recycle()
+            outputStream.toByteArray()
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to read image from URI: %s", imageUri)
+            return
+        }
+
+        Timber.d("Sending image message: %d bytes (compressed)", imageBytes.size)
+
+        val displayText = "\uD83D\uDCF7 Photo"
+        val message = ChatMessage(
+            messageId = System.nanoTime().toString(),
+            conversationId = conversationId,
+            senderDeviceId = repository.getDeviceId(),
+            content = displayText,
+            timestamp = Instant.now(),
+            isOutgoing = true,
+            deliveryStatus = DeliveryStatus.PENDING,
+        )
+        _currentMessages.value = _currentMessages.value + message
+
+        viewModelScope.launch {
+            try {
+                val serialized = repository.sendMediaMessage(
+                    recipientDeviceId = conversationId,
+                    recipientAgreementKey = contact.identity.agreementPublicKey,
+                    mediaBytes = imageBytes,
+                    contentType = 3u,
+                    displayText = displayText,
+                )
+                MeshService.enqueueOutbound(conversationId, serialized)
+                _currentMessages.value = _currentMessages.value.map { msg ->
+                    if (msg.messageId == message.messageId) msg.copy(deliveryStatus = DeliveryStatus.SENT) else msg
+                }
+                updateConversationList(repository.contacts.value)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to send image message to %s", conversationId.take(12))
+                _currentMessages.value = _currentMessages.value.map { msg ->
+                    if (msg.messageId == message.messageId) msg.copy(deliveryStatus = DeliveryStatus.FAILED) else msg
+                }
+            }
+        }
+    }
+
+    /**
+     * Scales a bitmap down to fit within maxDimension while maintaining aspect ratio.
+     */
+    private fun scaleDown(bitmap: Bitmap, maxDimension: Int): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        if (width <= maxDimension && height <= maxDimension) return bitmap
+
+        val ratio = minOf(maxDimension.toFloat() / width, maxDimension.toFloat() / height)
+        val newWidth = (width * ratio).toInt()
+        val newHeight = (height * ratio).toInt()
+        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
     }
 
     fun onIncomingMessage(senderId: String, plaintext: String) {

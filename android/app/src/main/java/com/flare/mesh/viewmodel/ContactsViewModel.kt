@@ -178,6 +178,25 @@ class ContactsViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Deletes a contact and all associated chat history.
+     */
+    fun deleteContact(deviceId: String) {
+        viewModelScope.launch {
+            try {
+                val success = repository.deleteContact(deviceId)
+                if (success) {
+                    Timber.i("Contact deleted: %s", deviceId.take(12))
+                    refreshContacts()
+                } else {
+                    Timber.w("Contact not found for deletion: %s", deviceId.take(12))
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to delete contact: %s", deviceId.take(12))
+            }
+        }
+    }
+
     fun refreshContacts() {
         viewModelScope.launch {
             repository.refreshContacts()

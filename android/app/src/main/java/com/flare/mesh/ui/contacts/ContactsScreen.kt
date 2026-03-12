@@ -41,6 +41,9 @@ fun ContactsScreen(
     val contacts by contactsViewModel.contacts.collectAsState()
 
     var showRenameDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showContextMenu by remember { mutableStateOf(false) }
+    var contextMenuTarget by remember { mutableStateOf<Contact?>(null) }
     var renameTarget by remember { mutableStateOf<Contact?>(null) }
     var renameText by remember { mutableStateOf("") }
 
@@ -98,9 +101,8 @@ fun ContactsScreen(
                         contact = contact,
                         onClick = { onContactClick(contact.identity.deviceId) },
                         onLongClick = {
-                            renameTarget = contact
-                            renameText = contact.displayName ?: ""
-                            showRenameDialog = true
+                            contextMenuTarget = contact
+                            showContextMenu = true
                         },
                     )
                 }
@@ -108,6 +110,51 @@ fun ContactsScreen(
         }
     }
 
+    // Context menu (long-press options)
+    if (showContextMenu && contextMenuTarget != null) {
+        AlertDialog(
+            onDismissRequest = { showContextMenu = false },
+            confirmButton = {},
+            title = {
+                Text(contextMenuTarget?.displayName ?: contextMenuTarget?.identity?.deviceId?.take(12) ?: "")
+            },
+            text = {
+                Column {
+                    TextButton(
+                        onClick = {
+                            showContextMenu = false
+                            renameTarget = contextMenuTarget
+                            renameText = contextMenuTarget?.displayName ?: ""
+                            showRenameDialog = true
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.rename_contact_title),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    TextButton(
+                        onClick = {
+                            showContextMenu = false
+                            showDeleteDialog = true
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error,
+                        ),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.delete_contact_title),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+            },
+        )
+    }
+
+    // Rename dialog
     if (showRenameDialog && renameTarget != null) {
         AlertDialog(
             onDismissRequest = { showRenameDialog = false },
@@ -146,6 +193,39 @@ fun ContactsScreen(
                         singleLine = true,
                     )
                 }
+            },
+        )
+    }
+
+    // Delete confirmation dialog
+    if (showDeleteDialog && contextMenuTarget != null) {
+        val contactName = contextMenuTarget?.displayName ?: contextMenuTarget?.identity?.deviceId?.take(12) ?: ""
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        contextMenuTarget?.let { contact ->
+                            contactsViewModel.deleteContact(contact.identity.deviceId)
+                        }
+                        showDeleteDialog = false
+                        contextMenuTarget = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error,
+                    ),
+                ) {
+                    Text(stringResource(R.string.delete_contact_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+            title = { Text(stringResource(R.string.delete_contact_title)) },
+            text = {
+                Text(stringResource(R.string.delete_contact_message, contactName))
             },
         )
     }
