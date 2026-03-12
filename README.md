@@ -153,6 +153,9 @@ The transfer is verified with Ed25519 developer signatures and SHA-256 hash to e
 - **Voice recording** — hold-to-record with live waveform, .m4a output via MediaRecorder
 - **Image capture** — camera capture with preview sheet before sending
 - **APK sharing** — share/receive screens with version, SHA-256 hash, transfer progress, developer signature verification
+- **Localization** — 6 languages (Farsi, Arabic, Spanish, Russian, Chinese, Korean) with runtime language switching
+- **Broadcast messaging** — send a message to all contacts at once
+- **Contact rename** — long-press to rename any contact
 
 **iOS App** (Swift + SwiftUI):
 - CoreBluetooth BLE central + peripheral with state restoration

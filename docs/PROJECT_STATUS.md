@@ -64,6 +64,8 @@
 - [x] Rendezvous: `startPassphraseSearch`, `startPhoneSearch`, `registerMyPhone`, `importPhoneContacts`, `cancelSearch`, `buildRendezvousBroadcasts`, `processRendezvousMessage`, `processRendezvousRequest`, `activeSearchCount`
 - [x] Transfer strategy: `recommendTransferStrategy` → `FfiTransferRecommendation` with strategy, size tier, BLE chunk estimate
 - [x] Wi-Fi Direct queue: `wifiDirectEnqueue`, `wifiDirectNextTransfer`, `wifiDirectCompleteTransfer`, `wifiDirectFailTransfer`, `wifiDirectConnectionChanged`, `wifiDirectMostNeededPeer`, `wifiDirectHasPending`, `wifiDirectPruneExpired`, `wifiDirectStats`
+- [x] Contact rename: `updateContactDisplayName` — update display name in encrypted DB
+- [x] Broadcast: `buildBroadcastMessage` — signed (not encrypted) broadcast to all peers
 
 ### Android App
 - [x] Gradle project setup (AGP 8.7, Kotlin 2.1, Compose BOM 2024.12)
@@ -112,6 +114,11 @@
 - [x] **Image capture** — ActivityResultContracts.TakePicture with FileProvider, bottom sheet preview with send FAB
 - [x] **APK sharing** — share screen (version, size, SHA-256 hash, progress), receive screen (verification status, install button)
 - [x] **Dark mode refinement** — extended dark color scheme (surfaceContainer, inverseSurface, errorContainer)
+- [x] **Localization** — all hardcoded strings extracted to strings.xml, translations for 6 languages (Farsi, Arabic, Spanish, Russian, Chinese, Korean)
+- [x] **Language settings** — LanguageSettingsScreen with runtime locale switching via AppCompatDelegate
+- [x] **Contact rename** — long-press to rename, Rust DB `update_contact_display_name` + FFI binding
+- [x] **Broadcast messaging** — BroadcastScreen for sending to all contacts, with security warning and confirmation
+- [x] **Profile name** — editable display name in Settings, persisted via SharedPreferences
 
 ### Blind Rendezvous Discovery (Android)
 - [x] Find Contact screen — discovery hub with 4 methods
@@ -226,14 +233,19 @@
 - [ ] Traffic analysis resistance (BLE fingerprinting)
 - [ ] Bloom filter privacy validation (initial review: 4-byte short_id + 6-hour rollover looks sound)
 
-### Phase 8 — Localization (Android)
-- [ ] **Farsi/Persian** — RTL layout (Compose), Farsi string translations, RTL chat bubbles, Persian number formatting
-- [ ] **Arabic** — RTL layout (shared with Farsi), Arabic string translations
-- [ ] **Spanish** — string translations
-- [ ] **Russian** — string translations
-- [ ] **Chinese (Simplified)** — string translations
-- [ ] **Korean** — string translations
-- [ ] Language selector in Settings (override system locale)
+### Phase 8 — Localization & UX Improvements (Android) (Complete)
+- [x] **Farsi/Persian** — Farsi string translations (values-fa)
+- [x] **Arabic** — Arabic string translations (values-ar)
+- [x] **Spanish** — string translations (values-es)
+- [x] **Russian** — string translations (values-ru)
+- [x] **Chinese (Simplified)** — string translations (values-zh-rCN)
+- [x] **Korean** — string translations (values-ko)
+- [x] **Language selector** — LanguageSettingsScreen with runtime locale switching via AppCompatDelegate
+- [x] **All hardcoded strings extracted** — every UI string moved to strings.xml with positional format specifiers
+- [x] **Contact rename** — long-press to rename contacts, backed by Rust DB `update_contact_display_name`
+- [x] **Broadcast messaging** — BroadcastScreen for sending messages to all contacts with confirmation dialog
+- [x] **Profile name** — editable display name in Settings, persisted via SharedPreferences
+- [ ] RTL layout testing (Farsi/Arabic) — chat bubbles, navigation direction
 
 ### Phase 9 — UI Polish (Android)
 - [ ] **Dark mode toggle** — user-selectable light/dark/system in Settings (dark mode rendering already implemented)
@@ -275,7 +287,7 @@
 | 5 — UI/UX & Launch Prep | Settings, onboarding, groups, identicons, animations, haptics, voice/image UI, APK sharing | **Complete** |
 | 6A — Device Testing | Android APK build, cross-compilation, device install, BLE mesh verified | **Complete** (2 devices, encrypted chat working) |
 | 7 — Security Hardening | Crypto review, DB key fix, rendezvous DH fix, payload sig fix, TTL guard fix | **Complete** (5 vulnerabilities fixed, 193 tests) |
-| 8 — Localization (Android) | Farsi, Arabic, Spanish, Russian, Chinese, Korean | Planned |
+| 8 — Localization & UX (Android) | 6 languages, language selector, contact rename, broadcast, profile | **Complete** |
 | 9 — UI Polish (Android) | Dark mode toggle, emoji picker | Planned |
 | 10 — Android Release | Battery/memory profiling, signed APK, F-Droid, GitHub Release | Planned |
 | Backlog — iOS | iOS device testing, App Store ($99/yr), iOS localization | Deferred |
