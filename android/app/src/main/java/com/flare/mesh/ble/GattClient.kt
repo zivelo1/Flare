@@ -264,8 +264,12 @@ class GattClient(private val context: Context) {
         override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
             val address = gatt.device.address
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                mtuMap[address] = mtu - 3 // Subtract ATT header overhead
-                Timber.d("MTU negotiated to %d (usable: %d) for %s", mtu, mtu - 3, address)
+                // Android caps characteristic values at 512 bytes regardless of ATT_MTU.
+                // Use min(ATT_MTU - 3, 512) to avoid silent truncation of writes.
+                val usable = (mtu - 3).coerceAtMost(512)
+                mtuMap[address] = usable
+                Timber.d("MTU negotiated to %d (usable: %d, capped from %d) for %s",
+                    mtu, usable, mtu - 3, address)
             }
 
             // Discover services after MTU negotiation

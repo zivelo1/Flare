@@ -459,8 +459,12 @@ class GattServer(private val context: Context) {
         }
 
         override fun onMtuChanged(device: BluetoothDevice, mtu: Int) {
-            mtuMap[device.address] = mtu - 3 // Subtract ATT header overhead
-            Timber.d("MTU changed to %d (usable: %d) for %s", mtu, mtu - 3, device.address)
+            // Android caps characteristic values at 512 bytes regardless of ATT_MTU.
+            // Use min(ATT_MTU - 3, 512) to avoid silent truncation of notifications.
+            val usable = (mtu - 3).coerceAtMost(512)
+            mtuMap[device.address] = usable
+            Timber.d("MTU changed to %d (usable: %d, capped from %d) for %s",
+                mtu, usable, mtu - 3, device.address)
         }
 
         override fun onNotificationSent(device: BluetoothDevice, status: Int) {
