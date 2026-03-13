@@ -203,8 +203,8 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture diagr
 - **Splash screen** — animated flame icon with brand gradient
 - **Chat animations** — entrance animations on new messages, haptic feedback on send/receive
 - **Mesh visualization** — animated Canvas topology showing connected peers with RSSI-based line thickness
-- **Voice messages** — hold-to-record, Base64-encoded audio over mesh, in-chat playback with MediaPlayer
-- **Image messages** — camera/gallery photos scaled and compressed, Base64-encoded, rendered in chat bubbles
+- **Voice messages** — hold-to-record (24kbps AAC/16kHz), Base64-encoded audio over mesh, in-chat playback with MediaPlayer
+- **Image messages** — camera/gallery photos scaled (400px max) and compressed (JPEG q35), Base64-encoded, rendered in chat bubbles
 - **APK sharing** — share the app file via Nearby Share, Bluetooth, or any messaging app (Settings > Share Flare App)
 - **KeyExchange protocol** — scanning someone's QR automatically sends your keys back, so they can message you immediately
 - **Localization** — 6 languages (Farsi, Arabic, Spanish, Russian, Chinese, Korean) with runtime language switching and confirmation dialog

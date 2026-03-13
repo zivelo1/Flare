@@ -194,6 +194,7 @@
 **Decision:** Messages are classified into size tiers (Small/Medium/Large) with recommended transfer strategies (MeshRelay/DirectPreferred/DirectRequired).
 **Rationale:** BLE mesh relay is optimal for small payloads (text, ACKs, key exchanges) but unsuitable for large payloads (images, long voice clips) that would consume hundreds of relay chunks and flood the mesh. Wi-Fi Direct provides orders-of-magnitude more bandwidth but consumes more power and requires explicit connection setup.
 **Thresholds:** Small ≤ 15KB (BLE mesh), Medium ≤ 64KB (prefer direct), Large > 64KB (require direct). Content-type overrides: voice/images always prefer direct; control messages (ACK, key exchange) always use mesh.
+**BLE media constraints:** The BLE chunk protocol supports max 255 chunks × ~509 bytes ≈ 130KB per message. Media is sized to fit: images scaled to 400px max dimension, JPEG quality 35% (~20-60KB encoded); voice recorded at 24kbps AAC/16kHz (~90KB for 30s). A 90KB size guard in FlareRepository prevents oversized payloads from entering the BLE pipeline.
 
 ## ADR-023: Dual Transport Architecture (BLE + Wi-Fi Direct)
 **Date:** 2026-03-10

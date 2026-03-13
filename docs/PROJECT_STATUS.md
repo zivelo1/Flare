@@ -110,7 +110,7 @@
 - [x] **Chat animations** — AnimatedVisibility entrance on new messages, animateItem() for smooth reordering
 - [x] **Haptic feedback** — impact on send, vibration pattern on receive (via Vibrator system service)
 - [x] **Mesh visualization** — Canvas topology with peer nodes (IdenticonGenerator colors), pulsing connection lines, RSSI-based thickness
-- [x] **Voice recording** — hold-to-record with MediaRecorder, live waveform from getMaxAmplitude(), elapsed time, .m4a output
+- [x] **Voice recording** — hold-to-record with MediaRecorder (24kbps AAC, 16kHz), live waveform from getMaxAmplitude(), elapsed time, .m4a output
 - [x] **Image capture** — ActivityResultContracts.TakePicture with FileProvider, bottom sheet preview with send FAB
 - [x] **APK sharing** — share screen (version, size, SHA-256 hash, progress), receive screen (verification status, install button)
 - [x] **Dark mode refinement** — extended dark color scheme (surfaceContainer, inverseSurface, errorContainer)
@@ -157,7 +157,7 @@
 - [x] **Chat animations** — spring transitions on new messages, scale animation on send button
 - [x] **Haptic feedback** — centralized HapticManager (medium impact on send, success notification on receive)
 - [x] **Mesh visualization** — Canvas-based animated topology with Timer-driven pulsing, RSSI line thickness
-- [x] **Voice recording** — hold-to-record with AVAudioRecorder, live waveform from averagePower, .m4a output
+- [x] **Voice recording** — hold-to-record with AVAudioRecorder (24kbps AAC, 16kHz), live waveform from averagePower, .m4a output
 - [x] **Image capture** — UIImagePickerController via UIViewControllerRepresentable, preview sheet with send/cancel
 - [x] **Dark mode** — semantic SwiftUI colors throughout, FlareOrange with appropriate opacity
 
@@ -253,8 +253,8 @@
 - [x] **Language confirmation dialog** — OK/Cancel approval before switching language (prevents accidental changes)
 - [x] **AppCompatActivity migration** — MainActivity uses AppCompatActivity for proper locale switching via AppCompatDelegate
 - [x] **Voice recording permission fix** — permission check at composition time via ContextCompat.checkSelfPermission
-- [x] **Voice message sending** — Base64-encoded audio over mesh with playback UI (MediaPlayer)
-- [x] **Image message sending** — scaled/compressed JPEG, Base64-encoded, rendered in chat bubbles
+- [x] **Voice message sending** — Base64-encoded audio (24kbps/16kHz, ~90KB max) over mesh with playback UI (MediaPlayer)
+- [x] **Image message sending** — scaled (400px max) / compressed (JPEG q35) image, Base64-encoded (~130KB max), rendered in chat bubbles
 - [x] **Contact deletion** — cascading delete (messages → conversations → contact) with confirmation dialog
 - [x] **CI fix** — x86_64-linux-android OpenSSL cross-compilation (RANLIB env var)
 - [x] **KeyExchange protocol** — QR scan auto-sends sender's public keys to scanned contact, enabling immediate two-way messaging without mutual QR scan
@@ -297,6 +297,7 @@
 - **Duress PIN was non-functional skeleton:** Only stored Argon2id hash in Rust DB with no lock screen or data wipe. **Fixed:** Complete destruction code implementation with BiometricPrompt lock screen, SHA-256 code hashes in SharedPreferences, and full data wipe (delete DB, clear prefs, reinitialize).
 - **CI x86_64 cross-compilation failure:** OpenSSL build failed with `x86_64-linux-android-ranlib: not found`. **Fixed:** Added `RANLIB_*` environment variable pointing to NDK's `llvm-ranlib` in GitHub Actions workflow.
 - **APK sharing screens were stubs:** Share/receive screens had no backend integration (BLE advertising code was placeholder). **Fixed:** Replaced with functional Android system share intent (Nearby Share, Bluetooth, messaging apps) using FileProvider.
+- **Voice/image messages exceed BLE chunk limit:** Encoded media payloads exceeded the 255-chunk BLE limit (~130KB). Voice at 128kbps/44.1kHz produced ~480KB for 30s; images at 800px/q60 could reach ~160KB. **Fixed:** Reduced image max dimension (800→400px) and JPEG quality (60→35%), lowered voice encoding bitrate (128→24kbps) and sample rate (44.1→16kHz), added 90KB size guard in FlareRepository, and fixed sender-side storage to persist full media content (Base64-encoded) instead of display text.
 
 ## Phase Overview
 | Phase | Scope | Status |
