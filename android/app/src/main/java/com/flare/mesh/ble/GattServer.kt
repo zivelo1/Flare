@@ -236,9 +236,11 @@ class GattServer(private val context: Context) {
             ?: return false
 
         val mtu = getMtu(address)
+        Timber.i("BLE_SEND_SERVER: %d bytes to %s MTU=%d", data.size, address, mtu)
         val chunks = BleChunker.chunk(data, mtu)
         if (chunks.isEmpty()) {
-            Timber.e("Failed to chunk %d bytes for %s (MTU=%d)", data.size, address, mtu)
+            Timber.e("BLE_SEND_SERVER: CHUNK FAILED %d bytes for %s (MTU=%d, need %d chunks but max=%d)",
+                data.size, address, mtu, (data.size / (mtu - 5).coerceAtLeast(1)) + 1, Constants.BLE_CHUNK_MAX_COUNT)
             return false
         }
 
@@ -294,9 +296,23 @@ class GattServer(private val context: Context) {
     }
 
     /**
-     * Returns the negotiated MTU for a connected device, or the minimum if unknown.
+     * External MTU provider — used to fall back to GattClient's negotiated MTU
+     * when the server hasn't received its own onMtuChanged callback yet.
+     * Set by MeshService after constructing both GattServer and GattClient.
      */
-    fun getMtu(address: String): Int = mtuMap[address] ?: Constants.MIN_MTU
+    var externalMtuProvider: ((String) -> Int?)? = null
+
+    /**
+     * Returns the negotiated MTU for a connected device.
+     * Falls back to external provider (GattClient MTU) before using MIN_MTU.
+     */
+    fun getMtu(address: String): Int =
+        mtuMap[address]
+            ?: externalMtuProvider?.invoke(address)
+            ?: Constants.MIN_MTU
+
+    /** Returns only the locally negotiated MTU (no fallback). Used by cross-link to avoid recursion. */
+    fun getMtuDirect(address: String): Int? = mtuMap[address]
 
     /**
      * Stops the GATT server and advertising.
@@ -391,12 +407,14 @@ class GattServer(private val context: Context) {
             when (characteristic.uuid) {
                 Constants.CHAR_MESSAGE_WRITE_UUID -> {
                     value?.let { data ->
+                        Timber.d("BLE_RECV_SERVER: write %d bytes from %s preparedWrite=%s offset=%d",
+                            data.size, device.address, preparedWrite, offset)
                         val reassembled = reassembler.onDataReceived(data)
                         if (reassembled != null) {
                             _incomingMessages.tryEmit(
                                 IncomingBleMessage(device.address, reassembled),
                             )
-                            Timber.d("Received complete message (%d bytes) from %s",
+                            Timber.i("BLE_RECV_SERVER: complete message %d bytes from %s",
                                 reassembled.size, device.address)
                         }
                     }

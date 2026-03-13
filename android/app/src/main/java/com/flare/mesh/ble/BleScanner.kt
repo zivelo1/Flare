@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import timber.log.Timber
 import java.time.Instant
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * BLE Central (scanner) that discovers nearby Flare mesh devices.
@@ -38,6 +39,9 @@ class BleScanner(context: Context) {
     /** Emits BluetoothDevice objects for newly discovered peers (first sighting only). */
     private val _newPeerDevices = MutableSharedFlow<BluetoothDevice>(extraBufferCapacity = 16)
     val newPeerDevices: SharedFlow<BluetoothDevice> = _newPeerDevices.asSharedFlow()
+
+    /** Tracks last-seen BluetoothDevice by MAC address for reconnection. */
+    private val _devicesByAddress = ConcurrentHashMap<String, BluetoothDevice>()
 
     private val _isScanning = MutableStateFlow(false)
     val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
@@ -167,6 +171,9 @@ class BleScanner(context: Context) {
             lastSeen = Instant.now(),
         )
 
+        // Track device by MAC for reconnection
+        _devicesByAddress[address] = device
+
         val currentPeers = _discoveredPeers.value.toMutableMap()
         val isNew = !currentPeers.containsKey(deviceId)
         currentPeers[deviceId] = peer
@@ -195,6 +202,12 @@ class BleScanner(context: Context) {
             Timber.d("Pruned %d stale peers", pruned)
         }
     }
+
+    /**
+     * Returns all recently-seen BluetoothDevice objects keyed by MAC address.
+     * Used by the reconnect loop to re-connect to discovered-but-unconnected peers.
+     */
+    fun discoveredDevices(): Map<String, BluetoothDevice> = _devicesByAddress.toMap()
 
     /**
      * Returns whether Bluetooth is currently enabled.

@@ -114,6 +114,7 @@ pub enum FfiRouteDecision {
     DropTtlInflation,
     DropHopCountDecrease,
     DropSenderRateLimit,
+    DropParseError,
 }
 
 /// Power tier recommendation from the adaptive power manager.
@@ -491,7 +492,14 @@ impl FlareNode {
     pub fn route_incoming(&self, raw_message: Vec<u8>) -> FfiRouteDecision {
         let msg = match MeshMessage::from_bytes(&raw_message) {
             Ok(m) => m,
-            Err(_) => return FfiRouteDecision::DropInvalidSignature,
+            Err(e) => {
+                log::warn!(
+                    "route_incoming: parse failed for {} bytes: {}",
+                    raw_message.len(),
+                    e
+                );
+                return FfiRouteDecision::DropParseError;
+            }
         };
 
         // Attempt signature verification if we know the sender
@@ -504,6 +512,13 @@ impl FlareNode {
             match guard_result {
                 crate::routing::route_guard::GuardResult::Accept => {}
                 crate::routing::route_guard::GuardResult::RejectInvalidSignature => {
+                    log::warn!(
+                        "route_incoming: SIGNATURE REJECTED for sender={} ct={:?} payload_len={} sig_len={}",
+                        msg.sender_id.to_hex(),
+                        msg.content_type,
+                        msg.payload.len(),
+                        msg.signature.len()
+                    );
                     return FfiRouteDecision::DropInvalidSignature;
                 }
                 crate::routing::route_guard::GuardResult::RejectTtlInflation { .. } => {

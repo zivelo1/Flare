@@ -285,6 +285,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun onIncomingMessage(senderId: String, plaintext: String) {
+        Timber.i("UI_RECV: from=%s len=%d isVoice=%s isImage=%s prefix=%s",
+            senderId.take(12), plaintext.length,
+            plaintext.startsWith(Constants.MEDIA_PREFIX_VOICE),
+            plaintext.startsWith(Constants.MEDIA_PREFIX_IMAGE),
+            plaintext.take(20))
         val message = ChatMessage(
             messageId = System.nanoTime().toString(),
             conversationId = senderId,

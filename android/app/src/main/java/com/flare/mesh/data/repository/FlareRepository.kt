@@ -200,7 +200,18 @@ class FlareRepository private constructor(private val node: FlareNode) {
         // Queue for outbound delivery
         node.queueOutboundMessage(messageId, recipientDeviceId, encrypted)
 
-        Timber.d("Media message queued for %s (type=%d, size=%d bytes)", recipientDeviceId.take(12), contentType.toInt(), mediaBytes.size)
+        Timber.i("MEDIA_SEND: queued type=%d rawBytes=%d payloadLen=%d encryptedLen=%d serializedLen=%d for %s",
+            contentType.toInt(), mediaBytes.size, payload.length, encrypted.size, meshMsg.serialized.size, recipientDeviceId.take(12))
+
+        // Self-test: verify the serialized message can be parsed and routed
+        val selfTest = try {
+            val testDecision = node.routeIncoming(meshMsg.serialized)
+            "routeResult=${testDecision.name}"
+        } catch (e: Exception) {
+            "SELF_TEST_ERROR: ${e.message?.take(60)}"
+        }
+        Timber.i("MEDIA_SEND: self-test %s", selfTest)
+
         meshMsg.serialized
     }
 
@@ -245,12 +256,30 @@ class FlareRepository private constructor(private val node: FlareNode) {
      */
     suspend fun processIncomingMessage(rawData: ByteArray): IncomingMessageResult =
         withContext(Dispatchers.IO) {
+            // Pre-check: try to parse the message to distinguish parse errors from signature errors
+            val preParseCheck = try {
+                val parsed = node.parseMeshMessage(rawData)
+                if (parsed != null) "OK ct=${parsed.contentType} sender=${parsed.senderId.take(12)} payloadLen=${parsed.payload.size}" else "PARSE_NULL"
+            } catch (e: Exception) {
+                "PARSE_ERR: ${e.message?.take(80)}"
+            }
+
             val decision = node.routeIncoming(rawData)
+            Timber.i("MEDIA_RECV: routeIncoming=%s rawSize=%d preparse=%s", decision.name, rawData.size, preParseCheck)
+
+            // Log hex prefix for rejected messages
+            if (decision == FfiRouteDecision.DROP_INVALID_SIGNATURE || decision == FfiRouteDecision.DROP_PARSE_ERROR) {
+                val hexPrefix = rawData.take(32).joinToString("") { "%02x".format(it) }
+                val hexSuffix = rawData.takeLast(16).joinToString("") { "%02x".format(it) }
+                Timber.e("MEDIA_RECV: %s hex_start=%s hex_end=%s", decision.name, hexPrefix, hexSuffix)
+            }
 
             when (decision) {
                 FfiRouteDecision.DELIVER_LOCALLY -> {
                     val parsed = node.parseMeshMessage(rawData)
                     if (parsed != null) {
+                        Timber.i("MEDIA_RECV: parsed sender=%s contentType=%d payloadSize=%d msgId=%s",
+                            parsed.senderId.take(12), parsed.contentType.toInt(), parsed.payload.size, parsed.messageId)
                         // Handle KeyExchange messages: auto-add sender as unverified contact
                         if (parsed.contentType.toInt() == Constants.CONTENT_TYPE_KEY_EXCHANGE.toInt()) {
                             handleKeyExchange(parsed)
@@ -263,17 +292,39 @@ class FlareRepository private constructor(private val node: FlareNode) {
                             )
                         }
 
+                        // Handle Acknowledgment messages: payload is raw message ID hash, not encrypted
+                        if (parsed.contentType.toInt() == Constants.CONTENT_TYPE_ACKNOWLEDGMENT.toInt()) {
+                            Timber.i("MEDIA_RECV: delivery ACK from %s msgId=%s",
+                                parsed.senderId.take(12), parsed.messageId)
+                            return@withContext IncomingMessageResult(
+                                decision = RouteDecisionType.DELIVER_LOCALLY,
+                                senderId = parsed.senderId,
+                                plaintext = null,
+                                messageId = parsed.messageId,
+                            )
+                        }
+
                         // Look up sender's agreement key from contacts
                         val senderContact = _contacts.value.find {
                             it.identity.deviceId == parsed.senderId
                         }
-                        val plaintext = senderContact?.let {
-                            node.decryptIncomingMessage(
-                                parsed.senderId,
-                                it.identity.agreementPublicKey,
-                                parsed.payload,
-                            )
+                        val plaintext = try {
+                            senderContact?.let {
+                                node.decryptIncomingMessage(
+                                    parsed.senderId,
+                                    it.identity.agreementPublicKey,
+                                    parsed.payload,
+                                )
+                            }
+                        } catch (e: Exception) {
+                            Timber.e(e, "MEDIA_RECV: decryption FAILED for sender=%s payloadSize=%d", parsed.senderId.take(12), parsed.payload.size)
+                            null
                         }
+
+                        Timber.i("MEDIA_RECV: decrypt result=%s plaintextLen=%d prefix=%s",
+                            if (plaintext != null) "OK" else "NULL",
+                            plaintext?.length ?: 0,
+                            plaintext?.take(20) ?: "n/a")
 
                         if (plaintext == null && senderContact == null) {
                             Timber.w("Message from unknown sender %s — no agreement key to decrypt", parsed.senderId.take(12))

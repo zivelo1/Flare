@@ -49,6 +49,8 @@ class MeshService : LifecycleService() {
     private var pruneJob: Job? = null
     private var rendezvousJob: Job? = null
     private var powerJob: Job? = null
+    private var reconnectJob: Job? = null
+    private var meshStarted = false
 
     /** Current adaptive power tier. Updated by the power evaluation loop. */
     private var currentScanTier: BleScanner.ScanPowerTier = BleScanner.ScanPowerTier.BALANCED
@@ -106,6 +108,11 @@ class MeshService : LifecycleService() {
         gattServer = GattServer(this)
         gattClient = GattClient(this)
 
+        // Cross-link MTU maps so server can use client's negotiated MTU and vice versa.
+        // This fixes the race condition where the server sends before MTU negotiation completes.
+        gattServer.externalMtuProvider = { address -> gattClient.getMtuDirect(address) }
+        gattClient.externalMtuProvider = { address -> gattServer.getMtuDirect(address) }
+
         createNotificationChannels()
 
         // Set peer info bytes from FlareNode on the GATT server
@@ -145,6 +152,11 @@ class MeshService : LifecycleService() {
     }
 
     private fun startMesh() {
+        if (meshStarted) {
+            Timber.d("startMesh() already called — skipping duplicate")
+            return
+        }
+        meshStarted = true
         Timber.i("Starting mesh network")
 
         // Start GATT server (advertise + accept connections)
@@ -201,15 +213,33 @@ class MeshService : LifecycleService() {
             }
         }
 
-        // Auto-connect to newly discovered peers via GATT client
+        // Auto-connect to newly discovered peers via GATT client.
+        // Always create a GattClient connection even if the peer is already connected to our
+        // GattServer — the GattClient WRITE path is reliable (Write Request/Response with
+        // flow control), while the GattServer NOTIFY path can silently lose multi-chunk data.
         lifecycleScope.launch {
             bleScanner.newPeerDevices.collect { device ->
                 val address = device.address
-                if (address !in gattClient.connectedAddresses() &&
-                    address !in gattServer.connectedDeviceAddresses()
-                ) {
+                if (address !in gattClient.connectedAddresses()) {
                     Timber.i("Auto-connecting to discovered peer: %s", address)
                     gattClient.connectToPeer(device)
+                }
+            }
+        }
+
+        // Periodic reconnect: retry connecting to discovered peers that dropped or failed initial connect.
+        // Only check GattClient connections — we always want a GattClient connection for reliable writes.
+        reconnectJob = lifecycleScope.launch {
+            while (isActive) {
+                delay(Constants.BLE_RECONNECT_INTERVAL_MS)
+                val clientConnected = gattClient.connectedAddresses()
+
+                val devices = bleScanner.discoveredDevices()
+                for ((address, device) in devices) {
+                    if (address !in clientConnected) {
+                        Timber.i("Reconnecting to discovered-but-unconnected peer: %s", address)
+                        gattClient.connectToPeer(device)
+                    }
                 }
             }
         }
@@ -232,6 +262,9 @@ class MeshService : LifecycleService() {
                             repo.notifyPeerConnected(event.address)
 
                             lifecycleScope.launch(Dispatchers.IO) {
+                                // Wait for MTU negotiation to complete before sending
+                                delay(Constants.MTU_NEGOTIATION_DELAY_MS)
+
                                 // Exchange neighborhood bitmaps for bridge detection
                                 val localBitmap = repo.exportNeighborhoodBitmap()
                                 gattServer.sendToPeer(event.address, localBitmap)
@@ -263,6 +296,9 @@ class MeshService : LifecycleService() {
                         repo.notifyPeerConnected(event.address)
 
                         lifecycleScope.launch(Dispatchers.IO) {
+                            // Wait for MTU negotiation to complete before sending
+                            delay(Constants.MTU_NEGOTIATION_DELAY_MS)
+
                             // Forward stored messages to newly connected peer
                             val messages = repo.getMessagesForPeer(event.address)
                             messages.forEach { data ->
@@ -319,11 +355,13 @@ class MeshService : LifecycleService() {
     }
 
     private fun stopMesh() {
+        meshStarted = false
         Timber.i("Stopping mesh network")
         scanJob?.cancel()
         pruneJob?.cancel()
         rendezvousJob?.cancel()
         powerJob?.cancel()
+        reconnectJob?.cancel()
         bleScanner.stopScanning()
         gattServer.stop()
         gattClient.disconnectAll()
@@ -507,7 +545,8 @@ class MeshService : LifecycleService() {
 
             when (result.decision) {
                 RouteDecisionType.DELIVER_LOCALLY -> {
-                    Timber.i("Message delivered locally from %s", result.senderId)
+                    Timber.i("MESH_RECV: delivered from %s plaintextLen=%d isKeyExchange=%s",
+                        result.senderId, result.plaintext?.length ?: 0, result.isKeyExchange)
                     if (result.senderId != null && result.plaintext != null) {
                         _incomingDelivered.tryEmit(
                             DeliveredMessage(result.senderId, result.plaintext)
@@ -567,23 +606,33 @@ class MeshService : LifecycleService() {
     private suspend fun sendToMesh(outbound: OutboundMessage) {
         notifyDataActivity()
 
-        // Send to all connected peers concurrently (Spray-and-Wait)
+        // De-duplicate: prefer the GattClient WRITE path (reliable Write Request/Response
+        // with per-chunk acknowledgment) over the GattServer NOTIFY path (fire-and-forget,
+        // multi-chunk notifications can be silently lost).
         val serverPeers = gattServer.connectedDeviceAddresses()
         val clientPeers = gattClient.connectedAddresses()
+        val serverOnlyPeers = serverPeers - clientPeers // Only notify peers we can't write to
+
+        Timber.i("MESH_SEND: %d bytes to=%s, writePeers=%s notifyOnlyPeers=%s clientMTUs=%s",
+            outbound.data.size, outbound.recipientDeviceId.take(12),
+            clientPeers.joinToString(",") { "${it.takeLast(5)}=${gattClient.getMtu(it)}" },
+            serverOnlyPeers.joinToString(",") { "${it.takeLast(5)}=${gattServer.getMtu(it)}" },
+            clientPeers.joinToString(",") { "${it.takeLast(5)}=${gattClient.getMtu(it)}" })
 
         val results = coroutineScope {
-            val serverJobs = serverPeers.map { address ->
-                async { gattServer.sendToPeer(address, outbound.data) }
-            }
             val clientJobs = clientPeers.map { address ->
                 async { gattClient.writeMessage(address, outbound.data) }
             }
-            serverJobs.map { it.await() } + clientJobs.map { it.await() }
+            val serverJobs = serverOnlyPeers.map { address ->
+                async { gattServer.sendToPeer(address, outbound.data) }
+            }
+            clientJobs.map { it.await() } + serverJobs.map { it.await() }
         }
 
+        val totalPeers = clientPeers.size + serverOnlyPeers.size
         val sent = results.count { it }
-        Timber.d("Sent outbound message to %d/%d peers",
-            sent, serverPeers.size + clientPeers.size)
+        Timber.d("Sent outbound message to %d/%d peers (write=%d, notifyOnly=%d)",
+            sent, totalPeers, clientPeers.size, serverOnlyPeers.size)
     }
 
     /**

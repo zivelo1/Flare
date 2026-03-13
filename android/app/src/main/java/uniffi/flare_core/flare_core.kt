@@ -4443,7 +4443,8 @@ enum class FfiRouteDecision {
     DROP_INVALID_SIGNATURE,
     DROP_TTL_INFLATION,
     DROP_HOP_COUNT_DECREASE,
-    DROP_SENDER_RATE_LIMIT;
+    DROP_SENDER_RATE_LIMIT,
+    DROP_PARSE_ERROR;
     companion object
 }
 

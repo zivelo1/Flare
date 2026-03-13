@@ -27,6 +27,9 @@ class GattClient(private val context: Context) {
     /** Active GATT connections by device address. */
     private val connections = ConcurrentHashMap<String, BluetoothGatt>()
 
+    /** Addresses with pending (in-progress) connection attempts. */
+    private val pendingConnections = ConcurrentHashMap.newKeySet<String>()
+
     /** Negotiated MTU per connection (default BLE MTU = 23, ATT overhead = 3). */
     private val mtuMap = ConcurrentHashMap<String, Int>()
 
@@ -64,6 +67,10 @@ class GattClient(private val context: Context) {
             Timber.d("Already connected to %s", device.address)
             return
         }
+        if (!pendingConnections.add(device.address)) {
+            Timber.d("Connection already pending for %s", device.address)
+            return
+        }
 
         Timber.i("Connecting to peer: %s", device.address)
         device.connectGatt(
@@ -99,9 +106,11 @@ class GattClient(private val context: Context) {
         }
 
         val mtu = getMtu(address)
+        Timber.i("BLE_SEND_CLIENT: %d bytes to %s MTU=%d", data.size, address, mtu)
         val chunks = BleChunker.chunk(data, mtu)
         if (chunks.isEmpty()) {
-            Timber.e("Failed to chunk %d bytes for %s (MTU=%d)", data.size, address, mtu)
+            Timber.e("BLE_SEND_CLIENT: CHUNK FAILED %d bytes for %s (MTU=%d, need %d chunks but max=%d)",
+                data.size, address, mtu, (data.size / (mtu - 5).coerceAtLeast(1)) + 1, Constants.BLE_CHUNK_MAX_COUNT)
             return false
         }
 
@@ -185,9 +194,22 @@ class GattClient(private val context: Context) {
     }
 
     /**
-     * Returns the negotiated MTU for a peer, or the minimum MTU if not negotiated.
+     * External MTU provider — used to fall back to GattServer's negotiated MTU.
+     * Set by MeshService after constructing both GattServer and GattClient.
      */
-    fun getMtu(address: String): Int = mtuMap[address] ?: Constants.MIN_MTU
+    var externalMtuProvider: ((String) -> Int?)? = null
+
+    /**
+     * Returns the negotiated MTU for a peer.
+     * Falls back to external provider (GattServer MTU) before using MIN_MTU.
+     */
+    fun getMtu(address: String): Int =
+        mtuMap[address]
+            ?: externalMtuProvider?.invoke(address)
+            ?: Constants.MIN_MTU
+
+    /** Returns only the locally negotiated MTU (no fallback). Used by cross-link to avoid recursion. */
+    fun getMtuDirect(address: String): Int? = mtuMap[address]
 
     /**
      * Returns addresses of all connected peers.
@@ -208,6 +230,7 @@ class GattClient(private val context: Context) {
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
                     connections[address] = gatt
+                    pendingConnections.remove(address)
                     Timber.i("Connected to peer: %s, requesting MTU", address)
 
                     // Request larger MTU for bigger message chunks
@@ -222,6 +245,7 @@ class GattClient(private val context: Context) {
 
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     connections.remove(address)
+                    pendingConnections.remove(address)
                     mtuMap.remove(address)
                     writeMutexes.remove(address)
                     _connectionState.tryEmit(ConnectionStateChange(address, false))
@@ -346,10 +370,11 @@ class GattClient(private val context: Context) {
             val address = gatt.device.address
             when (characteristic.uuid) {
                 Constants.CHAR_MESSAGE_NOTIFY_UUID -> {
+                    Timber.d("BLE_RECV_CLIENT: notify %d bytes from %s", value.size, address)
                     val reassembled = reassembler.onDataReceived(value)
                     if (reassembled != null) {
                         _receivedData.tryEmit(ReceivedData(address, reassembled))
-                        Timber.d("Received complete message (%d bytes) from %s",
+                        Timber.i("BLE_RECV_CLIENT: complete message %d bytes from %s",
                             reassembled.size, address)
                     }
                 }

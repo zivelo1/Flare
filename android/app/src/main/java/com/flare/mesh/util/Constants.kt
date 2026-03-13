@@ -40,6 +40,12 @@ object Constants {
     /** How long to consider a peer "recent" before marking stale (milliseconds). */
     const val PEER_STALE_TIMEOUT_MS: Long = 300_000L  // 5 minutes
 
+    /** Interval for periodic reconnect attempts to discovered-but-unconnected peers (milliseconds). */
+    const val BLE_RECONNECT_INTERVAL_MS: Long = 10_000L  // 10 seconds
+
+    /** Delay after GATT connection before sending stored messages, to allow MTU negotiation (milliseconds). */
+    const val MTU_NEGOTIATION_DELAY_MS: Long = 2_000L  // 2 seconds
+
     // ── Adaptive Power Management ──────────────────────────────────────
     // See flare-core/src/power/mod.rs for the full tier-based power manager.
     // These constants mirror the Rust PowerConfig defaults for the Android BLE layer.
@@ -288,6 +294,9 @@ object Constants {
 
     /** Content type for KeyExchange messages. */
     const val CONTENT_TYPE_KEY_EXCHANGE: UByte = 4u
+
+    /** Content type for Acknowledgment/delivery receipt messages. */
+    const val CONTENT_TYPE_ACKNOWLEDGMENT: UByte = 5u
 
     /** Separator in key exchange payload: deviceId|signingKeyHex|agreementKeyHex|displayName */
     const val KEY_EXCHANGE_SEPARATOR: String = "|"
