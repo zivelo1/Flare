@@ -210,7 +210,9 @@
   - End-to-end encrypted message send/receive over BLE GATT
   - Zero internet required — pure mesh networking
 - [x] BLE GATT auto-connection — devices discover and connect automatically
-- [x] BLE GATT MTU negotiation — 517 bytes (514 usable) confirmed on both devices
+- [x] BLE GATT MTU negotiation — 517 bytes requested, usable capped at 512 (Android 512-byte characteristic value limit)
+- [x] **Voice message delivery over BLE mesh — WORKING** (both directions)
+- [x] **Image message delivery over BLE mesh — WORKING** (both directions)
 - [x] API backward compatibility — BLE GATT APIs work on both API 31 (deprecated path) and API 34 (new path)
 - [ ] Wi-Fi Direct group formation on real hardware
 - [ ] Power management tier behavior on real battery
@@ -221,6 +223,12 @@
 - **API 31 BLE crash:** `writeDescriptor(descriptor, value)`, `writeCharacteristic(char, data, type)`, and `notifyCharacteristicChanged(device, char, confirm, data)` are API 33+. Added backward-compatible paths using deprecated APIs for older devices
 - **Permission request loop:** `requestBluetoothPermissions()` called every `onResume` even when already granted, causing infinite dialog loop. Fixed to check permissions first and start MeshService directly if all granted
 - **armv7 native library missing:** Second phone (armeabi-v7a) crashed with `library "libflare_core.so" not found`. Cross-compiled for armv7 target and included in APK
+- **BLE chunk truncation (media messages):** Android silently caps BLE characteristic write/notify values at 512 bytes regardless of negotiated ATT_MTU (517). Code stored usable MTU as 514, causing 2 bytes of silent truncation per chunk. After multi-chunk reassembly, corrupted data failed bincode deserialization (DROP_PARSE_ERROR). Fixed: cap usable MTU at `min(ATT_MTU - 3, 512)`
+- **Duplicate message sends:** `MeshService.startMesh()` called multiple times via `onStartCommand` (START_STICKY), creating duplicate coroutine collectors that sent every message 3-4x. Fixed: added re-entry guard
+- **One-way GattClient connections:** Auto-connect skipped creating a GattClient connection if the peer was already connected to our GattServer, leaving one direction with only the unreliable notification path. Fixed: removed server-guard from auto-connect
+- **Unreliable notification path for media:** GattServer NOTIFY path is fire-and-forget (no per-chunk ACK), causing silent data loss for multi-chunk messages. Fixed: prefer GattClient WRITE path (reliable Write Request/Response), de-duplicate sends
+- **Parse error vs signature error conflation:** Rust `route_incoming` returned `DropInvalidSignature` for bincode parse failures, masking the real error. Fixed: added `DropParseError` variant to `FfiRouteDecision`
+- **Delivery ACK decryption failure:** ContentType 5 (Acknowledgment) payloads are unencrypted message ID hashes, but `processIncomingMessage` attempted decryption. Fixed: skip decryption for ACK messages
 
 ### Phase 7 — Security Hardening (Complete)
 - [x] **Full security code audit** — read all security-critical Rust files, identified 5 vulnerabilities
@@ -260,7 +268,7 @@
 - [x] **KeyExchange protocol** — QR scan auto-sends sender's public keys to scanned contact, enabling immediate two-way messaging without mutual QR scan
 - [x] **APK sharing via system intent** — share app file via Nearby Share, Bluetooth, WhatsApp, etc. (replaced non-functional BLE transfer stubs)
 - [x] **content_type in FfiMeshMessage** — Rust FFI now exposes message content type for routing KeyExchange, voice, image messages
-- [x] **BLE chunking** — 5-byte header protocol (magic=0xF1, msgId, chunkIdx, totalChunks) for payloads exceeding BLE MTU (~514 bytes). Sequential GATT writes/notifications with onCharacteristicWrite/onNotificationSent callbacks. Per-address Mutex prevents interleaving. ChunkReassembler with 30s stale timeout pruning. Max 255 chunks (~130KB per message). Backward compatible with non-chunked data
+- [x] **BLE chunking** — 5-byte header protocol (magic=0xF1, msgId, chunkIdx, totalChunks) for payloads exceeding BLE MTU (512 bytes, Android hard limit). Sequential GATT writes/notifications with onCharacteristicWrite/onNotificationSent callbacks. Per-address Mutex prevents interleaving. ChunkReassembler with 30s stale timeout pruning. Max 255 chunks (~130KB per message). Backward compatible with non-chunked data
 - [x] **BLE send path reliability** — prefer GattClient WRITE path (reliable Write Request/Response with per-chunk ACK) over GattServer NOTIFY path (fire-and-forget). De-duplicate sends: each peer receives via write if available, notify only as fallback. Bidirectional GattClient connections ensured by removing server-guard from auto-connect
 - [x] **MeshService re-entry guard** — prevent duplicate coroutine collectors when `onStartCommand` is called multiple times (START_STICKY), which caused messages to be sent 3-4x
 - [x] **Acknowledgment message handling** — ContentType 5 (delivery ACK) now handled specially in processIncomingMessage, preventing decryption errors on unencrypted ACK payloads
