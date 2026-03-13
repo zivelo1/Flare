@@ -545,8 +545,8 @@ class MeshService : LifecycleService() {
 
             when (result.decision) {
                 RouteDecisionType.DELIVER_LOCALLY -> {
-                    Timber.i("MESH_RECV: delivered from %s plaintextLen=%d isKeyExchange=%s",
-                        result.senderId, result.plaintext?.length ?: 0, result.isKeyExchange)
+                    Timber.d("MESH_RECV: delivered plaintextLen=%d isKeyExchange=%s",
+                        result.plaintext?.length ?: 0, result.isKeyExchange)
                     if (result.senderId != null && result.plaintext != null) {
                         _incomingDelivered.tryEmit(
                             DeliveredMessage(result.senderId, result.plaintext)
@@ -613,11 +613,8 @@ class MeshService : LifecycleService() {
         val clientPeers = gattClient.connectedAddresses()
         val serverOnlyPeers = serverPeers - clientPeers // Only notify peers we can't write to
 
-        Timber.i("MESH_SEND: %d bytes to=%s, writePeers=%s notifyOnlyPeers=%s clientMTUs=%s",
-            outbound.data.size, outbound.recipientDeviceId.take(12),
-            clientPeers.joinToString(",") { "${it.takeLast(5)}=${gattClient.getMtu(it)}" },
-            serverOnlyPeers.joinToString(",") { "${it.takeLast(5)}=${gattServer.getMtu(it)}" },
-            clientPeers.joinToString(",") { "${it.takeLast(5)}=${gattClient.getMtu(it)}" })
+        Timber.d("MESH_SEND: %d bytes, writePeers=%d notifyOnlyPeers=%d",
+            outbound.data.size, clientPeers.size, serverOnlyPeers.size)
 
         val results = coroutineScope {
             val clientJobs = clientPeers.map { address ->

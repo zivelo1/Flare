@@ -236,7 +236,7 @@ class GattServer(private val context: Context) {
             ?: return false
 
         val mtu = getMtu(address)
-        Timber.i("BLE_SEND_SERVER: %d bytes to %s MTU=%d", data.size, address, mtu)
+        Timber.d("BLE_SEND_SERVER: %d bytes MTU=%d", data.size, mtu)
         val chunks = BleChunker.chunk(data, mtu)
         if (chunks.isEmpty()) {
             Timber.e("BLE_SEND_SERVER: CHUNK FAILED %d bytes for %s (MTU=%d, need %d chunks but max=%d)",

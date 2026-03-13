@@ -200,17 +200,8 @@ class FlareRepository private constructor(private val node: FlareNode) {
         // Queue for outbound delivery
         node.queueOutboundMessage(messageId, recipientDeviceId, encrypted)
 
-        Timber.i("MEDIA_SEND: queued type=%d rawBytes=%d payloadLen=%d encryptedLen=%d serializedLen=%d for %s",
-            contentType.toInt(), mediaBytes.size, payload.length, encrypted.size, meshMsg.serialized.size, recipientDeviceId.take(12))
-
-        // Self-test: verify the serialized message can be parsed and routed
-        val selfTest = try {
-            val testDecision = node.routeIncoming(meshMsg.serialized)
-            "routeResult=${testDecision.name}"
-        } catch (e: Exception) {
-            "SELF_TEST_ERROR: ${e.message?.take(60)}"
-        }
-        Timber.i("MEDIA_SEND: self-test %s", selfTest)
+        Timber.d("MEDIA_SEND: queued type=%d serializedLen=%d",
+            contentType.toInt(), meshMsg.serialized.size)
 
         meshMsg.serialized
     }
@@ -256,30 +247,19 @@ class FlareRepository private constructor(private val node: FlareNode) {
      */
     suspend fun processIncomingMessage(rawData: ByteArray): IncomingMessageResult =
         withContext(Dispatchers.IO) {
-            // Pre-check: try to parse the message to distinguish parse errors from signature errors
-            val preParseCheck = try {
-                val parsed = node.parseMeshMessage(rawData)
-                if (parsed != null) "OK ct=${parsed.contentType} sender=${parsed.senderId.take(12)} payloadLen=${parsed.payload.size}" else "PARSE_NULL"
-            } catch (e: Exception) {
-                "PARSE_ERR: ${e.message?.take(80)}"
-            }
-
             val decision = node.routeIncoming(rawData)
-            Timber.i("MEDIA_RECV: routeIncoming=%s rawSize=%d preparse=%s", decision.name, rawData.size, preParseCheck)
+            Timber.d("MEDIA_RECV: routeIncoming=%s rawSize=%d", decision.name, rawData.size)
 
-            // Log hex prefix for rejected messages
             if (decision == FfiRouteDecision.DROP_INVALID_SIGNATURE || decision == FfiRouteDecision.DROP_PARSE_ERROR) {
-                val hexPrefix = rawData.take(32).joinToString("") { "%02x".format(it) }
-                val hexSuffix = rawData.takeLast(16).joinToString("") { "%02x".format(it) }
-                Timber.e("MEDIA_RECV: %s hex_start=%s hex_end=%s", decision.name, hexPrefix, hexSuffix)
+                Timber.w("MEDIA_RECV: %s rawSize=%d", decision.name, rawData.size)
             }
 
             when (decision) {
                 FfiRouteDecision.DELIVER_LOCALLY -> {
                     val parsed = node.parseMeshMessage(rawData)
                     if (parsed != null) {
-                        Timber.i("MEDIA_RECV: parsed sender=%s contentType=%d payloadSize=%d msgId=%s",
-                            parsed.senderId.take(12), parsed.contentType.toInt(), parsed.payload.size, parsed.messageId)
+                        Timber.d("MEDIA_RECV: parsed ct=%d payloadSize=%d",
+                            parsed.contentType.toInt(), parsed.payload.size)
                         // Handle KeyExchange messages: auto-add sender as unverified contact
                         if (parsed.contentType.toInt() == Constants.CONTENT_TYPE_KEY_EXCHANGE.toInt()) {
                             handleKeyExchange(parsed)
@@ -321,10 +301,9 @@ class FlareRepository private constructor(private val node: FlareNode) {
                             null
                         }
 
-                        Timber.i("MEDIA_RECV: decrypt result=%s plaintextLen=%d prefix=%s",
+                        Timber.i("MEDIA_RECV: decrypt result=%s plaintextLen=%d",
                             if (plaintext != null) "OK" else "NULL",
-                            plaintext?.length ?: 0,
-                            plaintext?.take(20) ?: "n/a")
+                            plaintext?.length ?: 0)
 
                         if (plaintext == null && senderContact == null) {
                             Timber.w("Message from unknown sender %s — no agreement key to decrypt", parsed.senderId.take(12))
