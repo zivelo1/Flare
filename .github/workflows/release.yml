@@ -72,14 +72,17 @@ jobs:
 
           mkdir -p .cargo
           cat > .cargo/config.toml << EOF
-          [${{ matrix.target }}]
+          [target.${{ matrix.target }}]
           linker = "${TOOLCHAIN}/bin/${CC_TARGET}-clang"
           ar = "${TOOLCHAIN}/bin/llvm-ar"
           EOF
 
+          # Set environment variables for cc crate (used by SQLCipher/OpenSSL)
+          TARGET_ENV=$(echo '${{ matrix.target }}' | tr 'a-z-' 'A-Z_')
           echo "CC_${{ matrix.target }}=${TOOLCHAIN}/bin/${CC_TARGET}-clang" >> $GITHUB_ENV
           echo "AR_${{ matrix.target }}=${TOOLCHAIN}/bin/llvm-ar" >> $GITHUB_ENV
-          echo "CARGO_TARGET_$(echo '${{ matrix.target }}' | tr 'a-z-' 'A-Z_')_LINKER=${TOOLCHAIN}/bin/${CC_TARGET}-clang" >> $GITHUB_ENV
+          echo "RANLIB_${{ matrix.target }}=${TOOLCHAIN}/bin/llvm-ranlib" >> $GITHUB_ENV
+          echo "CARGO_TARGET_${TARGET_ENV}_LINKER=${TOOLCHAIN}/bin/${CC_TARGET}-clang" >> $GITHUB_ENV
 
       - name: Build release library
         run: cargo build --target ${{ matrix.target }} --release
