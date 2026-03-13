@@ -157,6 +157,16 @@ class FlareRepository private constructor(private val node: FlareNode) {
     ): ByteArray = withContext(Dispatchers.IO) {
         val messageId = UUID.randomUUID().toString()
 
+        // Reject oversized media before wasting CPU on encoding/encryption.
+        // BLE chunk limit: 255 chunks × ~509 bytes ≈ 130KB. After Base64 (33% overhead)
+        // + encryption + MeshMessage wrapper, raw media must stay under ~90KB.
+        val maxMediaBytes = 90 * 1024
+        if (mediaBytes.size > maxMediaBytes) {
+            throw IllegalArgumentException(
+                "Media too large for BLE mesh: ${mediaBytes.size} bytes (max $maxMediaBytes)"
+            )
+        }
+
         // Base64-encode the binary data for transport through the text-based encryption pipeline
         val encoded = android.util.Base64.encodeToString(mediaBytes, android.util.Base64.NO_WRAP)
 
@@ -176,12 +186,12 @@ class FlareRepository private constructor(private val node: FlareNode) {
         // Build mesh message with correct content type
         val meshMsg = node.buildMeshMessage(recipientDeviceId, encrypted, contentType)
 
-        // Store locally with display text (not the full Base64 data)
+        // Store locally with full media payload so sender can re-render media
         node.storeChatMessage(FfiChatMessage(
             messageId = messageId,
             conversationId = recipientDeviceId,
             senderDeviceId = getDeviceId(),
-            content = displayText,
+            content = payload,
             timestampMs = Instant.now().toEpochMilli(),
             isOutgoing = true,
             deliveryStatus = DeliveryStatus.PENDING.ordinal.toUByte(),

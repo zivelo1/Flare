@@ -267,8 +267,8 @@ private fun createMediaRecorder(context: Context, outputFile: File): MediaRecord
         setAudioSource(MediaRecorder.AudioSource.MIC)
         setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
         setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-        setAudioEncodingBitRate(128_000)
-        setAudioSamplingRate(44_100)
+        setAudioEncodingBitRate(24_000)
+        setAudioSamplingRate(16_000)
         setOutputFile(outputFile.absolutePath)
     }
     return recorder

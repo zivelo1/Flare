@@ -210,11 +210,13 @@ object Constants {
     /** Prefix for image message payloads (followed by Base64-encoded JPEG data). */
     const val MEDIA_PREFIX_IMAGE: String = "flare:image:"
 
-    /** Maximum image dimension (pixels) before compression for mesh transfer. */
-    const val IMAGE_MAX_DIMENSION: Int = 800
+    /** Maximum image dimension (pixels) before compression for mesh transfer.
+     *  Kept small to ensure Base64-encoded JPEG fits within BLE chunk limit (~130KB). */
+    const val IMAGE_MAX_DIMENSION: Int = 400
 
-    /** JPEG compression quality for mesh transfer (0-100). */
-    const val IMAGE_COMPRESS_QUALITY: Int = 60
+    /** JPEG compression quality for mesh transfer (0-100).
+     *  Low quality trades visual fidelity for reliable BLE delivery. */
+    const val IMAGE_COMPRESS_QUALITY: Int = 35
 
     /** Polling interval for voice waveform amplitude in milliseconds. */
     const val VOICE_WAVEFORM_POLL_INTERVAL_MS: Long = 60L

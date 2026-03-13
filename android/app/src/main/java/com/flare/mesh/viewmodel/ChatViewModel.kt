@@ -153,13 +153,16 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         val audioBytes = audioFile.readBytes()
         Timber.d("Sending voice message: %d bytes from %s", audioBytes.size, audioFilePath)
 
-        // Optimistically add to UI
-        val displayText = "\uD83C\uDFA4 Voice message"
+        // Build the full media payload for local storage and rendering
+        val encoded = android.util.Base64.encodeToString(audioBytes, android.util.Base64.NO_WRAP)
+        val mediaContent = "${Constants.MEDIA_PREFIX_VOICE}$encoded"
+
+        // Optimistically add to UI with full media content
         val message = ChatMessage(
             messageId = System.nanoTime().toString(),
             conversationId = conversationId,
             senderDeviceId = repository.getDeviceId(),
-            content = displayText,
+            content = mediaContent,
             timestamp = Instant.now(),
             isOutgoing = true,
             deliveryStatus = DeliveryStatus.PENDING,
@@ -173,7 +176,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     recipientAgreementKey = contact.identity.agreementPublicKey,
                     mediaBytes = audioBytes,
                     contentType = 2u,
-                    displayText = displayText,
+                    displayText = mediaContent,
                 )
                 MeshService.enqueueOutbound(conversationId, serialized)
                 _currentMessages.value = _currentMessages.value.map { msg ->
@@ -229,12 +232,15 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
         Timber.d("Sending image message: %d bytes (compressed)", imageBytes.size)
 
-        val displayText = "\uD83D\uDCF7 Photo"
+        // Build the full media payload for local storage and rendering
+        val encoded = android.util.Base64.encodeToString(imageBytes, android.util.Base64.NO_WRAP)
+        val mediaContent = "${Constants.MEDIA_PREFIX_IMAGE}$encoded"
+
         val message = ChatMessage(
             messageId = System.nanoTime().toString(),
             conversationId = conversationId,
             senderDeviceId = repository.getDeviceId(),
-            content = displayText,
+            content = mediaContent,
             timestamp = Instant.now(),
             isOutgoing = true,
             deliveryStatus = DeliveryStatus.PENDING,
@@ -248,7 +254,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     recipientAgreementKey = contact.identity.agreementPublicKey,
                     mediaBytes = imageBytes,
                     contentType = 3u,
-                    displayText = displayText,
+                    displayText = mediaContent,
                 )
                 MeshService.enqueueOutbound(conversationId, serialized)
                 _currentMessages.value = _currentMessages.value.map { msg ->
