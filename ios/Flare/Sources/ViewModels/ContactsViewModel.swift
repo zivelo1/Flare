@@ -95,6 +95,14 @@ final class ContactsViewModel: ObservableObject {
         }
     }
 
+    func deleteContact(deviceId: String) {
+        try? repo.deleteContact(deviceId: deviceId)
+    }
+
+    func renameContact(deviceId: String, newName: String) {
+        try? repo.updateContactDisplayName(deviceId: deviceId, displayName: newName)
+    }
+
     func addContactFromQr(_ qrData: String) {
         let parts = qrData.split(separator: Character(Constants.qrDataSeparator)).map(String.init)
         guard parts.count >= Constants.qrMinFields,

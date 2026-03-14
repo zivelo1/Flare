@@ -21,6 +21,9 @@ struct ConversationListView: View {
         .navigationTitle("Flare")
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
+                NavigationLink(value: "broadcast") {
+                    Image(systemName: "megaphone")
+                }
                 NavigationLink(value: "groups") {
                     Image(systemName: "person.3")
                 }
@@ -40,6 +43,8 @@ struct ConversationListView: View {
                 DuressSettingsView(viewModel: settingsVM)
             case "settings-power":
                 PowerSettingsView(viewModel: settingsVM)
+            case "broadcast":
+                BroadcastView(viewModel: viewModel)
             case "groups":
                 GroupListView(viewModel: groupVM)
             case "create-group":

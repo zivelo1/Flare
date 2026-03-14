@@ -17,7 +17,8 @@
 
 ### iOS
 - Xcode 15+ (macOS only)
-- iOS 14.0+ deployment target
+- iOS 16.0+ deployment target
+- xcodegen (`brew install xcodegen`) — generates .xcodeproj from project.yml
 - Physical device required for BLE testing (simulators don't support Bluetooth)
 
 ### Python (tooling)
@@ -75,6 +76,16 @@ Flare/
 │           │   └── util/        # Constants, IdenticonGenerator
 │           └── uniffi/flare_core/ # Auto-generated Kotlin bindings
 ├── ios/                     # iOS app (Swift + SwiftUI)
+│   ├── project.yml          # xcodegen project spec
+│   ├── Flare/
+│   │   ├── Info.plist
+│   │   └── Sources/
+│   │       ├── FlareApp.swift        # App entry point (splash, lock, onboarding)
+│   │       ├── Data/                 # FlareRepository (UniFFI bridge), Models
+│   │       ├── BLE/                  # BLEManager, MeshService, MultipeerManager
+│   │       ├── ViewModels/           # Chat, Contacts, Discovery, Network, Settings, Groups
+│   │       ├── UI/                   # SwiftUI views (Chat, Contacts, Settings, Lock, etc.)
+│   │       └── Util/                 # Constants, IdenticonGenerator, HapticManager
 ├── scripts/
 │   ├── setup-android-toolchain.sh  # One-time toolchain installer (idempotent)
 │   └── build-android.sh            # Cross-compile Rust + generate bindings

@@ -184,15 +184,16 @@ graph TD
         ARGON --> DB
     end
 
-    subgraph "Duress Protection"
-        DURESS[Duress PIN] --> FAKE[(Decoy Database<br/>Fake Messages)]
-        REAL[Real PIN] --> DB
+    subgraph "Destruction Code"
+        UNLOCK[Unlock Code<br/>SHA-256 Hash] --> DB
+        DESTRUCT[Destruction Code<br/>SHA-256 Hash] --> WIPE[Full Data Wipe<br/>Delete DB · Clear Keys · Fresh Identity]
+        BIO[Biometric<br/>Face ID · Fingerprint] --> DB
     end
 
     style MSG fill:#FF6B35,color:#fff
     style ENCRYPT fill:#8B0000,color:#fff
     style DB fill:#2E4053,color:#fff
-    style FAKE fill:#922B21,color:#fff
+    style WIPE fill:#922B21,color:#fff
 ```
 
 ## Power Management Tiers

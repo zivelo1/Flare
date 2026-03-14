@@ -4,6 +4,12 @@ struct ContactsView: View {
     @ObservedObject var viewModel: ContactsViewModel
     @ObservedObject var discoveryVM: DiscoveryViewModel
 
+    @State private var contactToDelete: Contact?
+    @State private var showDeleteConfirmation = false
+    @State private var contactToRename: Contact?
+    @State private var showRenameDialog = false
+    @State private var newContactName = ""
+
     var body: some View {
         Group {
             if viewModel.contacts.isEmpty {
@@ -13,11 +19,62 @@ struct ContactsView: View {
                     NavigationLink(value: contact.identity.deviceId) {
                         ContactRow(contact: contact)
                     }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            contactToDelete = contact
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label(String(localized: "delete_contact_confirm"), systemImage: "trash")
+                        }
+                    }
+                    .contextMenu {
+                        Button {
+                            contactToRename = contact
+                            newContactName = contact.displayName ?? ""
+                            showRenameDialog = true
+                        } label: {
+                            Label(String(localized: "rename_contact_title"), systemImage: "pencil")
+                        }
+
+                        Button(role: .destructive) {
+                            contactToDelete = contact
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label(String(localized: "delete_contact_confirm"), systemImage: "trash")
+                        }
+                    }
                 }
                 .listStyle(.plain)
             }
         }
-        .navigationTitle("Contacts")
+        .navigationTitle(String(localized: "tab_contacts"))
+        .alert(String(localized: "delete_contact_title"), isPresented: $showDeleteConfirmation) {
+            Button(String(localized: "delete_contact_confirm"), role: .destructive) {
+                if let contact = contactToDelete {
+                    viewModel.deleteContact(deviceId: contact.identity.deviceId)
+                }
+                contactToDelete = nil
+            }
+            Button(String(localized: "action_cancel"), role: .cancel) {
+                contactToDelete = nil
+            }
+        } message: {
+            Text(String(localized: "delete_contact_message \(contactToDelete?.displayName ?? contactToDelete?.identity.deviceId.prefix(12).description ?? "")"))
+        }
+        .alert(String(localized: "rename_contact_title"), isPresented: $showRenameDialog) {
+            TextField(String(localized: "rename_contact_hint"), text: $newContactName)
+            Button(String(localized: "action_save")) {
+                if let contact = contactToRename, !newContactName.isEmpty {
+                    viewModel.renameContact(deviceId: contact.identity.deviceId, newName: newContactName)
+                }
+                contactToRename = nil
+                newContactName = ""
+            }
+            Button(String(localized: "action_cancel"), role: .cancel) {
+                contactToRename = nil
+                newContactName = ""
+            }
+        }
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 NavigationLink(value: "find-contact") {

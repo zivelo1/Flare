@@ -30,6 +30,18 @@ final class BLEManager: NSObject, ObservableObject {
     private var peerInfoChar: CBMutableCharacteristic?
     private var subscribedCentrals: [CBCentral] = []
 
+    /// Negotiated MTU per peripheral (central role writes).
+    private var peripheralMTUs: [UUID: Int] = [:]
+
+    /// Negotiated MTU per subscribed central (peripheral role notifies).
+    private var centralMTUs: [UUID: Int] = [:]
+
+    /// Reassembler for incoming chunked data (central role — notifications from peripherals).
+    private let centralReassembler = ChunkReassembler()
+
+    /// Reassembler for incoming chunked data (peripheral role — writes from centrals).
+    private let peripheralReassembler = ChunkReassembler()
+
     /// BLE scan power tiers for adaptive power management.
     /// Maps to CoreBluetooth scan strategies since iOS doesn't expose
     /// direct scan mode control like Android.
@@ -104,28 +116,89 @@ final class BLEManager: NSObject, ObservableObject {
             return false
         }
 
-        peripheral.writeValue(data, for: characteristic, type: .withResponse)
+        let mtu = getMtuForPeripheral(uuid)
+        let chunks = BleChunker.shared.chunk(data, mtu: mtu)
+        guard !chunks.isEmpty else {
+            logger.error("Chunking failed for \(data.count) bytes to \(identifier.prefix(8))")
+            return false
+        }
+
+        if chunks.count > 1 {
+            logger.debug("Chunking \(data.count) bytes into \(chunks.count) chunks for \(identifier.prefix(8)) (MTU=\(mtu))")
+        }
+
+        for chunk in chunks {
+            peripheral.writeValue(chunk, for: characteristic, type: .withResponse)
+        }
         return true
     }
 
     func sendToAllPeers(_ data: Data) -> Int {
         var sent = 0
 
-        // Send via peripheral manager (notify subscribed centrals)
-        if let char = messageNotifyChar, !subscribedCentrals.isEmpty {
-            let success = peripheralManager.updateValue(data, for: char, onSubscribedCentrals: nil)
-            if success { sent += subscribedCentrals.count }
+        // Send via central manager (write to connected peripherals) — reliable path
+        let writePeers = Set(connectedPeripherals.keys)
+        for uuid in writePeers {
+            guard let peripheral = connectedPeripherals[uuid],
+                  let characteristic = writeCharacteristics[uuid] else { continue }
+
+            let mtu = getMtuForPeripheral(uuid)
+            let chunks = BleChunker.shared.chunk(data, mtu: mtu)
+            guard !chunks.isEmpty else { continue }
+
+            for chunk in chunks {
+                peripheral.writeValue(chunk, for: characteristic, type: .withResponse)
+            }
+            sent += 1
         }
 
-        // Send via central manager (write to connected peripherals)
-        for (uuid, peripheral) in connectedPeripherals {
-            if let characteristic = writeCharacteristics[uuid] {
-                peripheral.writeValue(data, for: characteristic, type: .withResponse)
-                sent += 1
+        // Send via peripheral manager (notify) — only to centrals not already reached via write
+        if let char = messageNotifyChar, !subscribedCentrals.isEmpty {
+            let notifyOnlyCentrals = subscribedCentrals.filter { central in
+                !writePeers.contains(central.identifier)
+            }
+            if !notifyOnlyCentrals.isEmpty {
+                // Use the smallest MTU among notify-only centrals for chunking
+                let mtu = notifyOnlyCentrals.map { getMtuForCentral($0.identifier) }.min() ?? Constants.minMTU
+                let chunks = BleChunker.shared.chunk(data, mtu: mtu)
+                guard !chunks.isEmpty else { return sent }
+
+                for chunk in chunks {
+                    let success = peripheralManager.updateValue(chunk, for: char, onSubscribedCentrals: notifyOnlyCentrals)
+                    if !success {
+                        logger.warning("Notify updateValue failed for chunk")
+                    }
+                }
+                sent += notifyOnlyCentrals.count
             }
         }
 
         return sent
+    }
+
+    /// Returns the usable MTU for writing to a peripheral.
+    private func getMtuForPeripheral(_ uuid: UUID) -> Int {
+        if let negotiated = peripheralMTUs[uuid] {
+            return negotiated
+        }
+        // CoreBluetooth: maximumWriteValueLength gives usable payload size
+        if let peripheral = connectedPeripherals[uuid] {
+            let maxWrite = peripheral.maximumWriteValueLength(for: .withResponse)
+            if maxWrite > 0 {
+                let capped = min(maxWrite, Constants.maxCharacteristicValueLength)
+                peripheralMTUs[uuid] = capped
+                return capped
+            }
+        }
+        return Constants.minMTU
+    }
+
+    /// Returns the usable MTU for notifying a central.
+    private func getMtuForCentral(_ uuid: UUID) -> Int {
+        if let negotiated = centralMTUs[uuid] {
+            return negotiated
+        }
+        return Constants.minMTU
     }
 
     func connectedAddresses() -> Set<String> {
@@ -282,6 +355,9 @@ final class BLEManager: NSObject, ObservableObject {
         DispatchQueue.main.async {
             self.discoveredPeers = self.discoveredPeers.filter { $0.value.lastSeen > cutoff }
         }
+        // Clean up incomplete chunk reassembly buffers
+        centralReassembler.pruneStale()
+        peripheralReassembler.pruneStale()
     }
 
     // MARK: - Advertising
@@ -364,6 +440,8 @@ final class BLEManager: NSObject, ObservableObject {
         connectedPeripherals.removeAll()
         writeCharacteristics.removeAll()
         subscribedCentrals.removeAll()
+        peripheralMTUs.removeAll()
+        centralMTUs.removeAll()
     }
 
     // MARK: - Distance Estimation
@@ -426,7 +504,12 @@ extension BLEManager: CBCentralManagerDelegate {
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         let id = peripheral.identifier.uuidString
         connectedPeripherals[peripheral.identifier] = peripheral
-        logger.info("Connected to \(id)")
+
+        // Capture MTU from CoreBluetooth (negotiated automatically on iOS)
+        let maxWrite = peripheral.maximumWriteValueLength(for: .withResponse)
+        let capped = min(maxWrite, Constants.maxCharacteristicValueLength)
+        peripheralMTUs[peripheral.identifier] = capped
+        logger.info("Connected to \(id.prefix(8)) (MTU: \(capped))")
 
         connectionEvents.send(BLEConnectionEvent(identifier: id, connected: true))
         peripheral.discoverServices([Constants.serviceUUID])
@@ -437,7 +520,8 @@ extension BLEManager: CBCentralManagerDelegate {
         connectedPeripherals.removeValue(forKey: peripheral.identifier)
         writeCharacteristics.removeValue(forKey: peripheral.identifier)
         peerInfoCharacteristics.removeValue(forKey: peripheral.identifier)
-        logger.info("Disconnected from \(id)")
+        peripheralMTUs.removeValue(forKey: peripheral.identifier)
+        logger.info("Disconnected from \(id.prefix(8))")
 
         connectionEvents.send(BLEConnectionEvent(identifier: id, connected: false))
 
@@ -493,11 +577,14 @@ extension BLEManager: CBPeripheralDelegate {
 
         switch characteristic.uuid {
         case Constants.charMessageNotifyUUID, Constants.charMessageWriteUUID:
-            logger.debug("Received \(data.count) bytes from \(id)")
-            incomingMessages.send(IncomingBLEMessage(fromIdentifier: id, data: data))
+            logger.debug("BLE_RECV_CENTRAL: \(data.count) bytes from \(id.prefix(8))")
+            if let reassembled = centralReassembler.onDataReceived(data) {
+                logger.info("BLE_RECV_CENTRAL: complete message \(reassembled.count) bytes from \(id.prefix(8))")
+                incomingMessages.send(IncomingBLEMessage(fromIdentifier: id, data: reassembled))
+            }
 
         case Constants.charPeerInfoUUID:
-            logger.debug("Received peer info from \(id)")
+            logger.debug("Received peer info from \(id.prefix(8))")
 
         default:
             break
@@ -530,8 +617,11 @@ extension BLEManager: CBPeripheralManagerDelegate {
             if request.characteristic.uuid == Constants.charMessageWriteUUID,
                let data = request.value {
                 let id = request.central.identifier.uuidString
-                logger.debug("Received write (\(data.count) bytes) from \(id)")
-                incomingMessages.send(IncomingBLEMessage(fromIdentifier: id, data: data))
+                logger.debug("BLE_RECV_PERIPHERAL: write \(data.count) bytes from \(id.prefix(8))")
+                if let reassembled = peripheralReassembler.onDataReceived(data) {
+                    logger.info("BLE_RECV_PERIPHERAL: complete message \(reassembled.count) bytes from \(id.prefix(8))")
+                    incomingMessages.send(IncomingBLEMessage(fromIdentifier: id, data: reassembled))
+                }
             }
             peripheral.respond(to: request, withResult: .success)
         }
@@ -549,14 +639,21 @@ extension BLEManager: CBPeripheralManagerDelegate {
     func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didSubscribeTo characteristic: CBCharacteristic) {
         let id = central.identifier.uuidString
         subscribedCentrals.append(central)
-        logger.info("Central subscribed: \(id)")
+
+        // CBCentral.maximumUpdateValueLength gives the usable characteristic value size
+        let maxUpdate = central.maximumUpdateValueLength
+        let capped = min(maxUpdate, Constants.maxCharacteristicValueLength)
+        centralMTUs[central.identifier] = capped
+        logger.info("Central subscribed: \(id.prefix(8)) (MTU: \(capped))")
+
         connectionEvents.send(BLEConnectionEvent(identifier: id, connected: true))
     }
 
     func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didUnsubscribeFrom characteristic: CBCharacteristic) {
         let id = central.identifier.uuidString
         subscribedCentrals.removeAll { $0.identifier == central.identifier }
-        logger.info("Central unsubscribed: \(id)")
+        centralMTUs.removeValue(forKey: central.identifier)
+        logger.info("Central unsubscribed: \(id.prefix(8))")
         connectionEvents.send(BLEConnectionEvent(identifier: id, connected: false))
     }
 }

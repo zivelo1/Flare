@@ -13,10 +13,13 @@
 		1733A79AAC9A86CAF69935A3 /* DiscoveryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53BD2AFD5C70654941168B4F /* DiscoveryViewModel.swift */; };
 		18103D007D46A5F4BE710FCC /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F068F9EE5B4CD3575EDE115B /* OnboardingView.swift */; };
 		183D0E1D3C087A6C3DE26F01 /* PhoneSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D564D76EE454C15190904672 /* PhoneSearchView.swift */; };
+		2605BD0776C2EBB3125A5AD5 /* DestructionCodeSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BED987AACCF4DF795CE7A3E /* DestructionCodeSetupView.swift */; };
+		2959BFECE39B63418C607A2D /* BleChunker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39FA38D57E24C2278B7EC58A /* BleChunker.swift */; };
 		2AF0474EA749C0466453078E /* GroupViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4E900130729265D2D042333 /* GroupViewModel.swift */; };
 		348DB3166C963312EB654FE3 /* FlareIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C05D6D47C80857CC5402DC86 /* FlareIconView.swift */; };
 		4B2381555F07B2ADC08420ED /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B85FFDBE506848902779FB6 /* SplashView.swift */; };
 		4B5CCF728ECC50C4121AD7F5 /* SharedPhraseSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1907ACDE19F45D853BAC2F7C /* SharedPhraseSearchView.swift */; };
+		59D7C994D3C3369A0B5118CF /* LockScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4F420B8685F78A555407169 /* LockScreenView.swift */; };
 		5B0143E36410183746421493 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7852FE632D15E0AE4D0143 /* Models.swift */; };
 		640D0534D651B377202AC431 /* CreateGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887D3320DC05E87277B8C623 /* CreateGroupView.swift */; };
 		67B9A71E0E0E12A5E50916CF /* ContactsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE59CAB64F7401A730F12B39 /* ContactsViewModel.swift */; };
@@ -30,9 +33,11 @@
 		864F08FA91A6F34F8D28EEFA /* FlareRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F8416D775203AB9D89D29C /* FlareRepository.swift */; };
 		8985A951F37BA4D2E8FA553E /* VoiceRecordButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA3A7D595F8211F54482B7C /* VoiceRecordButton.swift */; };
 		89F193544F5BC312B4B368BB /* NetworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDECFA004255B02C0215EBED /* NetworkView.swift */; };
+		8CB3BC545BAEBAAC13C3C153 /* ChunkReassembler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9773FF8B660A46A91999A8C /* ChunkReassembler.swift */; };
 		8FE1B5588C4BED3026C90125 /* DuressSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0178DA1855BBB4D54732FD4D /* DuressSettingsView.swift */; };
 		A63A66400A6CF980D829BE0F /* PowerSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2AE244B7836CFF9F9B49DA0 /* PowerSettingsView.swift */; };
 		A95AED91D9D02BF008DB54B9 /* NetworkViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F253B04C2657DF9396722F55 /* NetworkViewModel.swift */; };
+		AD707AED295D84CFAB633FDB /* BroadcastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4526813A7A146C2311B05CD /* BroadcastView.swift */; };
 		AEB741F8039DA173F9FCC675 /* FindContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739C2998A79C43807C6D8C16 /* FindContactView.swift */; };
 		B960D36BC7077D3629AE69A5 /* MultipeerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8FEA6B4C820781D9CA833C0 /* MultipeerManager.swift */; };
 		C38E2B1464EDA86B5F0C8FF3 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047E1DEA9A8310FDD0041076 /* SettingsView.swift */; };
@@ -62,6 +67,7 @@
 		1C7852FE632D15E0AE4D0143 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		2AA3A7D595F8211F54482B7C /* VoiceRecordButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRecordButton.swift; sourceTree = "<group>"; };
 		3806FD82CE3CEA905A0F36D0 /* ContactsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsView.swift; sourceTree = "<group>"; };
+		39FA38D57E24C2278B7EC58A /* BleChunker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BleChunker.swift; sourceTree = "<group>"; };
 		39FF7D927403A8CBD70F274D /* MeshVisualizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshVisualizationView.swift; sourceTree = "<group>"; };
 		42D8694C1CCC150643877B9E /* FlareApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlareApp.swift; sourceTree = "<group>"; };
 		430A39C7CAF5216BC66DDA3C /* IdenticonGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdenticonGenerator.swift; sourceTree = "<group>"; };
@@ -73,14 +79,18 @@
 		7B85FFDBE506848902779FB6 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		887D3320DC05E87277B8C623 /* CreateGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupView.swift; sourceTree = "<group>"; };
 		9ADE4461016628454408F39F /* ImageCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCaptureView.swift; sourceTree = "<group>"; };
+		9BED987AACCF4DF795CE7A3E /* DestructionCodeSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestructionCodeSetupView.swift; sourceTree = "<group>"; };
 		9C992931A4F4DA0BCC3ADA61 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		A4F420B8685F78A555407169 /* LockScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenView.swift; sourceTree = "<group>"; };
 		A54C4A6E1CC3B09770EE4B1A /* Flare.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Flare.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A9773FF8B660A46A91999A8C /* ChunkReassembler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChunkReassembler.swift; sourceTree = "<group>"; };
 		AFA583F6900013D7F9B47E76 /* QRDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRDisplayView.swift; sourceTree = "<group>"; };
 		B2904FC41F1F664AFEBFBB66 /* AudioWaveformView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioWaveformView.swift; sourceTree = "<group>"; };
 		B2AE244B7836CFF9F9B49DA0 /* PowerSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerSettingsView.swift; sourceTree = "<group>"; };
 		BE59CAB64F7401A730F12B39 /* ContactsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsViewModel.swift; sourceTree = "<group>"; };
 		C05D6D47C80857CC5402DC86 /* FlareIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlareIconView.swift; sourceTree = "<group>"; };
 		C503BC8D1D391F06EBF1F9DA /* ConversationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationListView.swift; sourceTree = "<group>"; };
+		D4526813A7A146C2311B05CD /* BroadcastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastView.swift; sourceTree = "<group>"; };
 		D564D76EE454C15190904672 /* PhoneSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneSearchView.swift; sourceTree = "<group>"; };
 		DDECFA004255B02C0215EBED /* NetworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkView.swift; sourceTree = "<group>"; };
 		E9818E90CB715FD8F6B093B3 /* GroupListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupListView.swift; sourceTree = "<group>"; };
@@ -99,6 +109,7 @@
 				124311CEC9E33EC1B3B0B439 /* Components */,
 				BC986C50BC5DDA92D0B8FE60 /* Contacts */,
 				22A44CF999A595EBEF56FFE2 /* Groups */,
+				2D9A0B12EBC18D485639E464 /* Lock */,
 				B2C3DBA81F335136FB0ED78B /* Navigation */,
 				53D78CED0AA297BA7E4CEAC8 /* Network */,
 				62A3CB3248A7DA188527C387 /* Onboarding */,
@@ -133,6 +144,14 @@
 			path = Groups;
 			sourceTree = "<group>";
 		};
+		2D9A0B12EBC18D485639E464 /* Lock */ = {
+			isa = PBXGroup;
+			children = (
+				A4F420B8685F78A555407169 /* LockScreenView.swift */,
+			);
+			path = Lock;
+			sourceTree = "<group>";
+		};
 		33B82DF2A86F95184CAFCFE3 = {
 			isa = PBXGroup;
 			children = (
@@ -145,7 +164,9 @@
 		3887822C17015E63FB608BEF /* BLE */ = {
 			isa = PBXGroup;
 			children = (
+				39FA38D57E24C2278B7EC58A /* BleChunker.swift */,
 				14313A0DACD856023840054B /* BLEManager.swift */,
+				A9773FF8B660A46A91999A8C /* ChunkReassembler.swift */,
 				19CC5CF3C860DEC64E3921F8 /* MeshService.swift */,
 				F8FEA6B4C820781D9CA833C0 /* MultipeerManager.swift */,
 			);
@@ -256,6 +277,7 @@
 			isa = PBXGroup;
 			children = (
 				B2904FC41F1F664AFEBFBB66 /* AudioWaveformView.swift */,
+				D4526813A7A146C2311B05CD /* BroadcastView.swift */,
 				9C992931A4F4DA0BCC3ADA61 /* ChatView.swift */,
 				C503BC8D1D391F06EBF1F9DA /* ConversationListView.swift */,
 				9ADE4461016628454408F39F /* ImageCaptureView.swift */,
@@ -268,6 +290,7 @@
 		E837E7A091E796B28DD9A96F /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				9BED987AACCF4DF795CE7A3E /* DestructionCodeSetupView.swift */,
 				0178DA1855BBB4D54732FD4D /* DuressSettingsView.swift */,
 				DDECFA004255B02C0215EBED /* NetworkView.swift */,
 				B2AE244B7836CFF9F9B49DA0 /* PowerSettingsView.swift */,
@@ -306,7 +329,7 @@
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					AAEFF2D6694AA197C07481DA = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = DAH43ZMMA4;
 					};
 				};
 			};
@@ -336,13 +359,17 @@
 			files = (
 				76446C41E7C2528537B713D0 /* AudioWaveformView.swift in Sources */,
 				F55F6FB3C6D70CB4D97704AF /* BLEManager.swift in Sources */,
+				2959BFECE39B63418C607A2D /* BleChunker.swift in Sources */,
+				AD707AED295D84CFAB633FDB /* BroadcastView.swift in Sources */,
 				10DE3BFE91097C97A338E07F /* ChatView.swift in Sources */,
 				71F92FDA231DDD9ECA1424D3 /* ChatViewModel.swift in Sources */,
+				8CB3BC545BAEBAAC13C3C153 /* ChunkReassembler.swift in Sources */,
 				0FD767B073E58D0AD98B71ED /* Constants.swift in Sources */,
 				EF84A739F7D99D534E90A758 /* ContactsView.swift in Sources */,
 				67B9A71E0E0E12A5E50916CF /* ContactsViewModel.swift in Sources */,
 				D292B225D645C15059D19234 /* ConversationListView.swift in Sources */,
 				640D0534D651B377202AC431 /* CreateGroupView.swift in Sources */,
+				2605BD0776C2EBB3125A5AD5 /* DestructionCodeSetupView.swift in Sources */,
 				1733A79AAC9A86CAF69935A3 /* DiscoveryViewModel.swift in Sources */,
 				8FE1B5588C4BED3026C90125 /* DuressSettingsView.swift in Sources */,
 				AEB741F8039DA173F9FCC675 /* FindContactView.swift in Sources */,
@@ -355,6 +382,7 @@
 				F503584178FDB623567150DA /* IdenticonGenerator.swift in Sources */,
 				6C715B212F474EE1C5C9CF4D /* ImageCaptureView.swift in Sources */,
 				85B61EE2DAFFD9584B9FF1FE /* ImagePreviewSheet.swift in Sources */,
+				59D7C994D3C3369A0B5118CF /* LockScreenView.swift in Sources */,
 				F14BB15062BBE1D366F694AE /* MainTabView.swift in Sources */,
 				0077806F0C68DB9E946B5817 /* MeshService.swift in Sources */,
 				D20BA4C1D6D2A1E67D5AC5E7 /* MeshVisualizationView.swift in Sources */,
@@ -414,7 +442,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = DAH43ZMMA4;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -531,7 +559,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = DAH43ZMMA4;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;

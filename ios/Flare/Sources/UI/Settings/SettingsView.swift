@@ -2,26 +2,42 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
+    @AppStorage(Constants.prefsKeyDisplayName) private var displayName: String = ""
 
     var body: some View {
         List {
+            profileSection
             securitySection
             batterySection
             storageSection
             deviceSection
             aboutSection
         }
-        .navigationTitle("Settings")
+        .navigationTitle(String(localized: "settings_title"))
+    }
+
+    // MARK: - Profile
+
+    private var profileSection: some View {
+        Section(String(localized: "settings_section_profile")) {
+            HStack {
+                Label(String(localized: "profile_name_label"), systemImage: "person")
+                Spacer()
+                TextField(String(localized: "profile_name_hint"), text: $displayName)
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.primary)
+            }
+        }
     }
 
     // MARK: - Security
 
     private var securitySection: some View {
-        Section("Security") {
+        Section(String(localized: "settings_section_security")) {
             NavigationLink {
-                DuressSettingsView(viewModel: viewModel)
+                DestructionCodeSetupView()
             } label: {
-                Label("Duress PIN", systemImage: "lock.shield")
+                Label(String(localized: "destruction_title"), systemImage: "lock.shield")
             }
         }
     }
@@ -29,11 +45,11 @@ struct SettingsView: View {
     // MARK: - Battery & Performance
 
     private var batterySection: some View {
-        Section("Battery & Performance") {
+        Section(String(localized: "settings_section_battery")) {
             NavigationLink {
                 PowerSettingsView(viewModel: viewModel)
             } label: {
-                Label("Power Management", systemImage: "battery.75percent")
+                Label(String(localized: "settings_power_title"), systemImage: "battery.75percent")
             }
         }
     }
@@ -41,7 +57,7 @@ struct SettingsView: View {
     // MARK: - Storage
 
     private var storageSection: some View {
-        Section("Storage") {
+        Section(String(localized: "settings_section_storage")) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 16) {
                     Image(systemName: "internaldrive")
@@ -106,9 +122,9 @@ struct SettingsView: View {
     // MARK: - Device
 
     private var deviceSection: some View {
-        Section("Device") {
+        Section(String(localized: "settings_section_device")) {
             HStack {
-                Label("Device ID", systemImage: "cpu")
+                Label(String(localized: "settings_device_id"), systemImage: "cpu")
                 Spacer()
                 Text(String(viewModel.deviceId.prefix(12)) + "...")
                     .font(.caption.monospaced())
@@ -116,7 +132,7 @@ struct SettingsView: View {
             }
 
             HStack {
-                Label("Safety Number", systemImage: "checkmark.shield")
+                Label(String(localized: "settings_safety_number"), systemImage: "checkmark.shield")
                 Spacer()
                 Text(viewModel.safetyNumber)
                     .font(.caption.monospaced())
@@ -128,19 +144,27 @@ struct SettingsView: View {
     // MARK: - About
 
     private var aboutSection: some View {
-        Section("About") {
+        Section(String(localized: "settings_section_about")) {
             HStack {
                 Label("Flare", systemImage: "flame")
                 Spacer()
-                Text("Mesh Messenger")
+                Text(String(localized: "settings_about_subtitle"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
 
             HStack {
-                Label("License", systemImage: "doc.text")
+                Label(String(localized: "settings_version"), systemImage: "info.circle")
                 Spacer()
-                Text("GPLv3")
+                Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            HStack {
+                Label(String(localized: "settings_open_source"), systemImage: "doc.text")
+                Spacer()
+                Text(String(localized: "settings_license"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }

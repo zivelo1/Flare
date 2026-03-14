@@ -574,6 +574,13 @@ public protocol FlareNodeProtocol : AnyObject {
     func addTrustedDeveloperKey(publicKey: Data) throws 
     
     /**
+     * Builds a broadcast mesh message (sent to all peers).
+     * The payload is NOT encrypted — broadcasts are signed but readable by all.
+     * content_type: same as build_mesh_message.
+     */
+    func buildBroadcastMessage(plaintextPayload: Data, contentType: UInt8) throws  -> FfiMeshMessage
+    
+    /**
      * Sends a group message by encrypting it individually for each member.
      * Returns the serialized mesh messages (one per member, excluding self).
      */
@@ -661,6 +668,12 @@ public protocol FlareNodeProtocol : AnyObject {
      * Returns the plaintext string, or None if decryption fails.
      */
     func decryptIncomingMessage(senderDeviceId: String, senderAgreementKey: Data, encryptedData: Data) throws  -> String?
+    
+    /**
+     * Deletes a contact and all associated data (conversation, messages).
+     * Returns true if the contact was found and deleted, false if not found.
+     */
+    func deleteContact(deviceId: String) throws  -> Bool
     
     /**
      * Encrypts a plaintext message for a group using sender keys.
@@ -921,6 +934,12 @@ public protocol FlareNodeProtocol : AnyObject {
     func trustedDeveloperKeyCount()  -> UInt32
     
     /**
+     * Updates the display name of an existing contact.
+     * Returns true if the contact was found and updated, false if not found.
+     */
+    func updateContactDisplayName(deviceId: String, displayName: String) throws  -> Bool
+    
+    /**
      * Updates the delivery status of a stored message.
      */
     func updateDeliveryStatus(messageId: String, status: UInt8) throws 
@@ -1092,6 +1111,20 @@ open func addTrustedDeveloperKey(publicKey: Data)throws  {try rustCallWithError(
         FfiConverterData.lower(publicKey),$0
     )
 }
+}
+    
+    /**
+     * Builds a broadcast mesh message (sent to all peers).
+     * The payload is NOT encrypted — broadcasts are signed but readable by all.
+     * content_type: same as build_mesh_message.
+     */
+open func buildBroadcastMessage(plaintextPayload: Data, contentType: UInt8)throws  -> FfiMeshMessage {
+    return try  FfiConverterTypeFfiMeshMessage.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_build_broadcast_message(self.uniffiClonePointer(),
+        FfiConverterData.lower(plaintextPayload),
+        FfiConverterUInt8.lower(contentType),$0
+    )
+})
 }
     
     /**
@@ -1277,6 +1310,18 @@ open func decryptIncomingMessage(senderDeviceId: String, senderAgreementKey: Dat
         FfiConverterString.lower(senderDeviceId),
         FfiConverterData.lower(senderAgreementKey),
         FfiConverterData.lower(encryptedData),$0
+    )
+})
+}
+    
+    /**
+     * Deletes a contact and all associated data (conversation, messages).
+     * Returns true if the contact was found and deleted, false if not found.
+     */
+open func deleteContact(deviceId: String)throws  -> Bool {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_delete_contact(self.uniffiClonePointer(),
+        FfiConverterString.lower(deviceId),$0
     )
 })
 }
@@ -1791,6 +1836,19 @@ open func storeChatMessage(message: FfiChatMessage)throws  {try rustCallWithErro
 open func trustedDeveloperKeyCount() -> UInt32 {
     return try!  FfiConverterUInt32.lift(try! rustCall() {
     uniffi_flare_core_fn_method_flarenode_trusted_developer_key_count(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+    /**
+     * Updates the display name of an existing contact.
+     * Returns true if the contact was found and updated, false if not found.
+     */
+open func updateContactDisplayName(deviceId: String, displayName: String)throws  -> Bool {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeFlareError.lift) {
+    uniffi_flare_core_fn_method_flarenode_update_contact_display_name(self.uniffiClonePointer(),
+        FfiConverterString.lower(deviceId),
+        FfiConverterString.lower(displayName),$0
     )
 })
 }
@@ -2349,6 +2407,10 @@ public struct FfiMeshMessage {
     public var hopCount: UInt8
     public var maxHops: UInt8
     /**
+     * Content type: 1=Text, 2=Voice, 3=Image, 4=KeyExchange, 5=ACK, 6=ReadReceipt
+     */
+    public var contentType: UInt8
+    /**
      * The encrypted payload bytes from the mesh message envelope.
      * Pass this to decrypt_incoming_message() — NOT the full serialized frame.
      */
@@ -2357,6 +2419,9 @@ public struct FfiMeshMessage {
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
     public init(serialized: Data, messageId: String, senderId: String, recipientId: String, hopCount: UInt8, maxHops: UInt8, 
+        /**
+         * Content type: 1=Text, 2=Voice, 3=Image, 4=KeyExchange, 5=ACK, 6=ReadReceipt
+         */contentType: UInt8, 
         /**
          * The encrypted payload bytes from the mesh message envelope.
          * Pass this to decrypt_incoming_message() — NOT the full serialized frame.
@@ -2367,6 +2432,7 @@ public struct FfiMeshMessage {
         self.recipientId = recipientId
         self.hopCount = hopCount
         self.maxHops = maxHops
+        self.contentType = contentType
         self.payload = payload
     }
 }
@@ -2393,6 +2459,9 @@ extension FfiMeshMessage: Equatable, Hashable {
         if lhs.maxHops != rhs.maxHops {
             return false
         }
+        if lhs.contentType != rhs.contentType {
+            return false
+        }
         if lhs.payload != rhs.payload {
             return false
         }
@@ -2406,6 +2475,7 @@ extension FfiMeshMessage: Equatable, Hashable {
         hasher.combine(recipientId)
         hasher.combine(hopCount)
         hasher.combine(maxHops)
+        hasher.combine(contentType)
         hasher.combine(payload)
     }
 }
@@ -2424,6 +2494,7 @@ public struct FfiConverterTypeFfiMeshMessage: FfiConverterRustBuffer {
                 recipientId: FfiConverterString.read(from: &buf), 
                 hopCount: FfiConverterUInt8.read(from: &buf), 
                 maxHops: FfiConverterUInt8.read(from: &buf), 
+                contentType: FfiConverterUInt8.read(from: &buf), 
                 payload: FfiConverterData.read(from: &buf)
         )
     }
@@ -2435,6 +2506,7 @@ public struct FfiConverterTypeFfiMeshMessage: FfiConverterRustBuffer {
         FfiConverterString.write(value.recipientId, into: &buf)
         FfiConverterUInt8.write(value.hopCount, into: &buf)
         FfiConverterUInt8.write(value.maxHops, into: &buf)
+        FfiConverterUInt8.write(value.contentType, into: &buf)
         FfiConverterData.write(value.payload, into: &buf)
     }
 }
@@ -3120,6 +3192,7 @@ public enum FfiRouteDecision {
     case dropTtlInflation
     case dropHopCountDecrease
     case dropSenderRateLimit
+    case dropParseError
 }
 
 
@@ -3152,6 +3225,8 @@ public struct FfiConverterTypeFfiRouteDecision: FfiConverterRustBuffer {
         case 9: return .dropHopCountDecrease
         
         case 10: return .dropSenderRateLimit
+        
+        case 11: return .dropParseError
         
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -3199,6 +3274,10 @@ public struct FfiConverterTypeFfiRouteDecision: FfiConverterRustBuffer {
         
         case .dropSenderRateLimit:
             writeInt(&buf, Int32(10))
+        
+        
+        case .dropParseError:
+            writeInt(&buf, Int32(11))
         
         }
     }
@@ -3714,6 +3793,9 @@ private var initializationResult: InitializationResult = {
     if (uniffi_flare_core_checksum_method_flarenode_add_trusted_developer_key() != 54447) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_flare_core_checksum_method_flarenode_build_broadcast_message() != 54817) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_flare_core_checksum_method_flarenode_build_group_messages() != 30329) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -3757,6 +3839,9 @@ private var initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_decrypt_incoming_message() != 50281) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_delete_contact() != 34780) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_encrypt_group_sender_key() != 61848) {
@@ -3895,6 +3980,9 @@ private var initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_trusted_developer_key_count() != 38597) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_flare_core_checksum_method_flarenode_update_contact_display_name() != 14839) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_flare_core_checksum_method_flarenode_update_delivery_status() != 16495) {

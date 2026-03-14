@@ -214,3 +214,23 @@
 - 5x5 horizontally-symmetric boolean grid pattern from hash bytes
 - 1-2 character initials from display name (or device ID prefix as fallback)
 - Implemented identically on Android (`IdenticonGenerator.kt`) and iOS (`IdenticonGenerator.swift`)
+
+## ADR-025: Destruction Code Architecture (Cross-Platform)
+**Date:** 2026-03-14
+**Decision:** Replace the non-functional Rust-side duress PIN with a platform-native destruction code system using SHA-256 hashed codes in platform preferences (SharedPreferences on Android, UserDefaults on iOS).
+
+**Rationale:** The original duress PIN stored an Argon2id hash in the Rust encrypted database, but this created a circular dependency — you need to unlock the database to check the duress code, but the duress code should be checkable before database access. Moving code verification to platform-native storage (pre-database layer) resolves this.
+
+**Mechanism:**
+- Two codes: **unlock code** (opens normally) + **destruction code** (triggers full data wipe)
+- Codes stored as SHA-256 hashes in platform preferences (never plaintext)
+- Biometric authentication (Face ID/Touch ID on iOS, BiometricPrompt on Android) as primary unlock
+- Manual code entry as fallback
+- **Data wipe sequence:** stop mesh service → clear preferences → delete encrypted database files (including WAL/SHM) → delete keychain/keystore passphrase → reinitialize with fresh identity → restart mesh service
+- Lock screen gates app entry at the top level (before onboarding/main UI)
+
+**Security properties:**
+- No plaintext codes stored anywhere
+- Wipe is irrecoverable — fresh identity generated, all messages and contacts destroyed
+- Biometric + code entry provides two authentication paths
+- Destruction appears identical to a fresh install (no forensic evidence of prior data)

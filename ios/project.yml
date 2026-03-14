@@ -8,7 +8,7 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.9"
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: "DAH43ZMMA4"
 
 targets:
   Flare:
@@ -49,8 +49,10 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         NSBluetoothAlwaysUsageDescription: "Flare uses Bluetooth to send and receive encrypted messages through the mesh network."
         NSBluetoothPeripheralUsageDescription: "Flare uses Bluetooth to relay encrypted messages to nearby devices."
-        NSCameraUsageDescription: "Flare uses the camera to scan QR codes for adding contacts securely."
+        NSCameraUsageDescription: "Flare uses the camera to scan QR codes and capture photos for sending."
+        NSMicrophoneUsageDescription: "Flare uses the microphone to record voice messages."
         NSContactsUsageDescription: "Flare can use your contacts to find friends who also use Flare, using privacy-preserving tokens that never leave your device."
+        NSFaceIDUsageDescription: "Flare uses Face ID to unlock the app securely."
         UIBackgroundModes:
           - bluetooth-central
           - bluetooth-peripheral

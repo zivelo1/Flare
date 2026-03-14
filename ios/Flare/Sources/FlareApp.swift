@@ -4,37 +4,63 @@ import SwiftUI
 struct FlareApp: App {
     @StateObject private var appState = AppState()
     @AppStorage("onboarding_complete") private var onboardingComplete = false
+    @AppStorage(Constants.prefsKeyUnlockCodeHash) private var unlockCodeHash = ""
+    @AppStorage(Constants.prefsKeyDestructionCodeHash) private var destructionCodeHash = ""
     @State private var splashFinished = false
+    @State private var isUnlocked = false
     @State private var deepLinkMessage: String?
+
+    /// Whether a destruction code is configured (lock screen required).
+    private var isLockConfigured: Bool {
+        !unlockCodeHash.isEmpty && !destructionCodeHash.isEmpty
+    }
 
     var body: some Scene {
         WindowGroup {
-            if !splashFinished {
-                SplashView(isFinished: $splashFinished)
-            } else if !appState.isInitialized {
-                ProgressView("Initializing Flare…")
-                    .task {
-                        await appState.initialize()
-                    }
-            } else if !onboardingComplete {
-                OnboardingView()
-            } else {
-                MainTabView()
-                    .environmentObject(appState)
-                    .overlay(alignment: .bottom) {
-                        if let message = deepLinkMessage {
-                            DeepLinkToast(message: message)
-                                .onAppear {
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                                        deepLinkMessage = nil
-                                    }
-                                }
+            Group {
+                if !splashFinished {
+                    SplashView(isFinished: $splashFinished)
+                } else if !appState.isInitialized {
+                    ProgressView("Initializing Flare…")
+                        .task {
+                            await appState.initialize()
                         }
-                    }
+                } else if isLockConfigured && !isUnlocked {
+                    LockScreenView(
+                        unlockCodeHash: unlockCodeHash,
+                        destructionCodeHash: destructionCodeHash,
+                        onUnlocked: {
+                            isUnlocked = true
+                        },
+                        onDestruction: {
+                            do {
+                                try FlareRepository.shared.wipeAndReinitialize()
+                            } catch {
+                                print("Wipe failed: \(error)")
+                            }
+                            isUnlocked = true
+                        }
+                    )
+                } else if !onboardingComplete {
+                    OnboardingView()
+                } else {
+                    MainTabView()
+                        .environmentObject(appState)
+                        .overlay(alignment: .bottom) {
+                            if let message = deepLinkMessage {
+                                DeepLinkToast(message: message)
+                                    .onAppear {
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                                            deepLinkMessage = nil
+                                        }
+                                    }
+                            }
+                        }
+                }
             }
-        }
-        .onOpenURL { url in
-            handleDeepLink(url)
+            .onOpenURL { url in
+                handleDeepLink(url)
+            }
         }
     }
 
@@ -44,8 +70,8 @@ struct FlareApp: App {
         let contactsVM = ContactsViewModel()
         let success = contactsVM.addContactFromLink(url)
         deepLinkMessage = success
-            ? "Contact added from shared link"
-            : "Invalid Flare identity link"
+            ? String(localized: "deep_link_contact_added")
+            : String(localized: "deep_link_invalid")
     }
 }
 

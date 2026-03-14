@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 struct ChatView: View {
     let conversationId: String
@@ -73,9 +74,10 @@ struct ChatView: View {
                 ImagePreviewSheet(
                     image: image,
                     onSend: {
+                        let imageToSend = image
                         showImagePreview = false
                         capturedImage = nil
-                        viewModel.sendMessage(conversationId: conversationId, text: "[Photo]")
+                        viewModel.sendImageMessage(conversationId: conversationId, image: imageToSend)
                     },
                     onCancel: {
                         showImagePreview = false
@@ -105,7 +107,6 @@ struct ChatView: View {
 
     private var messageInputBar: some View {
         HStack(spacing: 8) {
-            // Camera button
             Button {
                 HapticManager.buttonTap()
                 ImageCaptureView.checkCameraPermission { granted in
@@ -129,7 +130,7 @@ struct ChatView: View {
 
             if messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 VoiceRecordButton { fileURL in
-                    viewModel.sendMessage(conversationId: conversationId, text: "[Voice Message]")
+                    viewModel.sendVoiceMessage(conversationId: conversationId, audioURL: fileURL)
                 }
             } else {
                 Button {
@@ -166,6 +167,8 @@ struct ChatView: View {
     }
 }
 
+// MARK: - Message Bubble with Media Support
+
 struct MessageBubble: View {
     let message: ChatMessage
 
@@ -174,14 +177,11 @@ struct MessageBubble: View {
             if message.isOutgoing { Spacer(minLength: 60) }
 
             VStack(alignment: message.isOutgoing ? .trailing : .leading, spacing: 2) {
-                Text(message.content)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
+                bubbleContent
                     .background(
                         message.isOutgoing ? Color.accentColor : Color(.systemGray5),
                         in: RoundedRectangle(cornerRadius: 16)
                     )
-                    .foregroundStyle(message.isOutgoing ? .white : .primary)
 
                 HStack(spacing: 4) {
                     Text(message.timestamp, style: .time)
@@ -195,6 +195,61 @@ struct MessageBubble: View {
             }
 
             if !message.isOutgoing { Spacer(minLength: 60) }
+        }
+    }
+
+    @ViewBuilder
+    private var bubbleContent: some View {
+        if message.content.hasPrefix(Constants.mediaPrefixImage) {
+            imageBubble
+        } else if message.content.hasPrefix(Constants.mediaPrefixVoice) {
+            voiceBubble
+        } else {
+            Text(message.content)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .foregroundStyle(message.isOutgoing ? .white : .primary)
+        }
+    }
+
+    @ViewBuilder
+    private var imageBubble: some View {
+        let base64String = String(message.content.dropFirst(Constants.mediaPrefixImage.count))
+        if let imageData = Data(base64Encoded: base64String),
+           let uiImage = UIImage(data: imageData) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: 220)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+        } else {
+            // Sent image — only prefix stored locally, no Base64 data
+            HStack(spacing: 6) {
+                Image(systemName: "photo")
+                Text("Photo")
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .foregroundStyle(message.isOutgoing ? .white : .primary)
+        }
+    }
+
+    @ViewBuilder
+    private var voiceBubble: some View {
+        let base64String = String(message.content.dropFirst(Constants.mediaPrefixVoice.count))
+        if !base64String.isEmpty, let audioData = Data(base64Encoded: base64String) {
+            VoiceMessagePlayer(audioData: audioData, isOutgoing: message.isOutgoing)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+        } else {
+            // Sent voice — only prefix stored locally
+            HStack(spacing: 6) {
+                Image(systemName: "waveform")
+                Text("Voice Message")
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .foregroundStyle(message.isOutgoing ? .white : .primary)
         }
     }
 
@@ -222,5 +277,113 @@ struct MessageBubble: View {
                 .font(.caption2)
                 .foregroundStyle(.red)
         }
+    }
+}
+
+// MARK: - Voice Message Playback
+
+struct VoiceMessagePlayer: View {
+    let audioData: Data
+    let isOutgoing: Bool
+
+    @StateObject private var player = AudioPlayerModel()
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Button {
+                if player.isPlaying {
+                    player.stop()
+                } else {
+                    player.play(data: audioData)
+                }
+            } label: {
+                Image(systemName: player.isPlaying ? "stop.fill" : "play.fill")
+                    .font(.system(size: 18))
+                    .foregroundStyle(isOutgoing ? .white : .primary)
+                    .frame(width: 28, height: 28)
+            }
+
+            // Simple progress bar
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(isOutgoing ? Color.white.opacity(0.3) : Color(.systemGray3))
+                        .frame(height: 4)
+
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(isOutgoing ? Color.white : Constants.flareOrange)
+                        .frame(width: geo.size.width * player.progress, height: 4)
+                }
+                .frame(maxHeight: .infinity, alignment: .center)
+            }
+            .frame(maxWidth: 120, maxHeight: 20)
+
+            Text(player.durationString)
+                .font(.system(.caption2, design: .monospaced))
+                .foregroundStyle(isOutgoing ? .white.opacity(0.7) : .secondary)
+        }
+    }
+}
+
+@MainActor
+final class AudioPlayerModel: ObservableObject {
+    @Published var isPlaying = false
+    @Published var progress: CGFloat = 0
+    @Published var durationString = "0:00"
+
+    private var audioPlayer: AVAudioPlayer?
+    private var progressTimer: Timer?
+
+    func play(data: Data) {
+        stop()
+
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .default)
+            try session.setActive(true)
+
+            audioPlayer = try AVAudioPlayer(data: data)
+            audioPlayer?.prepareToPlay()
+            audioPlayer?.play()
+            isPlaying = true
+
+            updateDuration()
+            progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+                Task { @MainActor in
+                    self?.updateProgress()
+                }
+            }
+        } catch {
+            isPlaying = false
+        }
+    }
+
+    func stop() {
+        audioPlayer?.stop()
+        audioPlayer = nil
+        isPlaying = false
+        progress = 0
+        progressTimer?.invalidate()
+        progressTimer = nil
+    }
+
+    private func updateProgress() {
+        guard let player = audioPlayer else {
+            stop()
+            return
+        }
+        if !player.isPlaying {
+            stop()
+            return
+        }
+        let duration = player.duration
+        guard duration > 0 else { return }
+        progress = CGFloat(player.currentTime / duration)
+    }
+
+    private func updateDuration() {
+        guard let player = audioPlayer else { return }
+        let seconds = Int(player.duration)
+        durationString = "\(seconds / 60):\(String(format: "%02d", seconds % 60))"
     }
 }

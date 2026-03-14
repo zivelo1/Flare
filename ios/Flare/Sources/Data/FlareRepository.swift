@@ -1,5 +1,15 @@
 import Foundation
 import Combine
+import UIKit
+
+enum FlareMediaError: Error {
+    case imageCompressionFailed
+    case audioFileReadFailed
+}
+
+enum FlareRepositoryError: Error {
+    case invalidInput
+}
 
 enum RouteDecisionType {
     case deliverLocally
@@ -74,6 +84,56 @@ final class FlareRepository: @unchecked Sendable {
         recipientAgreementKey: Data,
         plaintext: String
     ) throws -> Data {
+        try sendMessageInternal(
+            recipientDeviceId: recipientDeviceId,
+            recipientAgreementKey: recipientAgreementKey,
+            plaintext: plaintext,
+            contentType: Constants.contentTypeText
+        )
+    }
+
+    /// Sends a voice message. The audio data is Base64-encoded and prefixed.
+    func sendVoiceMessage(
+        recipientDeviceId: String,
+        recipientAgreementKey: Data,
+        audioData: Data
+    ) throws -> Data {
+        let base64 = audioData.base64EncodedString()
+        let plaintext = Constants.mediaPrefixVoice + base64
+        return try sendMessageInternal(
+            recipientDeviceId: recipientDeviceId,
+            recipientAgreementKey: recipientAgreementKey,
+            plaintext: plaintext,
+            contentType: Constants.contentTypeVoiceMessage
+        )
+    }
+
+    /// Sends an image message. The image is resized, compressed, Base64-encoded, and prefixed.
+    func sendImageMessage(
+        recipientDeviceId: String,
+        recipientAgreementKey: Data,
+        image: UIImage
+    ) throws -> Data {
+        let resized = Self.resizeImage(image, maxDimension: Constants.imageMaxDimension)
+        guard let jpegData = resized.jpegData(compressionQuality: Constants.imageCompressQuality) else {
+            throw FlareMediaError.imageCompressionFailed
+        }
+        let base64 = jpegData.base64EncodedString()
+        let plaintext = Constants.mediaPrefixImage + base64
+        return try sendMessageInternal(
+            recipientDeviceId: recipientDeviceId,
+            recipientAgreementKey: recipientAgreementKey,
+            plaintext: plaintext,
+            contentType: Constants.contentTypeImage
+        )
+    }
+
+    private func sendMessageInternal(
+        recipientDeviceId: String,
+        recipientAgreementKey: Data,
+        plaintext: String,
+        contentType: UInt8
+    ) throws -> Data {
         let encrypted = try safeNode.createEncryptedMessage(
             recipientDeviceId: recipientDeviceId,
             recipientAgreementKey: recipientAgreementKey,
@@ -83,7 +143,7 @@ final class FlareRepository: @unchecked Sendable {
         let meshMessage = try safeNode.buildMeshMessage(
             recipientDeviceId: recipientDeviceId,
             encryptedPayload: encrypted,
-            contentType: 1 // Text
+            contentType: contentType
         )
 
         let messageId = meshMessage.messageId
@@ -93,11 +153,22 @@ final class FlareRepository: @unchecked Sendable {
             encryptedPayload: encrypted
         )
 
+        // Store a display-friendly version locally
+        let displayContent: String
+        switch contentType {
+        case Constants.contentTypeVoiceMessage:
+            displayContent = Constants.mediaPrefixVoice
+        case Constants.contentTypeImage:
+            displayContent = Constants.mediaPrefixImage
+        default:
+            displayContent = plaintext
+        }
+
         let chatMsg = FfiChatMessage(
             messageId: messageId,
             conversationId: recipientDeviceId,
             senderDeviceId: getDeviceId(),
-            content: plaintext,
+            content: displayContent,
             timestampMs: Int64(Date().timeIntervalSince1970 * 1000),
             isOutgoing: true,
             deliveryStatus: 1 // SENT
@@ -105,6 +176,21 @@ final class FlareRepository: @unchecked Sendable {
         try safeNode.storeChatMessage(message: chatMsg)
 
         return meshMessage.serialized
+    }
+
+    /// Resizes an image so its longest side does not exceed maxDimension.
+    private static func resizeImage(_ image: UIImage, maxDimension: CGFloat) -> UIImage {
+        let size = image.size
+        let longestSide = max(size.width, size.height)
+        guard longestSide > maxDimension else { return image }
+
+        let scale = maxDimension / longestSide
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
     }
 
     func processIncomingMessage(_ rawData: Data) throws -> IncomingMessageResult {
@@ -155,7 +241,8 @@ final class FlareRepository: @unchecked Sendable {
             return IncomingMessageResult(decision: .store, senderId: nil, plaintext: nil, messageId: nil)
         case .dropDuplicate, .dropExpired, .dropHopLimit,
              .dropInvalidSignature, .dropTtlInflation,
-             .dropHopCountDecrease, .dropSenderRateLimit:
+             .dropHopCountDecrease, .dropSenderRateLimit,
+             .dropParseError:
             return IncomingMessageResult(decision: .drop, senderId: nil, plaintext: nil, messageId: nil)
         }
     }
@@ -196,6 +283,27 @@ final class FlareRepository: @unchecked Sendable {
     }
 
     // MARK: - Contacts
+
+    func deleteContact(deviceId: String) throws {
+        try safeNode.deleteContact(deviceId: deviceId)
+        try refreshContacts()
+    }
+
+    func updateContactDisplayName(deviceId: String, displayName: String) throws {
+        try safeNode.updateContactDisplayName(deviceId: deviceId, displayName: displayName)
+        try refreshContacts()
+    }
+
+    func buildBroadcastMessage(plaintext: String) throws -> Data {
+        guard let payloadData = plaintext.data(using: .utf8) else {
+            throw FlareRepositoryError.invalidInput
+        }
+        let meshMsg = try safeNode.buildBroadcastMessage(
+            plaintextPayload: payloadData,
+            contentType: Constants.contentTypeText
+        )
+        return meshMsg.serialized
+    }
 
     func addContact(
         deviceId: String,
@@ -446,6 +554,47 @@ final class FlareRepository: @unchecked Sendable {
 
     func powerEvaluate(nowSecs: Int64) -> FfiPowerTierRecommendation {
         safeNode.powerEvaluate(nowSecs: nowSecs)
+    }
+
+    // MARK: - Data Wipe
+
+    /// Permanently erases all data and reinitializes with a fresh identity.
+    /// Used when the destruction code is entered.
+    func wipeAndReinitialize() throws {
+        // 1. Stop mesh service
+        MeshService.shared.stop()
+
+        // 2. Clear lock-related UserDefaults
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: Constants.prefsKeyUnlockCodeHash)
+        defaults.removeObject(forKey: Constants.prefsKeyDestructionCodeHash)
+        defaults.removeObject(forKey: Constants.prefsKeyDisplayName)
+
+        // 3. Destroy current node
+        lock.lock()
+        node = nil
+        lock.unlock()
+
+        // 4. Delete database files
+        let dbPath = Self.databasePath()
+        let fm = FileManager.default
+        for suffix in ["", "-wal", "-shm"] {
+            try? fm.removeItem(atPath: dbPath + suffix)
+        }
+
+        // 5. Delete keychain passphrase so a new one is generated
+        let keychainKey = "com.flare.mesh.device-passphrase"
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: keychainKey,
+        ]
+        SecItemDelete(query as CFDictionary)
+
+        // 6. Reinitialize with fresh identity
+        try initialize()
+
+        // 7. Restart mesh service
+        MeshService.shared.start()
     }
 
     // MARK: - Private Helpers

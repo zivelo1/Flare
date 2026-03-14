@@ -100,7 +100,7 @@ final class MeshService: ObservableObject {
             .sink { [weak self] event in
                 guard let self = self else { return }
                 if event.connected {
-                    self.logger.info("Peer connected: \(event.identifier)")
+                    self.logger.info("Peer connected")
                     self.lastPeerSeenMs = Date().timeIntervalSince1970
                     let repo = FlareRepository.shared
                     repo.notifyPeerConnected(event.identifier)
@@ -116,7 +116,7 @@ final class MeshService: ObservableObject {
                         _ = self.bleManager.sendToPeer(event.identifier, data: data)
                     }
                 } else {
-                    self.logger.info("Peer disconnected: \(event.identifier)")
+                    self.logger.info("Peer disconnected")
                 }
                 self.updateMeshStatus()
             }
@@ -132,7 +132,7 @@ final class MeshService: ObservableObject {
             switch result.decision {
             case .deliverLocally:
                 if let senderId = result.senderId, let plaintext = result.plaintext {
-                    logger.info("Message delivered locally from \(senderId)")
+                    logger.info("Message delivered locally")
                     incomingDelivered.send(DeliveredMessage(senderId: senderId, plaintext: plaintext))
 
                     if let messageId = result.messageId {

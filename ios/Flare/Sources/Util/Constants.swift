@@ -35,6 +35,34 @@ enum Constants {
     static let sprayCopies: Int = 8
     static let requestedMTU: Int = 517
 
+    // BLE Chunking — must match Android BleChunker protocol
+    static let bleChunkHeaderSize: Int = 5
+    static let bleChunkMagic: UInt8 = 0xF1
+    static let bleChunkMaxCount: Int = 255
+    static let bleChunkReassemblyTimeoutSeconds: TimeInterval = 30.0
+    static let bleChunkWriteTimeoutSeconds: TimeInterval = 5.0
+
+    // BLE MTU
+    /// Minimum usable MTU when negotiation hasn't happened yet.
+    static let minMTU: Int = 20
+    /// iOS caps ATT characteristic values at 512 bytes (same as Android).
+    static let maxCharacteristicValueLength: Int = 512
+
+    // Content Types — must match Rust/Android
+    static let contentTypeText: UInt8 = 1
+    static let contentTypeVoiceMessage: UInt8 = 2
+    static let contentTypeImage: UInt8 = 3
+    static let contentTypeKeyExchange: UInt8 = 4
+    static let contentTypeAcknowledgment: UInt8 = 5
+
+    // Media Message Prefixes — must match Android
+    static let mediaPrefixVoice: String = "flare:voice:"
+    static let mediaPrefixImage: String = "flare:image:"
+
+    // Image Compression for mesh transfer
+    static let imageMaxDimension: CGFloat = 400
+    static let imageCompressQuality: CGFloat = 0.35
+
     // QR Code
     static let qrDataSeparator = "|"
     static let qrMinFields = 3
@@ -90,6 +118,14 @@ enum Constants {
     /// Interval for checking Wi-Fi Direct transfer queue (seconds).
     static let wifiDirectQueueCheckInterval: TimeInterval = 5.0
 
+    // Destruction Code (Lock Screen)
+    static let prefsKeyUnlockCodeHash = "unlock_code_hash"
+    static let prefsKeyDestructionCodeHash = "destruction_code_hash"
+    static let minCodeLength = 4
+
+    // Broadcast
+    static let broadcastDeviceId = "ffffffffffffffffffffffffffffffff"
+
     // Message Size Tiers (mirrors Rust SizeTierConfig defaults)
     /// Maximum payload size for BLE mesh relay (bytes).
     static let meshRelayMaxBytes: Int = 15 * 1024
@@ -97,4 +133,34 @@ enum Constants {
     static let directPreferredMaxBytes: Int = 64 * 1024
     /// Absolute maximum payload size (bytes).
     static let absoluteMaxPayloadBytes: Int = 10 * 1024 * 1024
+
+    // ── Preferences ─────────────────────────────────────────────────
+    /// UserDefaults key for display name.
+    static let prefsKeyDisplayName = "user_display_name"
+    /// UserDefaults key for language preference.
+    static let prefsKeyLanguage = "app_language"
+    /// UserDefaults key for dark mode preference.
+    static let prefsKeyDarkMode = "dark_mode"
+    /// Language code for system default.
+    static let languageSystemDefault = "system"
+
+    // ── Supported Languages ─────────────────────────────────────────
+
+    struct LanguageOption: Identifiable {
+        let code: String
+        let name: String
+        let nativeName: String
+        var id: String { code }
+    }
+
+    static let supportedLanguages: [LanguageOption] = [
+        LanguageOption(code: languageSystemDefault, name: "System Default", nativeName: ""),
+        LanguageOption(code: "en", name: "English", nativeName: "English"),
+        LanguageOption(code: "fa", name: "Farsi", nativeName: "فارسی"),
+        LanguageOption(code: "ar", name: "Arabic", nativeName: "العربية"),
+        LanguageOption(code: "es", name: "Spanish", nativeName: "Español"),
+        LanguageOption(code: "ru", name: "Russian", nativeName: "Русский"),
+        LanguageOption(code: "zh-Hans", name: "Chinese", nativeName: "中文"),
+        LanguageOption(code: "ko", name: "Korean", nativeName: "한국어"),
+    ]
 }

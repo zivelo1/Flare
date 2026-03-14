@@ -1,8 +1,8 @@
 # Flare — Project Status
 
-## Current Phase: Phase 9 — UI Polish & Security (Android)
-**Strategy:** Android-first. In target markets (Iran, Syria, Yemen, Sudan, Myanmar, Cuba, Venezuela, Ethiopia), Android has 85-98% market share. iOS deferred to backlog.
-**Previous:** Phase 8 localization (6 languages), Phase 6A device testing verified — encrypted BLE mesh messaging working on 2 physical Android devices.
+## Current Phase: Phase 10 — Release Preparation (Android + iOS)
+**Strategy:** Android-first. In target markets (Iran, Syria, Yemen, Sudan, Myanmar, Cuba, Venezuela, Ethiopia), Android has 85-98% market share. iOS now at feature parity.
+**Previous:** Phase 9 Android: BLE chunking 512-byte cap fix, media delivery verified, log sanitization. Phase 9B iOS: feature parity (contact management, broadcast, destruction code, lock screen, profile name).
 
 ## What's Done
 
@@ -160,6 +160,23 @@
 - [x] **Voice recording** — hold-to-record with AVAudioRecorder (24kbps AAC, 16kHz), live waveform from averagePower, .m4a output
 - [x] **Image capture** — UIImagePickerController via UIViewControllerRepresentable, preview sheet with send/cancel
 - [x] **Dark mode** — semantic SwiftUI colors throughout, FlareOrange with appropriate opacity
+- [x] **BLE chunking** — BleChunker + ChunkReassembler ported from Android, identical 5-byte header protocol (magic 0xF1, 16-bit msgId, chunkIdx, totalChunks), max 255 chunks, backward-compatible with non-chunked data
+- [x] **MTU tracking** — per-peripheral and per-central MTU negotiation via CoreBluetooth `maximumWriteValueLength`/`maximumUpdateValueLength`, capped at 512 bytes (matching Android)
+- [x] **BLE send deduplication** — write path (reliable) preferred over notify path; notify-only sent to centrals not already reached via write
+- [x] **Media send pipeline** — `sendVoiceMessage()` and `sendImageMessage()` in FlareRepository with Base64 encoding, media prefixes matching Android (`flare:voice:`, `flare:image:`), image resize to 400px max + 35% JPEG quality
+- [x] **Media receive/display** — MessageBubble detects media prefixes, renders inline images and voice player with play/stop/progress
+- [x] **Voice playback** — AVAudioPlayer-based VoiceMessagePlayer with progress bar and duration display
+- [x] **Chunk reassembly on receive** — separate reassemblers for central and peripheral roles, periodic stale buffer pruning
+- [x] **Log sanitization** — peer identifiers truncated/removed from BLE and MeshService logs
+- [x] **Contact deletion** — swipe-to-delete with confirmation alert, context menu with delete option, cascading delete via Rust FFI `deleteContact`
+- [x] **Contact rename** — context menu rename with alert TextField, backed by Rust DB `updateContactDisplayName`
+- [x] **Profile name** — editable display name in Settings via @AppStorage, persisted via UserDefaults (`user_display_name`)
+- [x] **Broadcast messaging** — BroadcastView with TextEditor, security warning, send button, confirmation dialog, success toast. Sends to all contacts via `sendBroadcast(text:)` in ChatViewModel
+- [x] **Destruction code (full implementation)** — DestructionCodeSetupView with unlock + destruction code setup, CryptoKit SHA-256 hashing, validation (min length, codes differ, confirmation match), remove with confirmation dialog. Stored as hashes via @AppStorage
+- [x] **Lock screen with biometric** — LockScreenView with LocalAuthentication (Face ID/Touch ID/Optic ID) as primary unlock, SecureField code entry as fallback. Shake animation on wrong code. Gates app entry in FlareApp when destruction code is configured
+- [x] **FlareRepository.wipeAndReinitialize()** — stops MeshService, clears UserDefaults (lock codes + display name), destroys FlareNode, deletes SQLite DB files (-wal, -shm), deletes Keychain passphrase, reinitializes with fresh identity, restarts MeshService
+- [x] **Constants centralization** — destruction code keys, broadcast device ID, preferences keys, language options all in Constants.swift (matching Android Constants.kt)
+- [x] **FaceID permission** — NSFaceIDUsageDescription added to Info.plist and project.yml
 
 ### Infrastructure
 - [x] GitHub repo (github.com/zivelo1/Flare)
@@ -278,20 +295,34 @@
 - [x] **FlareApplication.wipeAndReinitialize()** — complete data destruction: stops mesh service, clears SharedPreferences, deletes encrypted database files (flare.db, -wal, -shm), resets FlareRepository singleton, reinitializes FlareNode with fresh identity
 - [ ] **Emoji picker** — in-chat emoji selector for quick access beyond system keyboard
 
-### Phase 10 — Android Release
-- [ ] Battery drain profiling across power tiers
-- [ ] Memory profiling under relay load
-- [ ] Wi-Fi Direct testing on real hardware
-- [ ] Power management tier behavior on real battery
-- [ ] Signed release APK
-- [ ] F-Droid submission
+### Phase 9B — iOS Feature Parity (Complete)
+- [x] **Contact deletion** — swipe-to-delete + context menu, confirmation alert, cascading Rust FFI delete
+- [x] **Contact rename** — context menu rename via alert TextField, Rust DB `updateContactDisplayName`
+- [x] **Profile name** — editable display name in Settings, @AppStorage persistence
+- [x] **Broadcast messaging** — BroadcastView with security warning, sends to all contacts
+- [x] **Destruction code** — DestructionCodeSetupView (CryptoKit SHA-256), LockScreenView (Face ID/Touch ID biometric + manual code entry), full data wipe on destruction code
+- [x] **FaceID permission** — NSFaceIDUsageDescription in Info.plist + project.yml
+- [x] **Constants parity** — destruction code keys, broadcast device ID, preferences, language options centralized
+
+### Phase 10 — Release Preparation
+- [ ] Battery drain profiling across power tiers (Android)
+- [ ] Memory profiling under relay load (Android)
+- [ ] Android signed release APK (signing config, keystore.properties, CI enhancement)
+- [ ] Android F-Droid metadata
 - [ ] First GitHub Release (tagged APK download)
+- [ ] iOS localization (6 languages: Farsi, Arabic, Spanish, Russian, Chinese, Korean)
+- [ ] iOS build script (Rust cross-compilation for aarch64-apple-ios + simulator)
+- [ ] iOS project.yml version bump + simulator library path
+- [ ] Android PerformanceMonitor (battery/memory profiling UI per power tier)
 
 ### Future Enhancements (Backlog)
-- [ ] **iOS device testing** — physical iPhone BLE, cross-platform Android↔iOS messaging (Rust iOS cross-compilation already verified)
+- [ ] **Device testing** — physical iPhone BLE, cross-platform Android↔iOS messaging
 - [ ] **iOS App Store submission** — $99/year Apple Developer Program, App Store review
-- [ ] iOS localization (SwiftUI RTL, translations for all 6 languages)
+- [ ] **Android F-Droid submission** — metadata, reproducible builds
+- [ ] Wi-Fi Direct testing on real hardware (Android + iOS)
+- [ ] Power management tier behavior on real battery
 - [ ] iOS background execution tuning (CoreBluetooth state restoration is wired but untested)
+- [ ] RTL layout testing (Farsi/Arabic) — chat bubbles, navigation direction
 
 ### Known Issues (Remaining)
 - **FFI method gaps:** Several Kotlin methods in `FlareRepository.kt` called FFI methods that don't exist in the UniFFI bindings (`wifiDirect*`, `power*`, `recommendTransferStrategy`, `processRemoteNeighborhoodForPeer`). These are currently stubbed with local implementations. The Rust FFI layer needs to expose these methods properly.
@@ -324,8 +355,9 @@
 | 7 — Security Hardening | Crypto review, DB key fix, rendezvous DH fix, payload sig fix, TTL guard fix | **Complete** (5 vulnerabilities fixed, 193 tests) |
 | 8 — Localization & UX (Android) | 6 languages, language selector, contact rename, broadcast, profile | **Complete** |
 | 9 — UI Polish (Android) | Dark mode, voice/image, contact deletion, KeyExchange, APK sharing, CI fix | **Complete** |
-| 10 — Android Release | Battery/memory profiling, signed APK, F-Droid, GitHub Release | Planned |
-| Backlog — iOS | iOS device testing, App Store ($99/yr), iOS localization | Deferred |
+| 9B — iOS Feature Parity | Contact mgmt, broadcast, destruction code, lock screen, profile name | **Complete** |
+| 10 — Release Preparation | Signed APK, F-Droid, iOS localization, build scripts, profiling | In Progress |
+| Backlog | Device testing, App Store, F-Droid submission, RTL testing | Deferred |
 
 ### Target Market Analysis (Android-First Rationale)
 | Country | Android | iOS | Context |

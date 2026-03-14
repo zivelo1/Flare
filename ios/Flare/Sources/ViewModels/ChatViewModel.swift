@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import UIKit
 
 @MainActor
 final class ChatViewModel: ObservableObject {
@@ -68,31 +69,107 @@ final class ChatViewModel: ObservableObject {
                     plaintext: text
                 )
                 meshService.enqueueOutbound(recipientDeviceId: conversationId, data: serialized)
-
-                if let idx = currentMessages.firstIndex(where: { $0.messageId == optimistic.messageId }) {
-                    currentMessages[idx] = ChatMessage(
-                        messageId: optimistic.messageId,
-                        conversationId: conversationId,
-                        senderDeviceId: optimistic.senderDeviceId,
-                        content: text,
-                        timestamp: optimistic.timestamp,
-                        isOutgoing: true,
-                        deliveryStatus: .sent
-                    )
-                }
+                updateMessageStatus(optimistic, conversationId: conversationId, content: text, status: .sent)
             } catch {
-                if let idx = currentMessages.firstIndex(where: { $0.messageId == optimistic.messageId }) {
-                    currentMessages[idx] = ChatMessage(
-                        messageId: optimistic.messageId,
-                        conversationId: conversationId,
-                        senderDeviceId: optimistic.senderDeviceId,
-                        content: text,
-                        timestamp: optimistic.timestamp,
-                        isOutgoing: true,
-                        deliveryStatus: .failed
-                    )
-                }
+                updateMessageStatus(optimistic, conversationId: conversationId, content: text, status: .failed)
             }
+        }
+    }
+
+    func sendVoiceMessage(conversationId: String, audioURL: URL) {
+        guard let contact = repo.contacts.first(where: { $0.identity.deviceId == conversationId }) else { return }
+        guard let audioData = try? Data(contentsOf: audioURL) else { return }
+
+        let displayContent = Constants.mediaPrefixVoice
+
+        let optimistic = ChatMessage(
+            messageId: UUID().uuidString,
+            conversationId: conversationId,
+            senderDeviceId: repo.getDeviceId(),
+            content: displayContent,
+            timestamp: Date(),
+            isOutgoing: true,
+            deliveryStatus: .pending
+        )
+        currentMessages.append(optimistic)
+
+        Task {
+            do {
+                let serialized = try repo.sendVoiceMessage(
+                    recipientDeviceId: conversationId,
+                    recipientAgreementKey: contact.identity.agreementPublicKey,
+                    audioData: audioData
+                )
+                meshService.enqueueOutbound(recipientDeviceId: conversationId, data: serialized)
+                updateMessageStatus(optimistic, conversationId: conversationId, content: displayContent, status: .sent)
+            } catch {
+                updateMessageStatus(optimistic, conversationId: conversationId, content: displayContent, status: .failed)
+            }
+        }
+    }
+
+    func sendImageMessage(conversationId: String, image: UIImage) {
+        guard let contact = repo.contacts.first(where: { $0.identity.deviceId == conversationId }) else { return }
+
+        let displayContent = Constants.mediaPrefixImage
+
+        let optimistic = ChatMessage(
+            messageId: UUID().uuidString,
+            conversationId: conversationId,
+            senderDeviceId: repo.getDeviceId(),
+            content: displayContent,
+            timestamp: Date(),
+            isOutgoing: true,
+            deliveryStatus: .pending
+        )
+        currentMessages.append(optimistic)
+
+        Task {
+            do {
+                let serialized = try repo.sendImageMessage(
+                    recipientDeviceId: conversationId,
+                    recipientAgreementKey: contact.identity.agreementPublicKey,
+                    image: image
+                )
+                meshService.enqueueOutbound(recipientDeviceId: conversationId, data: serialized)
+                updateMessageStatus(optimistic, conversationId: conversationId, content: displayContent, status: .sent)
+            } catch {
+                updateMessageStatus(optimistic, conversationId: conversationId, content: displayContent, status: .failed)
+            }
+        }
+    }
+
+    func sendBroadcast(text: String) {
+        let contacts = repo.contacts
+        guard !contacts.isEmpty else { return }
+
+        for contact in contacts {
+            do {
+                let serialized = try repo.sendMessage(
+                    recipientDeviceId: contact.identity.deviceId,
+                    recipientAgreementKey: contact.identity.agreementPublicKey,
+                    plaintext: text
+                )
+                meshService.enqueueOutbound(recipientDeviceId: contact.identity.deviceId, data: serialized)
+            } catch {
+                // Continue sending to remaining contacts
+            }
+        }
+
+        rebuildConversations(from: contacts)
+    }
+
+    private func updateMessageStatus(_ msg: ChatMessage, conversationId: String, content: String, status: DeliveryStatus) {
+        if let idx = currentMessages.firstIndex(where: { $0.messageId == msg.messageId }) {
+            currentMessages[idx] = ChatMessage(
+                messageId: msg.messageId,
+                conversationId: conversationId,
+                senderDeviceId: msg.senderDeviceId,
+                content: content,
+                timestamp: msg.timestamp,
+                isOutgoing: true,
+                deliveryStatus: status
+            )
         }
     }
 
